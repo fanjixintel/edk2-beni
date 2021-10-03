@@ -35,7 +35,7 @@
 typedef struct _BENI_HELLO_WORLD_PROTOCOL BENI_HELLO_WORLD_PROTOCOL;
 
 /**
-  Print "Hello Wrold".
+  Print "Hello Wrold" in serail console.
 
   @param[in]  This                  A pointer to the BENI_HELLO_WORLD_PROTOCOL instance.
 

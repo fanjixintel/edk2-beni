@@ -409,6 +409,12 @@ INF  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf
 !endif
 !endif
 
+#
+# Add new modules here.
+#
+INF BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
+INF BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
+
 ################################################################################
 
 [FV.FVMAIN_COMPACT]

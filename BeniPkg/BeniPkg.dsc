@@ -58,6 +58,11 @@
   DEFINE TPM_CONFIG_ENABLE       = FALSE
 
   #
+  # Add new macros here.
+  #
+  DEFINE DEBUG_ON_SERIAL_PORT    = TRUE
+
+  #
   # Network definition
   #
   DEFINE NETWORK_TLS_ENABLE             = FALSE
@@ -1070,3 +1075,9 @@
       Tpm12DeviceLib|SecurityPkg/Library/Tpm12DeviceLibDTpm/Tpm12DeviceLibDTpm.inf
   }
 !endif
+
+  #
+  # Add new modules here.
+  #
+  BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
+  BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
