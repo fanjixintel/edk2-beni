@@ -1,0 +1,78 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : BeniPkg.dsc
+#  @Date        : 20211003
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is a package used for study.
+#
+#  @History:
+#    20211003: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  DEC_SPECIFICATION                 = 0x00010005
+  PACKAGE_NAME                      = BeniPkg
+  PACKAGE_GUID                      = D409033D-7C65-4083-9CAA-41FF65371029
+  PACKAGE_VERSION                   = 1.0
+
+[Includes]
+  Include
+
+[LibraryClasses]
+
+[Guids]
+  # // Include/BeniData.h
+  # // {DB56E93F-C5EF-4888-8006-F64DBCBBF755}
+  gBeniGlobalDataGuid               = { 0xdb56e93f, 0xc5ef, 0x4888, { 0x80, 0x06, 0xf6, 0x4d, 0xbc, 0xbb, 0xf7, 0x55 } }
+  # // Include/Guid/BeniPkgTokenSpace.h
+  # // {6BB4BEC8-23D8-40AF-8F24-99E7AC8601FD}
+  gBeniPkgTokenSpaceGuid            = { 0x6bb4bec8, 0x23d8, 0x40af, { 0x8f, 0x24, 0x99, 0xe7, 0xac, 0x86, 0x01, 0xfd } }
+  # // Include/Guid/BeniSetupDxeHii.h
+  # // D8F904A6-5531-47B6-A35B-B38393053701}
+  gBeniSetupFormSetGuid             = { 0xd8f904a6, 0x5531, 0x47b6, { 0xa3, 0x5b, 0xb3, 0x83, 0x93, 0x05, 0x37, 0x01 } }
+  # // Include/Guid/BeniSetupDxeHii.h
+  # // {F9E3E0E5-2FB5-4981-B4E4-4FFF253409BC}
+  gBeniSetupInventoryGuid           = { 0xf9e3e0e5, 0x2fb5, 0x4981, { 0xb4, 0xe4, 0x4f, 0xff, 0x25, 0x34, 0x09, 0xbc } }
+  # // Include/Guid/BeniSetupDxeHii.h
+  # // {CAA52086-F67C-4252-A54A-CBF1FBCC10DC}
+  gBeniIfrRefreshIdOpGuid           = { 0xcaa52086, 0xf67c, 0x4252, { 0xa5, 0x4a, 0xcb, 0xf1, 0xfb, 0xcc, 0x10, 0xdc } }
+  # // Include/Guid/BeniFvData.h
+  # // {64DB4374-88D6-474A-A30F-C4910FBEA439}
+  gBeniFvDataGuid                   = { 0x64db4374, 0x88d6, 0x474a, { 0xa3, 0x0f, 0xc4, 0x91, 0x0f, 0xbe, 0xa4, 0x39 } }
+
+[Protocols]
+  # // Include/Protocol/BeniDataProtocol.h
+  # // {2832CD33-BAF2-4762-BC8A-37D997817144}
+  gBeniDataProtocolGuid             = { 0x2832cd33, 0xbaf2, 0x4762, { 0xbc, 0x8a, 0x37, 0xd9, 0x97, 0x81, 0x71, 0x44 } }
+  # // Include/Protocol/HelloWorldProtocol.h
+  # // {038F1AF5-1C8D-408F-AB25-03AEB5965D6E}
+  gBeniHelloWorldProtocolGuid       = { 0x038f1af5, 0x1c8d, 0x408f, { 0xab, 0x25, 0x30, 0xae, 0xb5, 0x96, 0x5d, 0x6e } }
+
+[PcdsFixedAtBuild]
+  gBeniPkgTokenSpaceGuid.PcdStartupFile|{ 0x69, 0xec, 0x22, 0x4e, 0x80, 0x9f, 0x42, 0x3f, 0x8f, 0x71, 0xef, 0x6a, 0x29, 0xe8, 0x7e, 0xb0 }|VOID*|0x10000001
+  gBeniPkgTokenSpaceGuid.PcdShellAppFile|{ 0xe0, 0x75, 0x83, 0x75, 0x36, 0x61, 0x4b, 0xad, 0xad, 0x44, 0x27, 0x72, 0x45, 0xd9, 0x42, 0xc6 }|VOID*|0x10000002
+  gBeniPkgTokenSpaceGuid.PcdGrubBinaryFile|{ 0x51, 0x9f, 0x98, 0xfe, 0xec, 0x8f, 0x46, 0x47, 0x85, 0x3c, 0x7f, 0xe4, 0x62, 0x3e, 0xf8, 0x9a }|VOID*|0x10000003
+  gBeniPkgTokenSpaceGuid.PcdBeniDataFile|{ 0x52, 0x9f, 0x98, 0xfe, 0xec, 0x8f, 0x46, 0x47, 0x85, 0x3c, 0x7f, 0xe4, 0x62, 0x3e, 0xf8, 0x9a }|VOID*|0x10000004
+  gBeniPkgTokenSpaceGuid.PcdTestVar1|0xA5|UINT8|0x20000001
+  gBeniPkgTokenSpaceGuid.PcdTestVar2|0xA5A5|UINT16|0x20000002
+  gBeniPkgTokenSpaceGuid.PcdTestVar3|0xA5A5A5A5|UINT32|0x20000003
+  gBeniPkgTokenSpaceGuid.PcdTestVar4|0xA5A5A5A5A5A5A5A5|UINT64|0x20000004
+
+[PcdsFeatureFlag]
+  gBeniPkgTokenSpaceGuid.PcdTestFeatureVar|FALSE|BOOLEAN|0x30000001
+
+[PcdsDynamic]
+  gBeniPkgTokenSpaceGuid.PcdBeniVersion|0xABCDDBCA|UINT32|0x40000001
+
+[PcdsPatchableInModule]
+  gBeniPkgTokenSpaceGuid.PcdPatchableVar|0x00ABCDEF|UINT32|0x50000001
