@@ -1,0 +1,24 @@
+{
+  "files.associations": {
+    "benihelloworldprotocol.h": "c",
+    "debuglib.h": "c",
+    "memoryallocationlib.h": "c",
+    "benidebuglib.h": "c"
+  },
+  "files.exclude": {
+    "**/*.a": true,
+    "**/*.cgi": true,
+    "**/*.dll": true,
+    "**/*.exe": true,
+    "**/*.o": true,
+    "**/*.so": true,
+    "**/Build": true,
+    "**/OVMF.fd": true,
+    ".azurepipelines": true,
+    ".mergify": true,
+    ".pytool": true,
+    "Conf": true,
+    ".gitignore": true,
+    ".mailmap": true,
+  },
+}
