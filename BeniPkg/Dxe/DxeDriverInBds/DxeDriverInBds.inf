@@ -1,0 +1,54 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : DxeDriverInBds.inf
+#  @Date        : 20211004
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    We can have the DXE driver executed in BDS stage,
+#    and this driver is an example.
+#
+#  @History:
+#    20211004: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  INF_VERSION                       = 0x00010005
+  BASE_NAME                         = DxeDriverInBds
+  FILE_GUID                         = 04687443-0174-498F-A2F9-08F3A5363F84
+  MODULE_TYPE                       = UEFI_DRIVER
+  VERSION_STRING                    = 1.0
+  ENTRY_POINT                       = DxeDriverInBdsEntry
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES              = IA32 X64 IPF EBC
+#
+
+[Sources]
+  DxeDriverInBds.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  BeniPkg/BeniPkg.dec
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  MemoryAllocationLib
+  DebugLib
+
+[Protocols]
+  gEfiPciIoProtocolGuid                                 ## CONSUMES
+
+[Depex]
+  gEfiPciIoProtocolGuid

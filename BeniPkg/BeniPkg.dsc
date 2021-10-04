@@ -1085,6 +1085,7 @@
   BeniPkg/Dxe/Ramdisk/Ramdisk.inf
   BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
   BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
+  BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
   #
   # Add new applications here.
   #
