@@ -1088,3 +1088,4 @@
   # Add new applications here.
   #
   BeniPkg/App/HelloWorldApp/HelloWorldApp.inf
+  BeniPkg/App/AppDevPath/AppDevPath.inf

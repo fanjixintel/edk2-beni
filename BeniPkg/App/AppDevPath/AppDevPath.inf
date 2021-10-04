@@ -1,0 +1,49 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : AppDevPath.inf
+#  @Date        : 20211004
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is an application to print device path.
+#
+#  @History:
+#    20211004: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  INF_VERSION                       = 0x00010005
+  BASE_NAME                         = appdp
+  FILE_GUID                         = 8F989B9A-3E27-4352-8A16-43DA1DBA7A85
+  MODULE_TYPE                       = UEFI_APPLICATION
+  VERSION_STRING                    = 1.0
+  ENTRY_POINT                       = UefiMain
+
+#
+#  VALID_ARCHITECTURES              = IA32 X64 IPF
+#
+
+[Sources]
+  AppDevPath.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiBootServicesTableLib
+  UefiApplicationEntryPoint
+  UefiLib
+  PrintLib
+  DebugLib
+  DevicePathLib
+
+[Protocols]
+  gEfiLoadedImageProtocolGuid                           ## CONSUMES

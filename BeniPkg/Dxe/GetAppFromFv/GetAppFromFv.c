@@ -21,7 +21,7 @@
 
 #include "GetAppFromFv.h"
 
-typedef struct _APP_INFO_IN_FV_ {
+typedef struct {
   CHAR16        *AppName;
   GUID          AppGuid;
 } APP_INFO_IN_FV;
@@ -35,6 +35,8 @@ typedef struct _APP_INFO_IN_FV_ {
 STATIC APP_INFO_IN_FV mApps[] = {
   // HelloWorldApp.inf:
   {L"helloworld.efi", { 0xdf674789, 0x4265, 0x4056, 0x9d, 0xd0, 0x51, 0x23, 0xbb, 0x5a, 0x81, 0xf5 }},
+  // AppDevPath.inf:
+  {L"appdp.efi",      { 0x8f989b9a, 0x3e27, 0x4352, 0x8a, 0x16, 0x43, 0xda, 0x1d, 0xba, 0x7a, 0x85 }},
   // This is the end.
   {NULL, { 0 }}
 };
