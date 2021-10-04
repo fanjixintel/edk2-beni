@@ -1083,3 +1083,4 @@
   BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
   BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
   BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
+  BeniPkg/Dxe/Ramdisk/Ramdisk.inf
