@@ -1086,6 +1086,7 @@
   BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
   BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
   BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
+  BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
   #
   # Add new applications here.
   #
