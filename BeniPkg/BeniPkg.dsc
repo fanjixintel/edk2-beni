@@ -6,7 +6,7 @@
 #  @Version     : 1.0
 #  @Description :
 #    This is a package used for study.
-#    Copied from OvmfPkg\OvmfPkgX64.dsc
+#    Copied from OvmfPkg/OvmfPkgX64.dsc
 #
 #  @History:
 #    20211002: Initialize.
@@ -1080,5 +1080,6 @@
   #
   # Add new modules here.
   #
+  BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
   BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
   BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf

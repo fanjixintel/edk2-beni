@@ -1,0 +1,48 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : HelloWorldDxe.inf
+#  @Date        : 20211004
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is the first UEFI module to say "Hello World".
+#
+#  @History:
+#    20211004: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  INF_VERSION                       = 0x00010005
+  BASE_NAME                         = HelloWorldDxe
+  FILE_GUID                         = 75698CC2-3EF2-42AB-A433-EA47C96D699C
+  MODULE_TYPE                       = UEFI_DRIVER
+  VERSION_STRING                    = 1.0
+  ENTRY_POINT                       = HelloWorldDxeEntry
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES              = IA32 X64 IPF EBC
+#
+
+[Sources]
+  HelloWorldDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  BeniPkg/BeniPkg.dec
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  DebugLib
+
+[Depex]
+  TRUE

@@ -6,7 +6,7 @@
 #  @Version     : 1.0
 #  @Description :
 #    This is a package used for study.
-#    Copied from OvmfPkg\OvmfPkgX64.fdf
+#    Copied from OvmfPkg/OvmfPkgX64.fdf
 #
 #  @History:
 #    20211002: Initialize.
@@ -412,6 +412,7 @@ INF  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf
 #
 # Add new modules here.
 #
+INF BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
 INF BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
 INF BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
 

@@ -6,7 +6,7 @@
 #  @Version     : 1.0
 #  @Description :
 #    This is a package used for study.
-#    Copied from OvmfPkg\OvmfPkgDefines.fdf.inc
+#    Copied from OvmfPkg/OvmfPkgDefines.fdf.inc
 #
 #  @History:
 #    20211002: Initialize.
