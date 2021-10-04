@@ -1083,6 +1083,7 @@
   BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
   BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
   BeniPkg/Dxe/Ramdisk/Ramdisk.inf
+  BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
   #
   # Add new applications here.
   #

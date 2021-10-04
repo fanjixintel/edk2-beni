@@ -416,6 +416,7 @@ INF BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
 INF BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
 INF BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
 INF BeniPkg/Dxe/Ramdisk/Ramdisk.inf
+INF BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
 #
 # Applications in FV.
 #

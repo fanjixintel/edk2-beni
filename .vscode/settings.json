@@ -3,7 +3,9 @@
     "benihelloworldprotocol.h": "c",
     "debuglib.h": "c",
     "memoryallocationlib.h": "c",
-    "benidebuglib.h": "c"
+    "benidebuglib.h": "c",
+    "getappfromfv.h": "c",
+    "simplefilesystem.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,
