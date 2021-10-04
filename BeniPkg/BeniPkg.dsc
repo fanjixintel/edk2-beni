@@ -61,6 +61,7 @@
   # Add new macros here.
   #
   DEFINE DEBUG_ON_SERIAL_PORT    = TRUE
+  DEFINE NETWORK_ENABLE          = FALSE
 
   #
   # Network definition
