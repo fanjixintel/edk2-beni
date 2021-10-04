@@ -293,6 +293,8 @@ GetAppFromFvEntryPoint (
 {
   EFI_STATUS  Status;
 
+  BENI_MODULE_START
+
   //
   // Install the Startup Binary Driver Binding Protocol.
   //
@@ -308,6 +310,8 @@ GetAppFromFvEntryPoint (
     DEBUG ((EFI_D_ERROR, "[BENI]EfiLibInstallDriverBindingComponentName2 failed. - %r\n", Status));
     return Status;
   }
+
+  BENI_MODULE_END
 
   return EFI_SUCCESS;
 }

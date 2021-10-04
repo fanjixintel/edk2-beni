@@ -72,7 +72,7 @@
   gBeniPkgTokenSpaceGuid.PcdTestFeatureVar|FALSE|BOOLEAN|0x30000001
 
 [PcdsDynamic]
-  gBeniPkgTokenSpaceGuid.PcdBeniVersion|0xABCDDBCA|UINT32|0x40000001
+  gBeniPkgTokenSpaceGuid.PcdTestVersion|0xABCDDBCA|UINT32|0x40000001
 
 [PcdsPatchableInModule]
   gBeniPkgTokenSpaceGuid.PcdPatchableVar|0x00ABCDEF|UINT32|0x50000001

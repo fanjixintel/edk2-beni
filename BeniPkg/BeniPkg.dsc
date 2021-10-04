@@ -1084,6 +1084,7 @@
   BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
   BeniPkg/Dxe/Ramdisk/Ramdisk.inf
   BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
+  BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
   #
   # Add new applications here.
   #

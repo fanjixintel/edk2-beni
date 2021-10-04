@@ -417,6 +417,7 @@ INF BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
 INF BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
 INF BeniPkg/Dxe/Ramdisk/Ramdisk.inf
 INF BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
+INF BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
 #
 # Applications in FV.
 #
