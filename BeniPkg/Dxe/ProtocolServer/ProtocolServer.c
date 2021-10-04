@@ -25,6 +25,7 @@
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/DebugLib.h>
+#include <Library/BeniDebugLib.h>
 
 #include <Protocol/BeniHelloWorldProtocol.h>
 
@@ -66,27 +67,47 @@ ProtocolServerEntry (
 {
   EFI_STATUS                   Status;
   BENI_HELLO_WORLD_PROTOCOL    *Protocol;
+  EFI_HANDLE                   NewHandle;
+
+  BENI_MODULE_START
 
   Protocol = AllocatePool (sizeof (BENI_HELLO_WORLD_PROTOCOL));
   if (NULL == Protocol) {
-    DEBUG ((EFI_D_ERROR, "[BENI][%a][%d]: Out of resource.", __FUNCTION__, __LINE__));
+    DEBUG ((EFI_D_ERROR, "[BENI]Out of resource\n"));
     return EFI_OUT_OF_RESOURCES;
   }
 
   Protocol->Revision = BENI_HELLO_WORLD_PROTOCOL_REVISION;
   Protocol->Hello    = Hello;
 
-  Status = gBS->InstallProtocolInterface (
-                    &ImageHandle,
+  //
+  // It is recommended that InstallMultipleProtocolInterfaces() be used in place of
+  // InstallProtocolInterface(), add NewHandle must be initialized to NULL before
+  // installing protocols on it.
+  //
+  NewHandle = NULL;
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                    &NewHandle,
                     &gBeniHelloWorldProtocolGuid,
-                    EFI_NATIVE_INTERFACE,
-                    Protocol
+                    Protocol,
+                    NULL
                     );
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "[BENI]Install BENI_HELLO_WORLD_PROTOCOL failed. - %r\n", Status));
+    DEBUG ((EFI_D_ERROR, "[BENI]Install protocol failed. - %r\n", Status));
+    //
+    // If succeeded, we should not free this memory because we will use it
+    // using LocateProtocol().
+    //
     FreePool (Protocol);
     return Status;
   }
+
+  //
+  // Print to see the address of installed protocol.
+  //
+  DEBUG ((EFI_D_ERROR, "[BENI]Protocol address: 0x%p\n", Protocol));
+
+  BENI_MODULE_END
 
   return EFI_SUCCESS;
 }

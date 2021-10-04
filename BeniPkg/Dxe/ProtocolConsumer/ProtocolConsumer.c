@@ -24,6 +24,7 @@
 #include <Library/UefiDriverEntryPoint.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/DebugLib.h>
+#include <Library/BeniDebugLib.h>
 
 #include <Protocol/BeniHelloWorldProtocol.h>
 
@@ -47,19 +48,27 @@ ProtocolConsumerEntry (
   EFI_STATUS                   Status;
   BENI_HELLO_WORLD_PROTOCOL    *Protocol;
 
+  BENI_MODULE_START
+
   Status = gBS->LocateProtocol (&gBeniHelloWorldProtocolGuid, NULL, (VOID **)&Protocol);
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "[BENI]Locate BENI_HELLO_WORLD_PROTOCOL failed. - %r\n", Status));
+    DEBUG ((EFI_D_ERROR, "[BENI]Locate protocol failed. - %r\n", Status));
     return Status;
   }
 
-  DEBUG ((EFI_D_ERROR, "[BENI]Protocol Version: 0x%08x\n", Protocol->Revision));
+  //
+  // Print to see the address of installed protocol.
+  //
+  DEBUG ((EFI_D_ERROR, "[BENI]Protocol address: 0x%p\n", Protocol));
+  DEBUG ((EFI_D_ERROR, "[BENI]Protocol revision: 0x%016x\n", Protocol->Revision));
 
   Status = Protocol->Hello (Protocol);
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "[BENI]Protocol->Hello failed. - %r\n", Status));
     return Status;
   }
+
+  BENI_MODULE_END
 
   return EFI_SUCCESS;
 }
