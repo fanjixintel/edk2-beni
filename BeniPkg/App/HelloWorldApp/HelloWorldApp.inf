@@ -1,0 +1,43 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : HelloWorldApp.inf
+#  @Date        : 20211004
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is an application to say Hello World.
+#
+#  @History:
+#    20211004: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  INF_VERSION                       = 0x00010006
+  BASE_NAME                         = helloworld
+  FILE_GUID                         = DF674789-4265-4056-9DD0-5123BB5A81F5
+  MODULE_TYPE                       = UEFI_APPLICATION
+  VERSION_STRING                    = 0.1
+  ENTRY_POINT                       = ShellCEntryLib
+
+#
+#  VALID_ARCHITECTURES              = IA32 X64 IPF
+#
+
+[Sources]
+  HelloWorldApp.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  ShellPkg/ShellPkg.dec
+
+[LibraryClasses]
+  UefiLib
+  ShellCEntryLib

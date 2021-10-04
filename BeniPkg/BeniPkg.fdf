@@ -416,6 +416,12 @@ INF BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
 INF BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
 INF BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
 INF BeniPkg/Dxe/Ramdisk/Ramdisk.inf
+#
+# Applications in FV.
+#
+FILE FREEFORM = DF674789-4265-4056-9DD0-5123BB5A81F5 {
+  SECTION RAW = $(OUTPUT_DIRECTORY)/$(COMPILE_DIR)/X64/BeniPkg/App/HelloWorldApp/HelloWorldApp/OUTPUT/helloworld.efi
+}
 
 ################################################################################
 

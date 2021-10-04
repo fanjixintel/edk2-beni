@@ -22,15 +22,23 @@
 
 @echo off
 
-set COMPILE_TOOLS=VS2019
-set COMPILE_ARCH=X64
+set TOOLS=VS2019
+set ARCH=X64
 set PYTHON_COMMAND=py -3
+
+::
+:: Add BENI marcos here.
+::
+@echo. > BeniPkgDefines.dsc.inc
+@echo DEFINE DEBUG_ON_SERIAL_PORT    = TRUE         >> BeniPkgDefines.dsc.inc
+@echo DEFINE NETWORK_ENABLE          = FALSE        >> BeniPkgDefines.dsc.inc
+@echo DEFINE COMPILE_DIR             = DEBUG_VS2019 >> BeniPkgDefines.dsc.inc
 
 set PKG_DIR=%CD%
 cd ..
 
 call edksetup.bat
-call build -p BeniPkg/BeniPkg.dsc -a %COMPILE_ARCH% -t %COMPILE_TOOLS%
+call build -p BeniPkg/BeniPkg.dsc -a %ARCH% -t %TOOLS%
 
 echo ====================================================
 echo.
@@ -45,7 +53,7 @@ echo.
 
 if not %errorlevel%==0 goto ERROR
 echo BIOS was built successfully!
-copy Build\BeniPkg\DEBUG_%COMPILE_TOOLS%\FV\OVMF.fd BeniPkg\
+copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF.fd BeniPkg\
 goto DONE
 
 :ERROR

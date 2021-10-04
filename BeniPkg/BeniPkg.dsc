@@ -58,12 +58,6 @@
   DEFINE TPM_CONFIG_ENABLE       = FALSE
 
   #
-  # Add new macros here.
-  #
-  DEFINE DEBUG_ON_SERIAL_PORT    = TRUE
-  DEFINE NETWORK_ENABLE          = FALSE
-
-  #
   # Network definition
   #
   DEFINE NETWORK_TLS_ENABLE             = FALSE
@@ -73,6 +67,11 @@
   DEFINE NETWORK_ISCSI_ENABLE           = TRUE
 
 !include NetworkPkg/NetworkDefines.dsc.inc
+
+#
+# Add BENI-defined macros, this file is created when building.
+#
+!include BeniPkg/BeniPkgDefines.dsc.inc
 
   #
   # Device drivers
@@ -1084,3 +1083,7 @@
   BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
   BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
   BeniPkg/Dxe/Ramdisk/Ramdisk.inf
+  #
+  # Add new applications here.
+  #
+  BeniPkg/App/HelloWorldApp/HelloWorldApp.inf
