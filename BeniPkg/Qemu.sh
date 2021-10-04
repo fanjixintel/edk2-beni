@@ -20,8 +20,8 @@
 ##
 
 OVMF_FILE=`pwd`/OVMF.fd
-LOG_FILE=`pwd`/Log.txt
-DISK_IMAGE=`pwd`/Disk.img
+LOG_FILE=`pwd`/log.txt
+DISK_IMAGE=`pwd`/disk.img
 
 if [ -f $LOG_FILE ]
 then

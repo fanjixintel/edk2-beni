@@ -1,3 +1,4 @@
 OVMF.fd
 log.txt
+disk.img
 BeniPkgDefines.dsc.inc
