@@ -59,12 +59,10 @@ UefiMain (
                   EFI_OPEN_PROTOCOL_GET_PROTOCOL
                   );
   if (!EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "[BENI]Open EfiLoadedImageProtocol failed. - %r\n", Status));
+    Print (L"App DevPath: %s%s\n",
+            ConvertDevicePathToText (DevicePathFromHandle (LoadedImage->DeviceHandle), TRUE, FALSE),
+            ConvertDevicePathToText (LoadedImage->FilePath, TRUE, FALSE));
   }
-
-  Print (L"App DevPath: %s%s\n",
-          ConvertDevicePathToText (DevicePathFromHandle (LoadedImage->DeviceHandle), TRUE, FALSE),
-          ConvertDevicePathToText (LoadedImage->FilePath, TRUE, FALSE));
 
   return Status;
 }
