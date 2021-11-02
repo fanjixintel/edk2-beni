@@ -24,6 +24,10 @@
 if exist log.txt del log.txt
 
 if exist OVMF.fd (
+    if exist disk.img (
+        qemu-system-x86_64 -usb -bios OVMF.fd -serial stdio -drive format=raw,file=disk.img >> log.txt
+        goto DONE
+    )
     qemu-system-x86_64 -usb -bios OVMF.fd -serial stdio >> log.txt
     ::@qemu-system-x86_64 -bios OVMF.fd -serial stdio -net nic -net tap,ifname=OpenVPN >> log.txt
     goto DONE
