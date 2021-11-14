@@ -55,4 +55,7 @@
   DevicePathLib
 
 [Protocols]
-  gEfiShellParametersProtocolGuid                       ## PRODUCES
+  gEfiShellParametersProtocolGuid                       ## CONSUMES
+
+[Depex]
+  gEfiSimpleFileSystemProtocolGuid
