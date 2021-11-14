@@ -328,6 +328,10 @@ INF  OvmfPkg/VirtioFsDxe/VirtioFsDxe.inf
 INF  ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf
 INF  ShellPkg/DynamicCommand/HttpDynamicCommand/HttpDynamicCommand.inf
 INF  OvmfPkg/LinuxInitrdDynamicShellCommand/LinuxInitrdDynamicShellCommand.inf
+#
+# Add new command here.
+#
+INF  BeniPkg/DynamicCommand/FsDynamicCommand/FsDynamicCommand.inf
 !endif
 INF  ShellPkg/Application/Shell/Shell.inf
 

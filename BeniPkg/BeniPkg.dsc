@@ -960,6 +960,13 @@
     <PcdsFixedAtBuild>
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }
+  #
+  # Add new command here.
+  #
+  BeniPkg/DynamicCommand/FsDynamicCommand/FsDynamicCommand.inf {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
 !endif
   ShellPkg/Application/Shell/Shell.inf {
     <LibraryClasses>

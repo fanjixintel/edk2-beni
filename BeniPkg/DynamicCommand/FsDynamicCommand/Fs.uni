@@ -1,0 +1,56 @@
+// /**
+//  @Package     : BeniPkg
+//  @FileName    : Fs.uni
+//  @Date        : 20211107
+//  @Author      : Jiangwei
+//  @Version     : 1.0
+//  @Description :
+//    This command is used for file system test.
+//
+//  @History:
+//    20211107: Initialize.
+//
+//  This program and the accompanying materials
+//  are licensed and made available under the terms and conditions of the BSD License
+//  which accompanies this distribution. The full text of the license may be found at
+//  http://opensource.org/licenses/bsd-license.php
+//
+//  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+// **/
+
+/=#
+
+#langdef   en-US "english"
+
+#string STR_GEN_TOO_MANY           #language en-US "%H%s%N: Too many arguments\r\n"
+#string STR_GEN_TOO_FEW            #language en-US "%H%s%N: Too few arguments\r\n"
+#string STR_GEN_PARAM_INV          #language en-US "%H%s%N: Invalid argument - '%H%s%N'\r\n"
+#string STR_GEN_PROBLEM            #language en-US "%H%s%N: Unknown flag - '%H%s%N'\r\n"
+#string STR_GEN_CRLF               #language en-US "\r\n"
+
+#string STR_GET_HELP_FS            #language en-US ""
+".TH fs 0 "File system test."\r\n"
+".SH NAME\r\n"
+"File system test.\r\n"
+".SH SYNOPSIS\r\n"
+" \r\n"
+"FS\r\n"
+".SH OPTIONS\r\n"
+" \r\n"
+"  No parameters\r\n"
+".SH DESCRIPTION\r\n"
+" \r\n"
+"NOTES:\r\n"
+"  1. Test command\r\n"
+"  2. Use it with caution\r\n"
+".SH EXAMPLES\r\n"
+" \r\n"
+"EXAMPLES:\r\n"
+"  * Input "fs"\r\n"
+".SH RETURNVALUES\r\n"
+" \r\n"
+"RETURN VALUES:\r\n"
+"  SHELL_SUCCESS             The action was completed as requested.\r\n"
+"  SHELL_INVALID_PARAMETER   One of the passed-in parameters was incorrectly\r\n"
+"                            formatted or its value was out of bounds.\r\n"
