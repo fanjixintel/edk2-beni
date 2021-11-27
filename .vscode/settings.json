@@ -5,7 +5,20 @@
     "memoryallocationlib.h": "c",
     "benidebuglib.h": "c",
     "getappfromfv.h": "c",
-    "simplefilesystem.h": "c"
+    "simplefilesystem.h": "c",
+    "shelldynamiccommand.h": "c",
+    "tftp.h": "c",
+    "basememorylib.h": "c",
+    "baselib.h": "c",
+    "fs.h": "c",
+    "hiilib.h": "c",
+    "printlib.h": "c",
+    "uefilib.h": "c",
+    "shelllib.h": "c",
+    "uefibootservicestablelib.h": "c",
+    "uefihiiserviceslib.h": "c",
+    "fat.h": "c",
+    "filesysteminfo.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,
