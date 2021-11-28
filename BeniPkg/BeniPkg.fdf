@@ -419,7 +419,7 @@ INF  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf
 INF BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
 INF BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
 INF BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
-INF BeniPkg/Dxe/Ramdisk/Ramdisk.inf
+# INF BeniPkg/Dxe/Ramdisk/Ramdisk.inf
 INF BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
 INF BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
 INF BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
