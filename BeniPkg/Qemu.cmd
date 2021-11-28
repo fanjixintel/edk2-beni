@@ -41,4 +41,4 @@ if exist coreboot.rom (
 
 :DONE
 echo on
-@exit 0
+@exit /b 0
