@@ -18,7 +18,8 @@
     "uefibootservicestablelib.h": "c",
     "uefihiiserviceslib.h": "c",
     "fat.h": "c",
-    "filesysteminfo.h": "c"
+    "filesysteminfo.h": "c",
+    "partition.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,

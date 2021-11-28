@@ -1,14 +1,14 @@
 /**
 *  @Package     : BeniPkg
-*  @FileName    : Fs.c
-*  @Date        : 20211107
+*  @FileName    : Disk.c
+*  @Date        : 20211128
 *  @Author      : Jiangwei
 *  @Version     : 1.0
 *  @Description :
-*    This command is used for file system test.
+*    This command is used for disk test.
 *
 *  @History:
-*    20211107: Initialize.
+*    20211128: Initialize.
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -19,11 +19,7 @@
 *  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
-#include "Fs.h"
-
-#include "../../../FatPkg/EnhancedFatDxe/Fat.h"
-
-#define VOLUME_SIGNATURE_FROM_VOL_INTERFACE(a) BASE_CR(a, FAT_VOLUME, VolumeInterface)
+#include "Disk.h"
 
 STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
   {NULL , TypeMax}
@@ -78,7 +74,7 @@ InitializeHiiPackage (
 }
 
 /**
-  Locate EFI_SIMPLE_FILE_SYSTEM_PROTOCOL and show the related information.
+  Show disk informations.
 
   @param  NA
 
@@ -88,113 +84,63 @@ InitializeHiiPackage (
 STATIC
 VOID
 EFIAPI
-ShowFileSystem (
+ShowDiskInfo (
   VOID
   )
 {
   EFI_STATUS                        Status;
-  EFI_HANDLE                        *FsHandles;
-  UINTN                             FsCount;
+  EFI_HANDLE                        *Handles;
+  UINTN                             Count;
   UINTN                             Index;
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL   *Volume;
-  //
-  // EFI_FILE_HANDLE                   Root;
-  //
-  // Here we can use EFI_FILE_HANDLE too.
-  //
-  EFI_FILE_PROTOCOL                 *Root;
-  EFI_FILE_SYSTEM_INFO              *VolInfo;
-  UINTN                             VolSize;
+  EFI_BLOCK_IO_PROTOCOL             *BlockIo;
 
-  FsHandles     = NULL;
-  FsCount       = 0;
+  Handles     = NULL;
+  Count       = 0;
   Status        = EFI_NOT_FOUND;
 
   Status = gBS->LocateHandleBuffer (
                 ByProtocol,
-                &gEfiSimpleFileSystemProtocolGuid,
+                &gEfiBlockIoProtocolGuid,
                 NULL,
-                &FsCount,
-                &FsHandles
+                &Count,
+                &Handles
                 );
-  if (EFI_ERROR (Status) || (0 == FsCount)) {
-    Print (L"No file system found!\n");
+  if (EFI_ERROR (Status) || (0 == Count)) {
+    Print (L"No block found!\n");
     return;
   } else {
-    Print (L"%d file system(s) found!\n", FsCount);
+    Print (L"%d block(s) found!\n", Count);
     Print (L"-----------------------------------\n");
   }
 
-  for (Index = 0; Index < FsCount; Index++) {
-    //
-    // Get the installed EFI_SIMPLE_FILE_SYSTEM_PROTOCOL in FAT driver.
-    //
+  for (Index = 0; Index < Count; Index++) {
     Status = gBS->HandleProtocol (
-                    FsHandles[Index],
-                    &gEfiSimpleFileSystemProtocolGuid,
-                    (VOID**)&Volume
-                    );
+                  Handles[Index],
+                  &gEfiBlockIoProtocolGuid,
+                  (VOID **) &BlockIo
+                  );
     if (!EFI_ERROR (Status)) {
-      //
-      // We only chek FAT file system.
-      //
-      if (FAT_VOLUME_SIGNATURE != VOLUME_SIGNATURE_FROM_VOL_INTERFACE(Volume)->Signature) {
-        continue;
-      }
-
-      //
-      // EFI_SIMPLE_FILE_SYSTEM_PROTOCOL has the OpenVolume() to
-      // get the EFI_FILE_PROTOCOL.
-      //
-      Status = Volume->OpenVolume (
-                        Volume,
-                        &Root
-                        );
-      if (!EFI_ERROR (Status)) {
-        VolInfo = NULL;
-        VolSize = 0;
-        Status  = Root->GetInfo (
-                          Root,
-                          &gEfiFileSystemInfoGuid,
-                          &VolSize,
-                          VolInfo
-                          );
-        if (Status == EFI_BUFFER_TOO_SMALL) {
-          VolInfo = AllocateZeroPool (VolSize);
-          if (NULL == VolInfo) {
-            Status = EFI_OUT_OF_RESOURCES;
-          } else {
-            Status  = Root->GetInfo (
-                              Root,
-                              &gEfiFileSystemInfoGuid,
-                              &VolSize,
-                              VolInfo
-                              );
-          }
-        }
-        if (!EFI_ERROR (Status)) {
-          Print (L"FS%d:\n", Index);
-          Print (L"  Volume Size      : %d\n", VolInfo->Size);
-          Print (L"  Volume ReadOnly  : %d\n", VolInfo->ReadOnly);
-          Print (L"  Volume VolumeSize: %d\n", VolInfo->VolumeSize);
-          Print (L"  Volume FreeSpace : %d\n", VolInfo->FreeSpace);
-          Print (L"  Volume BlockSize : %d\n", VolInfo->BlockSize);
-          Print (L"  Volume Name      : %s\n", VolInfo->VolumeLabel);
-          FreePool (VolInfo);
-        }
-      }
+      Print (L"BLOCK%d:\n", Index);
+      Print (L"  Media ID          : %d\n", BlockIo->Media->MediaId);
+      Print (L"  Removable Media   : %d\n", BlockIo->Media->RemovableMedia);
+      Print (L"  Media Present     : %d\n", BlockIo->Media->MediaPresent);
+      Print (L"  Logical Partition : %d\n", BlockIo->Media->LogicalPartition);
+      Print (L"  Read Only         : %d\n", BlockIo->Media->ReadOnly);
+      Print (L"  Write Caching     : %d\n", BlockIo->Media->WriteCaching);
+      Print (L"  Block Size        : %d\n", BlockIo->Media->BlockSize);
+      Print (L"  Last Block        : %d\n", BlockIo->Media->LastBlock);
     }
   }
 
-  if (NULL != FsHandles) {
-    FreePool (FsHandles);
+  if (NULL != Handles) {
+    FreePool (Handles);
   }
 
   return;
 }
 
 /**
-  Function for 'fs' command.
+  Function for 'disk' command.
 
   @param[in]  ImageHandle           The image handle.
   @param[in]  SystemTable           The system table.
@@ -206,7 +152,7 @@ ShowFileSystem (
 
 **/
 SHELL_STATUS
-RunFs (
+RunDisk (
   IN  EFI_HANDLE                    ImageHandle,
   IN  EFI_SYSTEM_TABLE              *SystemTable
   )
@@ -235,7 +181,7 @@ RunFs (
   if (EFI_ERROR (Status)) {
     if ((Status == EFI_VOLUME_CORRUPTED) && (ProblemParam != NULL) ) {
       ShellPrintHiiEx (
-        -1, -1, NULL, STRING_TOKEN (STR_GEN_PROBLEM), mFsHiiHandle, L"fs", ProblemParam
+        -1, -1, NULL, STRING_TOKEN (STR_GEN_PROBLEM), mDiskHiiHandle, L"disk", ProblemParam
         );
       FreePool (ProblemParam);
     }
@@ -248,12 +194,12 @@ RunFs (
   ParamCount = ShellCommandLineGetCount (CheckPackage);
   if (ParamCount != 1) {
     ShellPrintHiiEx (
-      -1, -1, NULL, STRING_TOKEN (STR_GEN_TOO_MANY), mFsHiiHandle, L"fs"
+      -1, -1, NULL, STRING_TOKEN (STR_GEN_TOO_MANY), mDiskHiiHandle, L"disk"
       );
     goto ERROR;
   }
 
-  ShowFileSystem ();
+  ShowDiskInfo ();
 
 ERROR:
 
