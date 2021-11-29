@@ -25,6 +25,7 @@ if exist log.txt del log.txt
 
 if exist OVMF.fd (
     if exist disk.img (
+        @REM qemu-system-x86_64 -usb -bios OVMF.fd -serial stdio >> log.txt
         qemu-system-x86_64 -usb -bios OVMF.fd -serial stdio -drive format=raw,file=disk.img >> log.txt
         goto DONE
     )
