@@ -1098,6 +1098,7 @@
   BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
   BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
   BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
+  BeniPkg/Dxe/Ext2Dxe/Ext2.inf
   #
   # Add new applications here.
   #

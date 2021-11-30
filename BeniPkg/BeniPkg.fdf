@@ -425,6 +425,7 @@ INF BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
 INF BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
 INF BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
 INF BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
+INF BeniPkg/Dxe/Ext2Dxe/Ext2.inf
 #
 # Applications in FV.
 #

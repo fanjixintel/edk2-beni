@@ -1,0 +1,60 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : Ext2.inf
+#  @Date        : 20211130
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is a UEFI model driver used to initialzie EXT2 file system.
+#
+#  @History:
+#    20211130: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  INF_VERSION                       = 0x00010005
+  BASE_NAME                         = Ext2
+  FILE_GUID                         = EABC094E-5DC6-47F8-9E62-E4FE29B4EA47
+  MODULE_TYPE                       = UEFI_DRIVER
+  VERSION_STRING                    = 1.0
+  ENTRY_POINT                       = Ext2EntryPoint
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 IPF EBC
+#
+
+[Sources]
+  ComponentName.c
+  Ext2.h
+  Ext2.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  BeniPkg/BeniPkg.dec
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  UefiLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  DebugLib
+
+[Protocols]
+  gEfiDiskIoProtocolGuid                                ## TO_START
+  gEfiDiskIo2ProtocolGuid                               ## TO_START
+  gEfiBlockIoProtocolGuid                               ## TO_START
+  gEfiSimpleFileSystemProtocolGuid                      ## BY_START
+  gEfiUnicodeCollationProtocolGuid                      ## TO_START
+  gEfiUnicodeCollation2ProtocolGuid                     ## TO_START

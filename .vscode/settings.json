@@ -19,7 +19,10 @@
     "uefihiiserviceslib.h": "c",
     "fat.h": "c",
     "filesysteminfo.h": "c",
-    "partition.h": "c"
+    "partition.h": "c",
+    "uefishelldebug1commandslib.h": "c",
+    "disk.h": "c",
+    "fileinfo.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,
