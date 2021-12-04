@@ -183,6 +183,7 @@ ShowFileSystem (
           FreePool (VolInfo);
         }
       }
+      Root->Close (Root);
     }
   }
 
