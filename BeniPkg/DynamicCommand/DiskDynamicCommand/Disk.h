@@ -24,6 +24,10 @@
 
 #include <Uefi.h>
 
+#include <IndustryStandard/Mbr.h>
+
+#include <Guid/Gpt.h>
+
 #include <Library/UefiLib.h>
 #include <Library/DebugLib.h>
 #include <Library/ShellLib.h>
@@ -40,9 +44,12 @@
 #include <Protocol/DiskIo2.h>
 
 //
-// Used for shell display.
+// Extract UINT32 from char array.
 //
-extern EFI_HII_HANDLE mDiskHiiHandle;
+#define UNPACK_UINT32(a) (UINT32)( (((UINT8 *) a)[0] <<  0) |    \
+                                   (((UINT8 *) a)[1] <<  8) |    \
+                                   (((UINT8 *) a)[2] << 16) |    \
+                                   (((UINT8 *) a)[3] << 24) )
 
 /**
   Retrieve HII package list from ImageHandle and publish to HII database.
@@ -74,5 +81,10 @@ RunDisk (
   IN  EFI_HANDLE                    ImageHandle,
   IN  EFI_SYSTEM_TABLE              *SystemTable
   );
+
+//
+// Used for shell display.
+//
+extern EFI_HII_HANDLE mDiskHiiHandle;
 
 #endif // __DISK_H__

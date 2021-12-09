@@ -184,6 +184,456 @@ InitializeHiiPackage (
 }
 
 /**
+  Test to see if the the block IO has a valid MBR.
+
+  @param[in]  BlockIo               Parted block IO.
+  @param[in]  DiskIo                Parted disk IO.
+
+  @retval  TRUE                     Mbr is a Valid MBR.
+  @retval  FALSE                    Mbr is not a Valid MBR.
+
+**/
+BOOLEAN
+PartitionValidMbr (
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo
+  )
+{
+  EFI_STATUS              Status;
+  UINT8                   *Buffer;
+  MASTER_BOOT_RECORD      *Mbr;
+  UINT32                  StartingLBA;
+  UINT32                  EndingLBA;
+  UINT32                  NewEndingLBA;
+  INTN                    Index1;
+  INTN                    Index2;
+  BOOLEAN                 MbrValid;
+  EFI_LBA                 LastLba;
+
+  //
+  // Get one block.
+  //
+  Buffer = AllocateZeroPool (BlockIo->Media->BlockSize);
+  if (NULL == Buffer) {
+    return FALSE;
+  }
+
+  //
+  // Get Lba 0 where legacy MBR should reside in.
+  //
+  Status = BlockIo->ReadBlocks(
+                    BlockIo,
+                    BlockIo->Media->MediaId,
+                    0,
+                    BlockIo->Media->BlockSize,
+                    Buffer
+                    );
+  if (EFI_ERROR (Status)) {
+    return FALSE;
+  }
+
+  LastLba  = DivU64x32 (
+                  MultU64x32 (BlockIo->Media->LastBlock + 1, BlockIo->Media->BlockSize),
+                  MBR_SIZE
+                  ) - 1;
+  Mbr = (MASTER_BOOT_RECORD *)Buffer;
+
+  if (Mbr->Signature != MBR_SIGNATURE) {
+    return FALSE;
+  }
+
+  //
+  // The BPB also has this signature, so it can not be used alone.
+  //
+  MbrValid = FALSE;
+  for (Index1 = 0; Index1 < MAX_MBR_PARTITIONS; Index1++) {
+    if (Mbr->Partition[Index1].OSIndicator == 0x00 || UNPACK_UINT32 (Mbr->Partition[Index1].SizeInLBA) == 0) {
+      continue;
+    }
+
+    MbrValid    = TRUE;
+    StartingLBA = UNPACK_UINT32 (Mbr->Partition[Index1].StartingLBA);
+    EndingLBA   = StartingLBA + UNPACK_UINT32 (Mbr->Partition[Index1].SizeInLBA) - 1;
+    if (EndingLBA > LastLba) {
+      //
+      // Compatibility Errata:
+      //  Some systems try to hide drive space with their INT 13h driver
+      //  This does not hide space from the OS driver. This means the MBR
+      //  that gets created from DOS is smaller than the MBR created from
+      //  a real OS (NT & Win98). This leads to BlockIo->LastBlock being
+      //  wrong on some systems FDISKed by the OS.
+      //
+      // return FALSE since no block devices on a system are implemented
+      // with INT 13h
+      //
+      return FALSE;
+    }
+
+    for (Index2 = Index1 + 1; Index2 < MAX_MBR_PARTITIONS; Index2++) {
+      if (Mbr->Partition[Index2].OSIndicator == 0x00 || UNPACK_UINT32 (Mbr->Partition[Index2].SizeInLBA) == 0) {
+        continue;
+      }
+
+      NewEndingLBA = UNPACK_UINT32 (Mbr->Partition[Index2].StartingLBA) + UNPACK_UINT32 (Mbr->Partition[Index2].SizeInLBA) - 1;
+      if (NewEndingLBA >= StartingLBA && UNPACK_UINT32 (Mbr->Partition[Index2].StartingLBA) <= EndingLBA) {
+        //
+        // This region overlaps with the Index1'th region
+        //
+        return FALSE;
+      }
+    }
+  }
+
+  //
+  // None of the regions overlapped so MBR is O.K.
+  //
+  return MbrValid;
+}
+
+/**
+  Checks the CRC32 value in the table header.
+
+  @param[in]  MaxSize               Max Size limit.
+  @param[in]  Size                  The size of the table.
+  @param[in]  Hdr                   Table to check.
+
+  @return  TRUE                     CRC Valid.
+  @return  FALSE                    CRC Invalid.
+
+**/
+BOOLEAN
+PartitionCheckCrcAltSize (
+  IN     UINTN                      MaxSize,
+  IN     UINTN                      Size,
+  IN OUT EFI_TABLE_HEADER           *Hdr
+  )
+{
+  UINT32        Crc;
+  UINT32        OrgCrc;
+  EFI_STATUS    Status;
+
+  Crc = 0;
+
+  if (0 == Size) {
+    //
+    // If header size is 0 CRC will pass so return FALSE here.
+    //
+    return FALSE;
+  }
+
+  if ((MaxSize != 0) && (Size > MaxSize)) {
+    return FALSE;
+  }
+
+  //
+  // Clear old CRC from header.
+  //
+  OrgCrc     = Hdr->CRC32;
+  Hdr->CRC32 = 0;
+
+  Status = gBS->CalculateCrc32 ((UINT8 *) Hdr, Size, &Crc);
+  if (EFI_ERROR (Status)) {
+    return FALSE;
+  }
+
+  //
+  // Set results.
+  //
+  Hdr->CRC32 = Crc;
+
+  //
+  // Return status.
+  //
+  return (BOOLEAN) (OrgCrc == Crc);
+}
+
+/**
+  Checks the CRC32 value in the table header.
+
+  @param[in]  MaxSize               Max Size limit.
+  @param[in]  Hdr                   Table to check.
+
+  @return  TRUE                     CRC Valid.
+  @return  FALSE                    CRC Invalid.
+
+**/
+BOOLEAN
+PartitionCheckCrc (
+  IN     UINTN                      MaxSize,
+  IN OUT EFI_TABLE_HEADER           *Hdr
+  )
+{
+  return PartitionCheckCrcAltSize (MaxSize, Hdr->HeaderSize, Hdr);
+}
+
+/**
+  Check if the CRC field in the Partition table header is valid
+  for Partition entry array.
+
+  @param[in]  BlockIo               Parent BlockIo interface.
+  @param[in]  DiskIo                Disk Io Protocol.
+  @param[in]  PartHeader            Partition table header structure.
+
+  @retval  TRUE                     CRC is valid.
+  @retval  FALSE                    CRC is invalid.
+
+**/
+BOOLEAN
+PartitionCheckGptEntryArrayCRC (
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
+  IN  EFI_PARTITION_TABLE_HEADER    *PartHeader
+  )
+{
+  EFI_STATUS    Status;
+  UINT8         *Ptr;
+  UINT32        Crc;
+  UINTN         Size;
+
+  //
+  // Read the EFI Partition Entries.
+  //
+  Ptr = AllocatePool (PartHeader->NumberOfPartitionEntries * PartHeader->SizeOfPartitionEntry);
+  if (NULL == Ptr) {
+    return FALSE;
+  }
+
+  Status = DiskIo->ReadDisk (
+                    DiskIo,
+                    BlockIo->Media->MediaId,
+                    MultU64x32(PartHeader->PartitionEntryLBA, BlockIo->Media->BlockSize),
+                    PartHeader->NumberOfPartitionEntries * PartHeader->SizeOfPartitionEntry,
+                    Ptr
+                    );
+  if (EFI_ERROR (Status)) {
+    FreePool (Ptr);
+    return FALSE;
+  }
+
+  Size    = PartHeader->NumberOfPartitionEntries * PartHeader->SizeOfPartitionEntry;
+
+  Status  = gBS->CalculateCrc32 (Ptr, Size, &Crc);
+  if (EFI_ERROR (Status)) {
+    FreePool (Ptr);
+    return FALSE;
+  }
+
+  FreePool (Ptr);
+
+  return (BOOLEAN) (PartHeader->PartitionEntryArrayCRC32 == Crc);
+}
+
+/**
+  This routine will read GPT partition table header and check it.
+
+  @param[in]  BlockIo               Parent BlockIo interface.
+  @param[in]  DiskIo                Disk Io protocol.
+  @param[in]  Lba                   The starting Lba of the Partition Table
+
+  @retval  TRUE                     The partition table is valid
+  @retval  FALSE                    The partition table is not valid
+
+**/
+BOOLEAN
+PartitionValidGptTable (
+  IN  EFI_BLOCK_IO_PROTOCOL       *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL        *DiskIo,
+  IN  EFI_LBA                     Lba
+  )
+{
+  EFI_STATUS                   Status;
+  UINT32                       BlockSize;
+  EFI_PARTITION_TABLE_HEADER   *PartHdr;
+  UINT32                       MediaId;
+
+  BlockSize = BlockIo->Media->BlockSize;
+  MediaId   = BlockIo->Media->MediaId;
+  PartHdr   = AllocateZeroPool (BlockSize);
+  if (PartHdr == NULL) {
+    return FALSE;
+  }
+
+  //
+  // Read the EFI Partition Table Header.
+  //
+  Status = DiskIo->ReadDisk (
+                     DiskIo,
+                     MediaId,
+                     MultU64x32 (Lba, BlockSize),
+                     BlockSize,
+                     PartHdr
+                     );
+  if (EFI_ERROR (Status)) {
+    FreePool (PartHdr);
+    return FALSE;
+  }
+
+  if ((PartHdr->Header.Signature != EFI_PTAB_HEADER_ID) ||
+      !PartitionCheckCrc (BlockSize, &PartHdr->Header) ||
+      PartHdr->MyLBA != Lba ||
+      (PartHdr->SizeOfPartitionEntry < sizeof (EFI_PARTITION_ENTRY))
+      ) {
+    FreePool (PartHdr);
+    return FALSE;
+  }
+
+  //
+  // Ensure the NumberOfPartitionEntries * SizeOfPartitionEntry doesn't overflow.
+  //
+  if (PartHdr->NumberOfPartitionEntries > DivU64x32 (MAX_UINTN, PartHdr->SizeOfPartitionEntry)) {
+    FreePool (PartHdr);
+    return FALSE;
+  }
+
+  if (!PartitionCheckGptEntryArrayCRC (BlockIo, DiskIo, PartHdr)) {
+    FreePool (PartHdr);
+    return FALSE;
+  }
+
+  FreePool (PartHdr);
+  return TRUE;
+}
+
+/**
+  Test to see if the the block IO has a valid protective MBR.
+
+  @param[in]  BlockIo               Parted block IO.
+  @param[in]  DiskIo                Parted disk IO.
+
+  @retval  TRUE                     Mbr is a Valid GPT.
+  @retval  FALSE                    Mbr is not a Valid GPT.
+
+**/
+BOOLEAN
+PartitionValidProtectivMbr (
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo
+  )
+{
+  EFI_STATUS              Status;
+  MASTER_BOOT_RECORD      *ProtectiveMbr;
+  UINT32                  BlockSize;
+  UINTN                   Index;
+
+  BlockSize     = BlockIo->Media->BlockSize;
+  ProtectiveMbr = NULL;
+
+  //
+  // Ensure the block size can hold the MBR.
+  //
+  if (BlockSize < sizeof (MASTER_BOOT_RECORD)) {
+    return FALSE;
+  }
+
+  //
+  // Allocate a buffer for the Protective MBR.
+  //
+  ProtectiveMbr = AllocatePool (BlockSize);
+  if (ProtectiveMbr == NULL) {
+    return FALSE;
+  }
+
+  //
+  // Read the Protective MBR from LBA 0.
+  //
+  Status = DiskIo->ReadDisk (
+                     DiskIo,
+                     BlockIo->Media->MediaId,
+                     0,
+                     BlockSize,
+                     ProtectiveMbr
+                     );
+  if (EFI_ERROR (Status)) {
+    return FALSE;
+  }
+
+  //
+  // Verify that the protective MBR is valid.
+  //
+  for (Index = 0; Index < MAX_MBR_PARTITIONS; Index++) {
+    if ((ProtectiveMbr->Partition[Index].OSIndicator == PMBR_GPT_PARTITION) &&
+        (UNPACK_UINT32 (ProtectiveMbr->Partition[Index].StartingLBA) == 1)
+        ) {
+      break;
+    }
+  }
+  if (Index == MAX_MBR_PARTITIONS) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+  Test to see if the the block IO has a valid GPT.
+
+  @param[in]  BlockIo               Parted block IO.
+  @param[in]  DiskIo                Parted disk IO.
+
+  @retval  TRUE                     Mbr is a Valid GPT.
+  @retval  FALSE                    Mbr is not a Valid GPT.
+
+**/
+BOOLEAN
+PartitionValidGpt (
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo
+  )
+{
+  //
+  // The LBA 0 is protective MBR.
+  //
+  if (!PartitionValidProtectivMbr(BlockIo, DiskIo)) {
+    return FALSE;
+  }
+
+  //
+  // The LBA 1 is primary GPT table.
+  //
+  if (!PartitionValidGptTable (BlockIo, DiskIo, PRIMARY_PART_HEADER_LBA)) {
+    // DEBUG ((EFI_D_ERROR, "Primary GPT error!\n"));
+    return FALSE;
+  }
+
+  //
+  // The last LBA is backup GPT table.
+  //
+  if (!PartitionValidGptTable (BlockIo, DiskIo, BlockIo->Media->LastBlock)) {
+    // DEBUG ((EFI_D_ERROR, "Backup GPT error!\n"));
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**
+  Show disk informations.
+
+  @param[in]  BlockIo               Parted block IO.
+  @param[in]  DiskIo                Parted disk IO.
+
+  @retval  NA
+
+**/
+STATIC
+VOID
+EFIAPI
+ShowPartInfo (
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo
+  )
+{
+  Print (L"  Partition type    : ");
+  if (PartitionValidMbr(BlockIo, DiskIo)) {
+    Print (L"MBR\n");
+  } else if (PartitionValidGpt(BlockIo, DiskIo)) {
+    Print (L"GPT\n");
+  } else {
+    Print (L"Unknown\n");
+  }
+}
+
+/**
   Show disk informations.
 
   @param  NA
@@ -203,6 +653,7 @@ ShowDiskInfo (
   UINTN                             Count;
   UINTN                             Index;
   EFI_BLOCK_IO_PROTOCOL             *BlockIo;
+  EFI_DISK_IO_PROTOCOL              *DiskIo;
 
   Handles     = NULL;
   Count       = 0;
@@ -229,17 +680,29 @@ ShowDiskInfo (
                   &gEfiBlockIoProtocolGuid,
                   (VOID **) &BlockIo
                   );
-    if (!EFI_ERROR (Status)) {
-      Print (L"BLOCK%d:\n", Index);
-      Print (L"  Media ID          : %d\n", BlockIo->Media->MediaId);
-      Print (L"  Removable Media   : %d\n", BlockIo->Media->RemovableMedia);
-      Print (L"  Media Present     : %d\n", BlockIo->Media->MediaPresent);
-      Print (L"  Logical Partition : %d\n", BlockIo->Media->LogicalPartition);
-      Print (L"  Read Only         : %d\n", BlockIo->Media->ReadOnly);
-      Print (L"  Write Caching     : %d\n", BlockIo->Media->WriteCaching);
-      Print (L"  Block Size        : %d\n", BlockIo->Media->BlockSize);
-      Print (L"  Last Block        : %d\n", BlockIo->Media->LastBlock);
+    if (EFI_ERROR (Status)) {
+      continue;
     }
+
+    Status = gBS->HandleProtocol (
+                  Handles[Index],
+                  &gEfiDiskIoProtocolGuid,
+                  (VOID **)&DiskIo
+                  );
+    if (EFI_ERROR (Status)) {
+      continue;
+    }
+
+    Print (L"BLOCK%d:\n", Index);
+    Print (L"  Media ID          : %d\n", BlockIo->Media->MediaId);
+    Print (L"  Removable Media   : %d\n", BlockIo->Media->RemovableMedia);
+    Print (L"  Media Present     : %d\n", BlockIo->Media->MediaPresent);
+    Print (L"  Logical Partition : %d\n", BlockIo->Media->LogicalPartition);
+    Print (L"  Read Only         : %d\n", BlockIo->Media->ReadOnly);
+    Print (L"  Write Caching     : %d\n", BlockIo->Media->WriteCaching);
+    Print (L"  Block Size        : %d\n", BlockIo->Media->BlockSize);
+    Print (L"  Last Block        : %d\n", BlockIo->Media->LastBlock);
+    ShowPartInfo (BlockIo, DiskIo);
   }
 
   if (NULL != Handles) {
@@ -448,7 +911,10 @@ RunDisk (
   if (Size) {
     Print (L"Block %d, Address: 0x%x, Size: 0x%x\n", Blk, Address, Size);
     ShowDiskData (Blk, Address, Size);
+    goto DONE;
   }
+
+  Print (L"No operation specified.\n");
 
 DONE:
 
