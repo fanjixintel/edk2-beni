@@ -949,6 +949,10 @@ ShowDiskInfo (
       continue;
     }
 
+    if (BlockIo->Media->LogicalPartition) {
+      continue;
+    }
+
     Print (L"BLOCK%d:\n", Index);
     Print (L"  Media ID          : %d\n", BlockIo->Media->MediaId);
     Print (L"  Removable Media   : %d\n", BlockIo->Media->RemovableMedia);
