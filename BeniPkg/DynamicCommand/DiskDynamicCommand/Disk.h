@@ -35,6 +35,7 @@
 #include <Library/HiiLib.h>
 #include <Library/UefiHiiServicesLib.h>
 #include <Library/MemoryAllocationLib.h>
+#include <Library/BaseMemoryLib.h>
 
 #include <Protocol/HiiPackageList.h>
 #include <Protocol/ShellDynamicCommand.h>
@@ -50,6 +51,29 @@
                                    (((UINT8 *) a)[1] <<  8) |    \
                                    (((UINT8 *) a)[2] << 16) |    \
                                    (((UINT8 *) a)[3] << 24) )
+//
+// OS Type.
+//
+#define MBR_UEFI_SYSTEM_PARTITION        L"UEFI System"
+#define MBR_GPT_PROTECTIVE_PARTITION     L"GPT Protective"
+#define MBR_UNSPECIFIED_PARTITION        L"Unspecified"
+#define GPT_UNUSED_PARTITION             L"Unused"
+#define GPT_LEGACY_MBR_PARTITION         L"Legacy"
+#define GPT_SYSTEM_PARTITION             L"System"
+//
+// Boot Indicator.
+//
+#define MBR_BOOTABLE                     L"Bootable"
+#define MBR_NOT_BOOTABLE                 L"Not Bootable"
+
+//
+// GPT Partition Entry Status.
+//
+typedef struct {
+  BOOLEAN OutOfRange;
+  BOOLEAN Overlap;
+  BOOLEAN OsSpecific;
+} EFI_PARTITION_ENTRY_STATUS;
 
 /**
   Retrieve HII package list from ImageHandle and publish to HII database.

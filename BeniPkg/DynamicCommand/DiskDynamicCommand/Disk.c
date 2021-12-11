@@ -185,9 +185,12 @@ InitializeHiiPackage (
 
 /**
   Test to see if the the block IO has a valid MBR.
+  The valid MBR will be copied to Data, and the caller should be
+  responsible to free the allocated memory.
 
   @param[in]  BlockIo               Parted block IO.
   @param[in]  DiskIo                Parted disk IO.
+  @param[out] Data                  The valid MBR.
 
   @retval  TRUE                     Mbr is a Valid MBR.
   @retval  FALSE                    Mbr is not a Valid MBR.
@@ -196,7 +199,8 @@ InitializeHiiPackage (
 BOOLEAN
 PartitionValidMbr (
   IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
-  IN  EFI_DISK_IO_PROTOCOL          *DiskIo
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
+  OUT VOID                          **Data
   )
 {
   EFI_STATUS              Status;
@@ -284,10 +288,68 @@ PartitionValidMbr (
     }
   }
 
+  if (!MbrValid) {
+    FreePool (Buffer);
+  } else {
+    *Data = (VOID *)Buffer;
+  }
+
   //
   // None of the regions overlapped so MBR is O.K.
   //
   return MbrValid;
+}
+
+/**
+  Show MBR paritions.
+
+  @param[in]  Data                  The MBR data.
+
+  @retval  NA
+
+**/
+VOID
+ShowMbrPartitions (
+  IN  VOID                          *Data
+  )
+{
+  UINTN    Index;
+  CHAR16   *OsType;
+  CHAR16   *BootIndicatior;
+  UINT32   StartingLBA;
+  UINT32   EndingLBA;
+  //
+  // No need to check data here.
+  //
+  MASTER_BOOT_RECORD *Mbr = (MASTER_BOOT_RECORD *)Data;;
+  for (Index = 0; Index < MAX_MBR_PARTITIONS; Index++) {
+    StartingLBA = UNPACK_UINT32 (Mbr->Partition[Index].StartingLBA);
+    if (0 == StartingLBA) {
+      continue;
+    }
+    EndingLBA   = StartingLBA + UNPACK_UINT32 (Mbr->Partition[Index].SizeInLBA) - 1;
+    if (EFI_PARTITION == Mbr->Partition[Index].OSIndicator) {
+      OsType = MBR_UEFI_SYSTEM_PARTITION;
+    } else if (PMBR_GPT_PARTITION == Mbr->Partition[Index].OSIndicator) {
+      OsType = MBR_GPT_PROTECTIVE_PARTITION;
+    } else {
+      OsType = MBR_UNSPECIFIED_PARTITION;
+    }
+    if (0x80 == Mbr->Partition[Index].BootIndicator) {
+      BootIndicatior = MBR_BOOTABLE;
+    } else {
+      BootIndicatior = MBR_NOT_BOOTABLE;
+    }
+    Print (L"    %d: %s %s [0x%x ~ 0x%x]\n",
+                      Index,
+                      OsType,
+                      BootIndicatior,
+                      StartingLBA,
+                      EndingLBA
+                      );
+  }
+
+  return;
 }
 
 /**
@@ -429,6 +491,7 @@ PartitionCheckGptEntryArrayCRC (
   @param[in]  BlockIo               Parent BlockIo interface.
   @param[in]  DiskIo                Disk Io protocol.
   @param[in]  Lba                   The starting Lba of the Partition Table
+  @param[out] Data                  The valid GPT header.
 
   @retval  TRUE                     The partition table is valid
   @retval  FALSE                    The partition table is not valid
@@ -438,19 +501,23 @@ BOOLEAN
 PartitionValidGptTable (
   IN  EFI_BLOCK_IO_PROTOCOL       *BlockIo,
   IN  EFI_DISK_IO_PROTOCOL        *DiskIo,
-  IN  EFI_LBA                     Lba
+  IN  EFI_LBA                     Lba,
+  OUT VOID                        **Data
   )
 {
   EFI_STATUS                   Status;
   UINT32                       BlockSize;
   EFI_PARTITION_TABLE_HEADER   *PartHdr;
   UINT32                       MediaId;
+  BOOLEAN                      Result;
 
+  Result = FALSE;
   BlockSize = BlockIo->Media->BlockSize;
   MediaId   = BlockIo->Media->MediaId;
   PartHdr   = AllocateZeroPool (BlockSize);
   if (PartHdr == NULL) {
-    return FALSE;
+    Result =  FALSE;
+    goto DONE;
   }
 
   //
@@ -464,8 +531,8 @@ PartitionValidGptTable (
                      PartHdr
                      );
   if (EFI_ERROR (Status)) {
-    FreePool (PartHdr);
-    return FALSE;
+    Result =  FALSE;
+    goto DONE;
   }
 
   if ((PartHdr->Header.Signature != EFI_PTAB_HEADER_ID) ||
@@ -473,25 +540,38 @@ PartitionValidGptTable (
       PartHdr->MyLBA != Lba ||
       (PartHdr->SizeOfPartitionEntry < sizeof (EFI_PARTITION_ENTRY))
       ) {
-    FreePool (PartHdr);
-    return FALSE;
+    Result =  FALSE;
+    goto DONE;
   }
 
   //
   // Ensure the NumberOfPartitionEntries * SizeOfPartitionEntry doesn't overflow.
   //
   if (PartHdr->NumberOfPartitionEntries > DivU64x32 (MAX_UINTN, PartHdr->SizeOfPartitionEntry)) {
-    FreePool (PartHdr);
-    return FALSE;
+    Result =  FALSE;
+    goto DONE;
   }
 
   if (!PartitionCheckGptEntryArrayCRC (BlockIo, DiskIo, PartHdr)) {
-    FreePool (PartHdr);
-    return FALSE;
+    Result =  FALSE;
+    goto DONE;
   }
 
-  FreePool (PartHdr);
-  return TRUE;
+  Result = TRUE;
+
+DONE:
+
+  if (Result && (NULL != PartHdr)) {
+    if (NULL != Data) {
+      *Data = PartHdr;
+    }
+  } else {
+    if (NULL != PartHdr) {
+      FreePool (PartHdr);
+    }
+  }
+
+  return Result;
 }
 
 /**
@@ -569,6 +649,7 @@ PartitionValidProtectivMbr (
 
   @param[in]  BlockIo               Parted block IO.
   @param[in]  DiskIo                Parted disk IO.
+  @param[out] Data                  The MBR data.
 
   @retval  TRUE                     Mbr is a Valid GPT.
   @retval  FALSE                    Mbr is not a Valid GPT.
@@ -577,7 +658,8 @@ PartitionValidProtectivMbr (
 BOOLEAN
 PartitionValidGpt (
   IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
-  IN  EFI_DISK_IO_PROTOCOL          *DiskIo
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
+  OUT VOID                          **Data
   )
 {
   //
@@ -590,7 +672,7 @@ PartitionValidGpt (
   //
   // The LBA 1 is primary GPT table.
   //
-  if (!PartitionValidGptTable (BlockIo, DiskIo, PRIMARY_PART_HEADER_LBA)) {
+  if (!PartitionValidGptTable (BlockIo, DiskIo, PRIMARY_PART_HEADER_LBA, Data)) {
     // DEBUG ((EFI_D_ERROR, "Primary GPT error!\n"));
     return FALSE;
   }
@@ -598,12 +680,176 @@ PartitionValidGpt (
   //
   // The last LBA is backup GPT table.
   //
-  if (!PartitionValidGptTable (BlockIo, DiskIo, BlockIo->Media->LastBlock)) {
+  if (!PartitionValidGptTable (BlockIo, DiskIo, BlockIo->Media->LastBlock, NULL)) {
     // DEBUG ((EFI_D_ERROR, "Backup GPT error!\n"));
     return FALSE;
   }
 
   return TRUE;
+}
+
+/**
+  This routine will check GPT partition entry and return entry status.
+
+  Caution: This function may receive untrusted input.
+  The GPT partition entry is external input, so this routine
+  will do basic validation for GPT partition entry and report status.
+
+  @param[in]  PartHeader            Partition table header structure
+  @param[in]  PartEntry             The partition entry array
+  @param[out] PEntryStatus          The partition entry status array
+                                    recording the status of each partition
+
+  @retval  NA
+
+**/
+VOID
+PartitionCheckGptEntry (
+  IN  EFI_PARTITION_TABLE_HEADER  *PartHeader,
+  IN  EFI_PARTITION_ENTRY         *PartEntry,
+  OUT EFI_PARTITION_ENTRY_STATUS  *PEntryStatus
+  )
+{
+  EFI_LBA                 StartingLBA;
+  EFI_LBA                 EndingLBA;
+  EFI_PARTITION_ENTRY     *Entry;
+  UINTN                   Index1;
+  UINTN                   Index2;
+
+  for (Index1 = 0; Index1 < PartHeader->NumberOfPartitionEntries; Index1++) {
+    Entry = (EFI_PARTITION_ENTRY *) ((UINT8 *) PartEntry + Index1 * PartHeader->SizeOfPartitionEntry);
+    if (CompareGuid (&Entry->PartitionTypeGUID, &gEfiPartTypeUnusedGuid)) {
+      continue;
+    }
+
+    StartingLBA = Entry->StartingLBA;
+    EndingLBA   = Entry->EndingLBA;
+    if (StartingLBA > EndingLBA ||
+        StartingLBA < PartHeader->FirstUsableLBA ||
+        StartingLBA > PartHeader->LastUsableLBA ||
+        EndingLBA < PartHeader->FirstUsableLBA ||
+        EndingLBA > PartHeader->LastUsableLBA
+        ) {
+      PEntryStatus[Index1].OutOfRange = TRUE;
+      continue;
+    }
+
+    if ((Entry->Attributes & BIT1) != 0) {
+      //
+      // If Bit 1 is set, this indicate that this is an OS specific GUID partition.
+      //
+      PEntryStatus[Index1].OsSpecific = TRUE;
+    }
+
+    for (Index2 = Index1 + 1; Index2 < PartHeader->NumberOfPartitionEntries; Index2++) {
+      Entry = (EFI_PARTITION_ENTRY *) ((UINT8 *) PartEntry + Index2 * PartHeader->SizeOfPartitionEntry);
+      if (CompareGuid (&Entry->PartitionTypeGUID, &gEfiPartTypeUnusedGuid)) {
+        continue;
+      }
+
+      if (Entry->EndingLBA >= StartingLBA && Entry->StartingLBA <= EndingLBA) {
+        //
+        // This region overlaps with the Index1'th region
+        //
+        PEntryStatus[Index1].Overlap  = TRUE;
+        PEntryStatus[Index2].Overlap  = TRUE;
+        continue;
+      }
+    }
+  }
+}
+
+/**
+  Show GPT paritions.
+
+  @param[in]  BlockIo               Parted block IO.
+  @param[in]  DiskIo                Parted disk IO.
+  @param[in]  Data                  The GPT data.
+
+  @retval  NA
+
+**/
+VOID
+ShowGptPartitions (
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
+  IN  VOID                          *Data
+  )
+{
+  EFI_STATUS                   Status;
+  EFI_PARTITION_ENTRY_STATUS   *PEntryStatus;
+  EFI_PARTITION_TABLE_HEADER   *PrimaryHeader;
+  EFI_PARTITION_ENTRY          *PartEntry;
+  EFI_PARTITION_ENTRY          *Entry;
+  UINTN                        Index;
+  CHAR16                       *PartType;
+
+  PrimaryHeader = (EFI_PARTITION_TABLE_HEADER *)Data;
+  //
+  // If no partitions exist, just return;
+  //
+  if (0 == PrimaryHeader->NumberOfPartitionEntries) {
+    return;
+  }
+
+  PartEntry = AllocatePool (PrimaryHeader->NumberOfPartitionEntries * PrimaryHeader->SizeOfPartitionEntry);
+  if (NULL == PartEntry) {
+    goto DONE;
+  }
+
+  PEntryStatus = AllocateZeroPool (PrimaryHeader->NumberOfPartitionEntries * sizeof (EFI_PARTITION_ENTRY_STATUS));
+  if (NULL == PEntryStatus) {
+    goto DONE;
+  }
+
+  Status = DiskIo->ReadDisk (
+                     DiskIo,
+                     BlockIo->Media->MediaId,
+                     MultU64x32(PrimaryHeader->PartitionEntryLBA, BlockIo->Media->BlockSize),
+                     PrimaryHeader->NumberOfPartitionEntries * (PrimaryHeader->SizeOfPartitionEntry),
+                     PartEntry
+                     );
+  if (EFI_ERROR (Status)) {
+    goto DONE;
+  }
+
+  //
+  // Check the integrity of partition entries.
+  //
+  PartitionCheckGptEntry (PrimaryHeader, PartEntry, PEntryStatus);
+
+  for (Index = 0; Index < PrimaryHeader->NumberOfPartitionEntries; Index++) {
+    Entry = (EFI_PARTITION_ENTRY *) ((UINT8 *) PartEntry + Index * PrimaryHeader->SizeOfPartitionEntry);
+    if (CompareGuid (&Entry->PartitionTypeGUID, &gEfiPartTypeSystemPartGuid)) {
+      PartType = GPT_SYSTEM_PARTITION;
+    } else if (CompareGuid (&Entry->PartitionTypeGUID, &gEfiPartTypeLegacyMbrGuid)) {
+      PartType = GPT_LEGACY_MBR_PARTITION;
+    } else {
+      PartType = GPT_UNUSED_PARTITION;
+    }
+
+    if (0 == Entry->StartingLBA) {
+      continue;
+    }
+    Print (L"    %d: %s %s %g [0x%x ~ 0x%x]\n",
+                      Index,
+                      Entry->PartitionName,
+                      PartType,
+                      Entry->UniquePartitionGUID,
+                      Entry->StartingLBA,
+                      Entry->EndingLBA
+                      );
+  }
+
+DONE:
+  if (NULL != PartEntry) {
+    FreePool (PartEntry);
+  }
+  if (NULL != PEntryStatus) {
+    FreePool (PEntryStatus);
+  }
+
+  return;
 }
 
 /**
@@ -623,11 +869,21 @@ ShowPartInfo (
   IN  EFI_DISK_IO_PROTOCOL          *DiskIo
   )
 {
+  VOID *Data = NULL;
+
   Print (L"  Partition type    : ");
-  if (PartitionValidMbr(BlockIo, DiskIo)) {
+  if (PartitionValidMbr(BlockIo, DiskIo, &Data)) {
     Print (L"MBR\n");
-  } else if (PartitionValidGpt(BlockIo, DiskIo)) {
+    if (NULL != Data) {
+      ShowMbrPartitions (Data);
+      FreePool (Data);
+    }
+  } else if (PartitionValidGpt(BlockIo, DiskIo, &Data)) {
     Print (L"GPT\n");
+    if (NULL != Data) {
+      ShowGptPartitions (BlockIo, DiskIo, Data);
+      FreePool (Data);
+    }
   } else {
     Print (L"Unknown\n");
   }

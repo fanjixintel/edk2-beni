@@ -52,6 +52,12 @@
   HiiLib
   UefiHiiServicesLib
   MemoryAllocationLib
+  BaseMemoryLib
+
+[Guids]
+  gEfiPartTypeLegacyMbrGuid                             ## SOMETIMES_CONSUMES ## GUID
+  gEfiPartTypeUnusedGuid                                ## SOMETIMES_CONSUMES ## GUID
+  gEfiPartTypeSystemPartGuid                            ## SOMETIMES_CONSUMES ## GUID
 
 [Protocols]
   gEfiShellDynamicCommandProtocolGuid                   ## CONSUMES
