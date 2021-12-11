@@ -22,11 +22,12 @@
 #include "Disk.h"
 
 STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
-  {L"info", TypeFlag }, // info: disk infomation
-  {L"-n",   TypeValue}, // -n  : block
-  {L"-a",   TypeValue}, // -a  : read address
-  {L"-s",   TypeValue}, // -s  : read size
-  {NULL ,   TypeMax  }
+  {L"info",     TypeFlag }, // info  : disk infomation
+  {L"simple",   TypeFlag }, // simple: show simple infomation
+  {L"-n",       TypeValue}, // -n    : block
+  {L"-a",       TypeValue}, // -a    : read address
+  {L"-s",       TypeValue}, // -s    : read size
+  {NULL ,       TypeMax  }
   };
 
 STATIC CONST CHAR8 Hex[] = {
@@ -892,7 +893,7 @@ ShowPartInfo (
 /**
   Show disk informations.
 
-  @param  NA
+  @param[in]  Simple                Show simple disk information.
 
   @retval  NA
 
@@ -901,7 +902,7 @@ STATIC
 VOID
 EFIAPI
 ShowDiskInfo (
-  VOID
+  IN  BOOLEAN                       Simple
   )
 {
   EFI_STATUS                        Status;
@@ -949,7 +950,7 @@ ShowDiskInfo (
       continue;
     }
 
-    if (BlockIo->Media->LogicalPartition) {
+    if (Simple && (BlockIo->Media->LogicalPartition || !BlockIo->Media->MediaPresent)) {
       continue;
     }
 
@@ -1140,9 +1141,9 @@ RunDisk (
   //
   // Show disk information.
   //
-  ShowInfo = ShellCommandLineGetFlag (CheckPackage, L"Info");
+  ShowInfo = ShellCommandLineGetFlag (CheckPackage, L"info");
   if (ShowInfo) {
-    ShowDiskInfo ();
+    ShowDiskInfo (ShellCommandLineGetFlag (CheckPackage, L"simple"));
     goto DONE;
   }
 
