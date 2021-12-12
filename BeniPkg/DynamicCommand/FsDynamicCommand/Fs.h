@@ -35,6 +35,10 @@
 #include <Protocol/HiiPackageList.h>
 #include <Protocol/ShellDynamicCommand.h>
 #include <Protocol/SimpleFileSystem.h>
+#include <Protocol/BlockIo.h>
+#include <Protocol/BlockIo2.h>
+#include <Protocol/DiskIo.h>
+#include <Protocol/DiskIo2.h>
 
 #include <Guid/FileSystemInfo.h>
 
@@ -42,6 +46,20 @@
 // Used for shell display.
 //
 extern EFI_HII_HANDLE mFsHiiHandle;
+
+/**
+  Show EXT2 file system.
+
+  @param  NA
+
+  @retval  NA
+
+**/
+VOID
+EFIAPI
+ShowExt2FileSystem (
+  VOID
+  );
 
 /**
   Retrieve HII package list from ImageHandle and publish to HII database.

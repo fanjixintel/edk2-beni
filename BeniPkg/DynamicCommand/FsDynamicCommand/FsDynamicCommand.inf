@@ -34,8 +34,8 @@
 
 [Sources.common]
   FsDynamicCommand.c
-  Fs.h
   Fs.c
+  Ext2.c
   Fs.uni
 
 [Packages]
@@ -52,11 +52,16 @@
   HiiLib
   UefiHiiServicesLib
   MemoryAllocationLib
+  BaseMemoryLib
 
 [Protocols]
   gEfiShellDynamicCommandProtocolGuid                   ## CONSUMES
   gEfiHiiPackageListProtocolGuid                        ## CONSUMES
   gEfiSimpleFileSystemProtocolGuid                      ## CONSUMES
+  gEfiBlockIoProtocolGuid                               ## CONSUMES
+  gEfiBlockIo2ProtocolGuid                              ## CONSUMES
+  gEfiDiskIoProtocolGuid                                ## CONSUMES
+  gEfiDiskIo2ProtocolGuid                               ## CONSUMES
 
 [Guids]
   gEfiFileSystemInfoGuid                                ## SOMETIMES_CONSUMES ## GUID

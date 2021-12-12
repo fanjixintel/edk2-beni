@@ -26,7 +26,8 @@
 #define VOLUME_SIGNATURE_FROM_VOL_INTERFACE(a) BASE_CR(a, FAT_VOLUME, VolumeInterface)
 
 STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
-  {NULL , TypeMax}
+  {L"ext", TypeFlag}, // Display EXT file system.
+  {NULL  , TypeMax}
   };
 
 /**
@@ -240,7 +241,7 @@ RunFs (
         );
       FreePool (ProblemParam);
     }
-    goto ERROR;
+    goto DONE;
   }
 
   //
@@ -251,12 +252,20 @@ RunFs (
     ShellPrintHiiEx (
       -1, -1, NULL, STRING_TOKEN (STR_GEN_TOO_MANY), mFsHiiHandle, L"fs"
       );
-    goto ERROR;
+    goto DONE;
   }
 
+  if (ShellCommandLineGetFlag (CheckPackage, L"ext")) {
+    ShowExt2FileSystem ();
+    goto DONE;
+  }
+
+  //
+  // Show UEFI supported file system.
+  //
   ShowFileSystem ();
 
-ERROR:
+DONE:
 
   if ((ShellStatus != SHELL_SUCCESS) && (EFI_ERROR (Status))) {
     ShellStatus = Status & ~MAX_BIT;
