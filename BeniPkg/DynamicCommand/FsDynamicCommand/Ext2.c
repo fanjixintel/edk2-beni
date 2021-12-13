@@ -54,8 +54,7 @@ Ext2ReadBlock (
 /**
   Validate EXT2 Superblock.
 
-  @param[in]  BlockIo               The pointer to EFI_BLOCK_IO_PROTOCOL.
-  @param[out] Ext2Fs                EXT2 file system meta data to retreive.
+  @param[in|out] Volume             The pointer to EXT2 volume.
 
   @retval  EFI_SUCCESS              We got he super block.
   @retval  Others                   No super block exists.
@@ -64,8 +63,7 @@ Ext2ReadBlock (
 EFI_STATUS
 EFIAPI
 Ext2SbValidate (
-  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
-  OUT VOID                          **RExt2Fs  OPTIONAL
+  IN OUT EXT2_VOLUME                *Volume
   )
 {
   EFI_STATUS    Status;
@@ -74,11 +72,11 @@ Ext2SbValidate (
   UINT32        SbOffset;
   UINT32        BlockSize;
 
-  if (NULL == BlockIo) {
+  if (NULL == Volume) {
     return EFI_INVALID_PARAMETER;
   }
 
-  BlockSize = BlockIo->Media->BlockSize;
+  BlockSize = Volume->BlockIo->Media->BlockSize;
   Buffer = AllocatePool ((BlockSize > SBSIZE) ? BlockSize : SBSIZE);
   if (NULL == Buffer) {
     Status = EFI_OUT_OF_RESOURCES;
@@ -88,7 +86,7 @@ Ext2SbValidate (
   //
   // Read the super block.
   //
-  Status = Ext2ReadBlock (BlockIo, SBOFF / BlockSize, BlockSize, Buffer);
+  Status = Ext2ReadBlock (Volume->BlockIo, SBOFF / BlockSize, BlockSize, Buffer);
   if (EFI_ERROR (Status)) {
     goto DONE;
   }
@@ -110,12 +108,7 @@ Ext2SbValidate (
   }
 
   Print (L"  EXT found.\n");
-
-  if (RExt2Fs != NULL) {
-    *RExt2Fs = (VOID *)Buffer;
-  }
-
-  return EFI_SUCCESS;
+  CopyMem (&Volume->SuperBlock, Buffer, sizeof (EXT2FS));
 
 DONE:
 
@@ -129,28 +122,108 @@ DONE:
 /**
   Display EXT2 Superblock.
 
-  @param[in]  Ext2Fs                The pointer to EXT2FS.
+  @param[in|out] Volume             The pointer to EXT2 volume.
 
   @retval  NA
 
 **/
 VOID
 ShowSuperBlockInfo (
-  IN  EXT2FS                        *Ext2Fs
+  IN EXT2_VOLUME                    *Volume
   )
 {
-  Print (L"    INode count         : %d\n", Ext2Fs->Ext2FsINodeCount);
-  Print (L"    Block count         : %d\n", Ext2Fs->Ext2FsBlockCount);
-  Print (L"    Reserved block count: %d\n", Ext2Fs->Ext2FsRsvdBlockCount);
-  Print (L"    Free block count    : %d\n", Ext2Fs->Ext2FsFreeBlockCount);
-  Print (L"    Free INode count    : %d\n", Ext2Fs->Ext2FsFreeINodeCount);
-  Print (L"    First data block    : %d\n", Ext2Fs->Ext2FsFirstDataBlock);
-  Print (L"    Blocks per group    : %d\n", Ext2Fs->Ext2FsBlocksPerGroup);
-  Print (L"    INode per group     : %d\n", Ext2Fs->Ext2FsINodesPerGroup);
-  Print (L"    Magic               : 0x%x\n", Ext2Fs->Ext2FsMagic);
-  Print (L"    First INode         : %d\n", Ext2Fs->Ext2FsFirstInode);
-  Print (L"    FS GUID             : %g\n", Ext2Fs->Ext2FsUuid);
-  Print (L"    Volume name         : %a\n", Ext2Fs->Ext2FsVolumeName);
+  Print (L"    INode count         : %d\n", Volume->SuperBlock.Ext2FsINodeCount);
+  Print (L"    Block count         : %d\n", Volume->SuperBlock.Ext2FsBlockCount);
+  Print (L"    Reserved block count: %d\n", Volume->SuperBlock.Ext2FsRsvdBlockCount);
+  Print (L"    Free block count    : %d\n", Volume->SuperBlock.Ext2FsFreeBlockCount);
+  Print (L"    Free INode count    : %d\n", Volume->SuperBlock.Ext2FsFreeINodeCount);
+  Print (L"    First data block    : %d\n", Volume->SuperBlock.Ext2FsFirstDataBlock);
+  Print (L"    Blocks per group    : %d\n", Volume->SuperBlock.Ext2FsBlocksPerGroup);
+  Print (L"    INode per group     : %d\n", Volume->SuperBlock.Ext2FsINodesPerGroup);
+  Print (L"    Magic               : 0x%x\n", Volume->SuperBlock.Ext2FsMagic);
+  Print (L"    First INode         : %d\n", Volume->SuperBlock.Ext2FsFirstInode);
+  Print (L"    FS GUID             : %g\n", Volume->SuperBlock.Ext2FsUuid);
+  Print (L"    Volume name         : %a\n", Volume->SuperBlock.Ext2FsVolumeName);
+}
+
+/**
+  Implements Simple File System Protocol interface function OpenVolume().
+
+  @param[in]  This                  Calling context.
+  @param[in]  File                  the Root Directory of the volume.
+
+  @retval  EFI_OUT_OF_RESOURCES     Can not allocate the memory.
+  @retval  EFI_VOLUME_CORRUPTED     The EXT2 type is error.
+  @retval  EFI_SUCCESS              Open the volume successfully.
+
+**/
+EFI_STATUS
+EFIAPI
+Ext2OpenVolume (
+  IN  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *This,
+  OUT EFI_FILE_PROTOCOL                **File
+  )
+{
+  return EFI_UNSUPPORTED;
+}
+
+/**
+  Allocates volume structure, detects EXT2 file system, installs protocol,
+  and initialize cache.
+
+  @param[in]  Handle                The handle of parent device.
+  @param[in]  DiskIo                The DiskIo of parent device.
+  @param[in]  DiskIo2               The DiskIo2 of parent device.
+  @param[in]  BlockIo               The BlockIo of parent device.
+
+  @retval  EFI_SUCCESS              Allocate a new volume successfully.
+  @retval  EFI_OUT_OF_RESOURCES     Can not allocate the memory.
+  @return  Others                   Allocating a new volume failed.
+
+**/
+EFI_STATUS
+Ext2AllocateVolume (
+  IN  EFI_HANDLE                    Handle,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
+  IN  EFI_DISK_IO2_PROTOCOL         *DiskIo2,
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo
+  )
+{
+  EFI_STATUS    Status;
+  EXT2_VOLUME   *Volume;
+
+  //
+  // Allocate a volume structure.
+  //
+  Volume = AllocateZeroPool (sizeof (EXT2_VOLUME));
+  if (Volume == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  //
+  // Initialize the structure
+  //
+  Volume->Signature                   = EXT2_VOLUME_SIGNATURE;
+  Volume->Handle                      = NULL;
+  Volume->DiskIo                      = DiskIo;
+  Volume->DiskIo2                     = DiskIo2;
+  Volume->BlockIo                     = BlockIo;
+  Volume->MediaId                     = BlockIo->Media->MediaId;
+  Volume->ReadOnly                    = TRUE;  // Always true for EXT2.
+  Volume->VolumeInterface.Revision    = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION;
+  Volume->VolumeInterface.OpenVolume  = Ext2OpenVolume;
+
+  //
+  // Check to see if there's a file system on the volume
+  //
+  Status = Ext2SbValidate (Volume);
+  if (!EFI_ERROR (Status)) {
+    ShowSuperBlockInfo (Volume);
+  } else {
+    FreePool (Volume);
+  }
+
+  return Status;
 }
 
 /**
@@ -172,7 +245,8 @@ ShowExt2FileSystem (
   UINTN                             Count;
   UINTN                             Index;
   EFI_BLOCK_IO_PROTOCOL             *BlockIo;
-  EXT2FS                            *Ext2Fs;
+  EFI_DISK_IO_PROTOCOL              *DiskIo;
+  EFI_DISK_IO2_PROTOCOL             *DiskIo2;
 
   Status = gBS->LocateHandleBuffer (
                 ByProtocol,
@@ -203,9 +277,32 @@ ShowExt2FileSystem (
       continue;
     }
 
-    Status = Ext2SbValidate (BlockIo, &Ext2Fs);
-    if (!EFI_ERROR (Status)) {
-      ShowSuperBlockInfo (Ext2Fs);
+    Status = gBS->HandleProtocol (
+                  Handles[Index],
+                  &gEfiDiskIoProtocolGuid,
+                  (VOID **)&DiskIo
+                  );
+    if (EFI_ERROR (Status)) {
+      Print (L"No disk IO for %d\n", Index);
+      continue;
     }
+
+    Status = gBS->HandleProtocol (
+                  Handles[Index],
+                  &gEfiDiskIo2ProtocolGuid,
+                  (VOID **)&DiskIo2
+                  );
+    if (EFI_ERROR (Status)) {
+      Print (L"No disk IO 2 for %d\n", Index);
+      continue;
+    }
+
+    Ext2AllocateVolume (Handles[Index], DiskIo, DiskIo2, BlockIo);
   }
+
+  if (NULL != Handles) {
+    FreePool (Handles);
+  }
+
+  return;
 }

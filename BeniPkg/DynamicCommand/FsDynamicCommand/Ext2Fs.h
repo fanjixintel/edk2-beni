@@ -167,6 +167,33 @@ typedef struct {
   EXT2GD  *Ext2FsGrpDes;             // group descriptors
 } M_EXT2FS;
 
+typedef struct {
+  UINTN                             Signature;
+
+  EFI_HANDLE                        Handle;
+  BOOLEAN                           Valid;
+  BOOLEAN                           DiskError;
+
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL   VolumeInterface;
+
+  //
+  // If opened, the parent handle and BlockIo interface
+  //
+  EFI_BLOCK_IO_PROTOCOL           *BlockIo;
+  EFI_DISK_IO_PROTOCOL            *DiskIo;
+  EFI_DISK_IO2_PROTOCOL           *DiskIo2;
+  UINT32                          MediaId;
+  BOOLEAN                         ReadOnly;
+
+  //
+  // EXT2 super block.
+  //
+  EXT2FS                          SuperBlock;
+} EXT2_VOLUME;
+
+
+#define EXT2_VOLUME_SIGNATURE       SIGNATURE_32 ('e', 'x', 't', '2')
+
 //
 //  Filesystem identification
 //
