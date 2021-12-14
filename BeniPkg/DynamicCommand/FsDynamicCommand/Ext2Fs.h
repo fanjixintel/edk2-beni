@@ -19,8 +19,8 @@
 *  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
-#ifndef _BENI_EXT2FS__H_
-#define _BENI_EXT2FS__H_
+#ifndef _BENI_EXT2FS_H_
+#define _BENI_EXT2FS_H_
 
 #include <Uefi.h>
 #include <Library/BaseMemoryLib.h>
@@ -164,7 +164,7 @@ typedef struct {
   INT32    Ext2FsInodesPerBlock;     // number of inodes per block
   INT32    Ext2FsInodesTablePerGrp;  // number of inode table per group
   UINT32   Ext2FsGDSize;             // size of group descriptors
-  EXT2GD  *Ext2FsGrpDes;             // group descriptors
+  EXT2GD   *Ext2FsGrpDes;            // group descriptors
 } M_EXT2FS;
 
 typedef struct {
@@ -186,13 +186,14 @@ typedef struct {
   BOOLEAN                         ReadOnly;
 
   //
-  // EXT2 super block.
+  // EXT2 file system struct.
   //
-  EXT2FS                          SuperBlock;
+  M_EXT2FS                        FileSystem;
 } EXT2_VOLUME;
 
-
 #define EXT2_VOLUME_SIGNATURE       SIGNATURE_32 ('e', 'x', 't', '2')
+
+#define VOLUME_FROM_VOL_INTERFACE(a) CR (a, EXT2_VOLUME, VolumeInterface, EXT2_VOLUME_SIGNATURE);
 
 //
 //  Filesystem identification
@@ -362,4 +363,4 @@ typedef struct {
 //
 #define NINDIR(fs) ((fs)->Ext2FsBlockSize / sizeof(UINT32))
 
-#endif  // _BENI_EXT2FS__H_
+#endif  // _BENI_EXT2FS_H_
