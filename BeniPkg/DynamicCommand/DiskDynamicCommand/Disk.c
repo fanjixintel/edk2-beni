@@ -106,7 +106,7 @@ DiskDumpHex (
   Read disk.
 
   @param[in]  BlockIo               The pointer to EFI_BLOCK_IO_PROTOCOL.
-  @param[in]  DiskIo                The pointer to EFI_DISK_IO2_PROTOCOL.
+  @param[in]  DiskIo                The pointer to EFI_DISK_IO_PROTOCOL.
   @param[in]  Offset                The start address to read data.
   @param[in]  BufferSize            The data size to read.
   @param[out] Buffer                The read data buffer.
