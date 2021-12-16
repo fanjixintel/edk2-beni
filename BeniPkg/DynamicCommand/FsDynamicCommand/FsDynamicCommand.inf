@@ -33,10 +33,13 @@
   UEFI_HII_RESOURCE_SECTION         = TRUE
 
 [Sources.common]
-  FsDynamicCommand.c
-  Fs.c
   Ext2.c
+  Ext2Fs.c
+  Ext2FsLs.c
+  ExtLib.c
+  Fs.c
   Fs.uni
+  FsDynamicCommand.c
 
 [Packages]
   MdePkg/MdePkg.dec

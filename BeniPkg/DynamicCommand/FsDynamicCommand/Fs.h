@@ -64,7 +64,7 @@ extern EFI_HII_HANDLE mFsHiiHandle;
                                     and "..".
   @param[in]  OpenMode              The mode to open the file. The only valid combinations that the
                                     file may be opened with are: Read, Read/Write, or Create/Read/Write.
-  @param[in]                        Attributes Only valid for EFI_FILE_MODE_CREATE, in which case these are the
+  @param[in]  Attributes            Only valid for EFI_FILE_MODE_CREATE, in which case these are the
                                     attribute bits for the newly created file.
 
   @retval  EFI_SUCCESS              The file was opened.
@@ -83,7 +83,7 @@ extern EFI_HII_HANDLE mFsHiiHandle;
 **/
 EFI_STATUS
 EFIAPI
-FatOpen (
+Ext2Open (
   IN  EFI_FILE_PROTOCOL             *FHand,
   OUT EFI_FILE_PROTOCOL             **NewHandle,
   IN  CHAR16                        *FileName,
@@ -102,7 +102,7 @@ FatOpen (
 **/
 EFI_STATUS
 EFIAPI
-FatClose (
+Ext2Close (
   IN  EFI_FILE_PROTOCOL             *FHand
   );
 
@@ -118,7 +118,7 @@ FatClose (
 **/
 EFI_STATUS
 EFIAPI
-FatDelete (
+Ext2Delete (
   IN  EFI_FILE_PROTOCOL             *FHand
   );
 
@@ -144,7 +144,7 @@ FatDelete (
 **/
 EFI_STATUS
 EFIAPI
-FatRead (
+Ext2Read (
   IN     EFI_FILE_PROTOCOL          *FHand,
   IN OUT UINTN                      *BufferSize,
   OUT    VOID                       *Buffer
@@ -172,7 +172,7 @@ FatRead (
 **/
 EFI_STATUS
 EFIAPI
-FatWrite (
+Ext2Write (
   IN     EFI_FILE_PROTOCOL          *FHand,
   IN OUT UINTN                      *BufferSize,
   IN     VOID                       *Buffer
@@ -193,7 +193,7 @@ FatWrite (
 **/
 EFI_STATUS
 EFIAPI
-FatSetPosition (
+Ext2SetPosition (
   IN  EFI_FILE_PROTOCOL             *FHand,
   IN  UINT64                        Position
   );
@@ -212,7 +212,7 @@ FatSetPosition (
 **/
 EFI_STATUS
 EFIAPI
-FatGetPosition (
+Ext2GetPosition (
   IN  EFI_FILE_PROTOCOL             *FHand,
   OUT UINT64                        *Position
   );
@@ -240,7 +240,7 @@ FatGetPosition (
 **/
 EFI_STATUS
 EFIAPI
-FatGetInfo (
+Ext2GetInfo (
   IN     EFI_FILE_PROTOCOL          *FHand,
   IN     EFI_GUID                   *Type,
   IN OUT UINTN                      *BufferSize,
@@ -283,7 +283,7 @@ FatGetInfo (
 **/
 EFI_STATUS
 EFIAPI
-FatSetInfo (
+Ext2SetInfo (
   IN  EFI_FILE_PROTOCOL             *FHand,
   IN  EFI_GUID                      *Type,
   IN  UINTN                         BufferSize,
@@ -307,7 +307,7 @@ FatSetInfo (
 **/
 EFI_STATUS
 EFIAPI
-FatFlush (
+Ext2Flush (
   IN  EFI_FILE_PROTOCOL             *FHand
   );
 
@@ -345,7 +345,7 @@ FatFlush (
 **/
 EFI_STATUS
 EFIAPI
-FatOpenEx (
+Ext2OpenEx (
   IN     EFI_FILE_PROTOCOL          *FHand,
   OUT    EFI_FILE_PROTOCOL          **NewHandle,
   IN     CHAR16                     *FileName,
@@ -374,7 +374,7 @@ FatOpenEx (
 **/
 EFI_STATUS
 EFIAPI
-FatReadEx (
+Ext2ReadEx (
   IN     EFI_FILE_PROTOCOL          *FHand,
   IN OUT EFI_FILE_IO_TOKEN          *Token
   );
@@ -402,7 +402,7 @@ FatReadEx (
 **/
 EFI_STATUS
 EFIAPI
-FatWriteEx (
+Ext2WriteEx (
   IN     EFI_FILE_PROTOCOL          *FHand,
   IN OUT EFI_FILE_IO_TOKEN          *Token
   );
@@ -429,7 +429,7 @@ FatWriteEx (
 **/
 EFI_STATUS
 EFIAPI
-FatFlushEx (
+Ext2FlushEx (
   IN  EFI_FILE_PROTOCOL             *FHand,
   IN  EFI_FILE_IO_TOKEN             *Token
   );

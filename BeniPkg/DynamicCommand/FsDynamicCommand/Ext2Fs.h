@@ -1,29 +1,105 @@
-/**
-*  @Package     : BeniPkg
-*  @FileName    : Ext2Fs.h
-*  @Date        : 20211213
-*  @Author      : Jiangwei
-*  @Version     : 1.0
-*  @Description :
-*    This command is used for EXT2 file system test.
-*
-*  @History:
-*    20211213: Initialize.
-*
-*  This program and the accompanying materials
-*  are licensed and made available under the terms and conditions of the BSD License
-*  which accompanies this distribution. The full text of the license may be found at
-*  http://opensource.org/licenses/bsd-license.php
-*
-*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+/** @file
+
+  Copyright (c) 2019 - 2020, Intel Corporation. All rights reserved.<BR>
+  SPDX-License-Identifier: BSD-2-Clause-Patent
+
+  Copyright (c) 1982, 1986, 1989, 1993
+  The Regents of the University of California.  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+  3. Neither the name of the University nor the names of its contributors
+     may be used to endorse or promote products derived from this software
+     without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  SUCH DAMAGE.
+
+   @file fs.h 8.10 (Berkeley) 10/27/94
+   Modified for ext2fs by Manuel Bouyer.
+
+  Copyright (c) 1997 Manuel Bouyer.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+   @file fs.h 8.10 (Berkeley) 10/27/94
+   Modified for ext2fs by Manuel Bouyer.
 **/
 
-#ifndef _BENI_EXT2FS_H_
-#define _BENI_EXT2FS_H_
+#ifndef __EXT2_FS_H__
+#define __EXT2_FS_H__
 
 #include <Uefi.h>
+
 #include <Library/BaseMemoryLib.h>
+#include <Library/BaseLib.h>
+
+#include "Ext2FsDiNode.h"
+#include "Ext2FsDir.h"
+#include "LibsaFsStand.h"
+
+#define FS_EXT_SIGNATURE    SIGNATURE_32 ('p', 'e', 'x', 't')
+
+#define  PART_MAX_BLOCK_SIZE      8192
+#define  PART_MAX_BLOCK_DEVICE    64
+
+//
+// The block device
+//
+typedef struct {
+  UINT64                        StartBlock;
+  UINT64                        LastBlock;
+} LOGICAL_BLOCK_DEVICE;
+
+typedef struct {
+  UINT64   BlockNum;
+  UINT32   BlockSize;
+} DEVICE_BLOCK_INFO;
+
+
+typedef struct {
+  UINT32                        Signature;
+  BOOLEAN                       PartitionChecked;
+  UINT32                        PartitionType;
+  UINT32                        HarewareDevice;
+  UINT32                        BlockDeviceCount;
+  UINT64                        BlockData[PART_MAX_BLOCK_SIZE / 8];
+  LOGICAL_BLOCK_DEVICE          BlockDevice[PART_MAX_BLOCK_DEVICE];
+  DEVICE_BLOCK_INFO             BlockInfo;
+} PART_BLOCK_DEVICE;
 
 /**
   Each disk drive contains some number of file systems.
@@ -42,8 +118,31 @@
 **/
 #define BBSIZE      1024
 #define SBSIZE      1024
-#define BBOFF       ((UINTN)(0))
-#define SBOFF       ((UINTN)(BBOFF + BBSIZE))
+#define BBOFF       ((OFFSET)(0))
+#define SBOFF       ((OFFSET)(BBOFF + BBSIZE))
+#define BBLOCK      ((DADDRESS)(0))
+#define SBLOCK      ((DADDRESS)(BBLOCK + BBSIZE / DEV_BSIZE))
+
+#define MAXSYMLINKS 1
+
+#define MAXPATHLEN 260
+
+#undef  EXT2FS_DEBUG
+
+#undef  LIBSA_FS_SINGLECOMPONENT
+#define LIBSA_FS_SINGLE_DEVICE
+#define LIBSA_FS_SINGLE_FILESYSTEM
+#undef  LIBSA_NO_FS_SYMLINK
+#define LIBSA_NO_TWIDDLE
+#undef  LIBSA_ENABLE_LS_OP
+#define LIBSA_NO_FS_WRITE
+
+//
+// An (open) file:
+//
+typedef struct {
+  OPEN_FILE Openfile;
+} _FILE;
 
 /**
   Addresses stored in inodes are capable of addressing blocks
@@ -109,7 +208,7 @@ typedef struct {
   UINT16  Ext2FsRsvdUid;            // default uid for reserved blocks
   UINT16  Ext2FsRsvdGid;            // default gid for reserved blocks
   //
-  // EXT2_DYNAMIC_REV superblocks.
+  // EXT2_DYNAMIC_REV superblocks
   //
   UINT32  Ext2FsFirstInode;         /* first non-reserved inode */
   UINT16  Ext2FsInodeSize;          /* size of inode structure */
@@ -131,7 +230,7 @@ typedef struct {
 } EXT2FS;
 
 //
-// Ext2 file system block group descriptor.
+// Ext2 file system block group descriptor
 //
 typedef struct {
   UINT32 Ext2BGDBlockBitmap;    /* blocks bitmap block */
@@ -164,41 +263,15 @@ typedef struct {
   INT32    Ext2FsInodesPerBlock;     // number of inodes per block
   INT32    Ext2FsInodesTablePerGrp;  // number of inode table per group
   UINT32   Ext2FsGDSize;             // size of group descriptors
-  EXT2GD   *Ext2FsGrpDes;            // group descriptors
+  EXT2GD  *Ext2FsGrpDes;             // group descriptors
 } M_EXT2FS;
 
-typedef struct {
-  UINTN                             Signature;
 
-  EFI_HANDLE                        Handle;
-  BOOLEAN                           Valid;
-  BOOLEAN                           DiskError;
-
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL   VolumeInterface;
-
-  //
-  // If opened, the parent handle and BlockIo interface
-  //
-  EFI_BLOCK_IO_PROTOCOL           *BlockIo;
-  EFI_DISK_IO_PROTOCOL            *DiskIo;
-  EFI_DISK_IO2_PROTOCOL           *DiskIo2;
-  UINT32                          MediaId;
-  BOOLEAN                         ReadOnly;
-
-  //
-  // EXT2 file system struct.
-  //
-  M_EXT2FS                        FileSystem;
-} EXT2_VOLUME;
-
-#define EXT2_VOLUME_SIGNATURE       SIGNATURE_32 ('e', 'x', 't', '2')
-
-#define VOLUME_FROM_VOL_INTERFACE(a) CR (a, EXT2_VOLUME, VolumeInterface, EXT2_VOLUME_SIGNATURE);
 
 //
 //  Filesystem identification
 //
-#define E2FS_MAGIC   0xEF53 /* the ext2fs magic number */
+#define E2FS_MAGIC   0xef53 /* the ext2fs magic number */
 #define E2FS_REV0    0      /* GOOD_OLD revision */
 #define E2FS_REV1    1      /* Support compat/incompat features */
 //
@@ -284,26 +357,29 @@ typedef struct {
 
 #define INDPTR      INT32
 
-/**
-  The root inode is the root of the file system.  Inode 0 can't be used for
-  normal purposes and bad blocks are normally linked to inode 1, thus
-  the root inode is 2.
-  Inode 3 to 10 are reserved in ext2fs.
-**/
-#define    EXT2_BADBLKINO      ((UINT32)1)
-#define    EXT2_ROOTINO        ((UINT32)2)
-#define    EXT2_ACLIDXINO      ((UINT32)3)
-#define    EXT2_ACLDATAINO     ((UINT32)4)
-#define    EXT2_BOOTLOADERINO  ((UINT32)5)
-#define    EXT2_UNDELDIRINO    ((UINT32)6)
-#define    EXT2_RESIZEINO      ((UINT32)7)
-#define    EXT2_JOURNALINO     ((UINT32)8)
-#define    EXT2_FIRSTINO       ((UINT32)11)
+typedef UINT32 INODE32;
+
+//
+//  In-core open file.
+//
+typedef struct {
+  OFFSET            SeekPtr;                  // seek pointer
+  M_EXT2FS          *SuperBlockPtr;           // pointer to super-block
+  EXTFS_DINODE      DiskInode;                // copy of on-disk inode
+  UINT32            NiShift;                  // for blocks in indirect block
+  INDPTR            InodeCacheBlock;
+  INDPTR            InodeCache[IND_CACHE_SZ];
+  CHAR8             *Buffer;                  // buffer for data block
+  UINT32            BufferSize;               // size of data block
+  DADDRESS          BufferBlockNum;           // block number of data block
+} FILE;
+
 
 //
 // EXT2FS meta data is stored in little-endian byte order. These macros
 // help with reading the meta data.
 //
+
 #define E2FS_SBLOAD(old, new) CopyMem((new), (old), SBSIZE);
 #define E2FS_CGLOAD(old, new, size) CopyMem((new), (old), (size));
 #define E2FS_SBSAVE(old, new) CopyMem((new), (old), SBSIZE);
@@ -363,4 +439,240 @@ typedef struct {
 //
 #define NINDIR(fs) ((fs)->Ext2FsBlockSize / sizeof(UINT32))
 
-#endif  // _BENI_EXT2FS_H_
+typedef
+EFI_STATUS
+( *MEDIA_READ_BLOCKS) (
+  IN  UINTN         DeviceIndex,
+  IN  EFI_LBA       StartLBA,
+  IN  UINTN         BufferSize,
+  OUT VOID         *Buffer
+  );
+
+typedef struct {
+  UINTN                Signature;
+  UINT64               StartBlock;
+  UINT64               LastBlock;
+  UINT32               BlockSize;
+  UINT8                PhysicalDevNo;
+} PEI_EXT_PRIVATE_DATA;
+
+/**
+  Gives the info of device block config.
+
+  @param[in]    DevData     Device privete data.
+  @param[in]    ReadWrite   Read or Write
+  @param[in]    BlockNum    Block number to start
+  @param[in]    Size        Size to read block.
+  @param[out]   Buf         Buffer to read the block data.
+  @param[out]   RSize       Actual read size
+
+  @retval 0 if success
+  @retval other if error.
+**/
+RETURN_STATUS
+EFIAPI
+BDevStrategy (
+  IN  VOID       *DevData,
+  IN  INT32       ReadWrite,
+  IN  DADDRESS    BlockNum,
+  IN  UINT32      Size,
+  OUT VOID       *Buf,
+  OUT UINT32     *RSize
+  );
+#define    DEV_STRATEGY(d)    BDevStrategy
+
+/**
+  Validate EXT2 Superblock
+
+  @param[in]      FsHandle      EXT file system handle.
+  @param[in]      File          File for which super block needs to be read.
+  @param[out]     RExt2Fs       EXT2FS meta data to retreive.
+
+  @retval 0 if superblock validation is success
+  @retval other if error.
+**/
+RETURN_STATUS
+EFIAPI
+Ext2SbValidate (
+  IN CONST EFI_HANDLE  FsHandle,
+  IN CONST OPEN_FILE   *File     OPTIONAL,
+  OUT      EXT2FS      *RExt2Fs  OPTIONAL
+  );
+
+/**
+  Open struct file.
+
+  @param[in]      Path          Path to locate the file
+  @param[in/out]  File          The struct having the device and file info
+
+  @retval RETURN_SUCCESS if file open is success
+  @retval other if error.
+**/
+RETURN_STATUS
+EFIAPI
+Ext2fsOpen (
+  IN      CHAR8         *Path,
+  IN OUT  OPEN_FILE     *File
+  );
+
+/**
+  Close the opened file.
+
+  @param[in/out]    File        File to be closed.
+
+  @retval RETURN_SUCCESS regardless of success/fail condition
+**/
+RETURN_STATUS
+EFIAPI
+Ext2fsClose (
+  IN OUT  OPEN_FILE     *File
+  );
+
+/**
+  Copy a portion of a FILE into a memory.
+  Cross block boundaries when necessary
+
+  @param[in/out]    File      File handle to be read
+  @param[in]        Start     Start address of read buffer
+  @param[in]        Size      Size to be read
+  @param[out]       ResId     Actual read size
+
+  @retval RETURN_SUCCESS if file read is success
+  @retval other if error.
+**/
+RETURN_STATUS
+EFIAPI
+Ext2fsRead (
+  IN OUT  OPEN_FILE     *File,
+  IN      VOID          *Start,
+  IN      UINT32         Size,
+  OUT     UINT32        *ResId
+  );
+
+/**
+  List directories or files and print them
+
+  @param[in] File           pointer to an file private data
+  @param[in] Pattern        not used for now
+
+  @retval EFI_SUCCESS       list directories or files successfully
+  @retval EFI_NOT_FOUND     not found specified dir or file
+  @retval EFI_DEVICE_ERROR  an error while accessing filesystem
+**/
+EFI_STATUS
+EFIAPI
+Ext2fsLs (
+  IN  OPEN_FILE         *File,
+  IN  CONST CHAR8       *Pattern
+  );
+
+/**
+  Read Superblock of the file.
+
+  @param[in]      File          File for which super block needs to be read.
+  @param[in/out]  FileSystem    Fs on which super block is computed.
+
+  @retval 0 if superblock compute is success
+  @retval other if error.
+**/
+RETURN_STATUS
+EFIAPI
+ReadSBlock (
+  IN      OPEN_FILE     *File,
+  IN OUT  M_EXT2FS      *FileSystem
+  );
+
+/**
+  Read group descriptor of the file.
+
+  @param[in/out]  File          File for which group descriptor needs to be read.
+  @param[in]      FileSystem    Fs on which super block is computed.
+
+  @retval 0 if Group descriptor read is success
+  @retval other if error.
+**/
+RETURN_STATUS
+EFIAPI
+ReadGDBlock (
+  IN OUT  OPEN_FILE     *File,
+  IN      M_EXT2FS      *FileSystem
+  );
+
+/**
+  Read a new inode into a FILE structure.
+
+  @param[in]      INumber     inode number
+  @param[in/out]  File        pointer to open file struct.
+
+  @retval         0 if success
+  @retval         other if error.
+**/
+RETURN_STATUS
+EFIAPI
+ReadInode (
+  IN    INODE32      INumber,
+  IN    OPEN_FILE   *File
+  );
+
+/**
+  Read a portion of a FILE into an internal buffer.
+
+  Return the location in the buffer and the amount in the buffer.
+
+  @param[in]  File        Pointer to the open file.
+  @param[out] BufferPtr   buffer corresponding to offset
+  @param[out] SizePtr     Size of remainder of buffer.
+
+  @retval     0 if success
+  @retval     other if error.
+**/
+RETURN_STATUS
+EFIAPI
+BufReadFile (
+  IN  OPEN_FILE     *File,
+  OUT CHAR8        **BufferPtr,
+  OUT UINT32        *SizePtr
+  );
+
+/**
+  Gets the size of the file from descriptor.
+
+  @param[in]    File      File to be closed.
+
+  @retval size of the file from descriptor.
+**/
+UINT32
+EFIAPI
+Ext2fsFileSize (
+  IN  OPEN_FILE     *File
+  );
+
+#ifdef EXT2FS_DEBUG
+/**
+  Dump the file system super block info.
+
+  @param[in]  FileSystem     pointer to filesystem.
+
+  @retval     none
+**/
+VOID
+EFIAPI
+DumpSBlock (
+  IN  M_EXT2FS  *FileSystem
+  );
+
+/**
+  Dump the file group descriptor block info.
+
+  @param[in]  FileSystem     pointer to filesystem.
+
+  @retval     none
+**/
+VOID
+EFIAPI
+DumpGroupDesBlock (
+  IN  M_EXT2FS  *FileSystem
+  );
+#endif
+
+#endif  // __EXT2_FS_H__
