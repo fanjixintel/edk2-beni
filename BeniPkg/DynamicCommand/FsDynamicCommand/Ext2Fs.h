@@ -66,6 +66,13 @@
 
 #include <Library/BaseMemoryLib.h>
 #include <Library/BaseLib.h>
+#include <Library/DebugLib.h>
+#include <Library/MemoryAllocationLib.h>
+
+#include <Protocol/BlockIo.h>
+#include <Protocol/BlockIo2.h>
+#include <Protocol/DiskIo.h>
+#include <Protocol/DiskIo2.h>
 
 #include "Ext2FsDiNode.h"
 #include "Ext2FsDir.h"
@@ -88,7 +95,6 @@ typedef struct {
   UINT64   BlockNum;
   UINT32   BlockSize;
 } DEVICE_BLOCK_INFO;
-
 
 typedef struct {
   UINT32                        Signature;
@@ -126,8 +132,6 @@ typedef struct {
 #define MAXSYMLINKS 1
 
 #define MAXPATHLEN 260
-
-#undef  EXT2FS_DEBUG
 
 #undef  LIBSA_FS_SINGLECOMPONENT
 #define LIBSA_FS_SINGLE_DEVICE
@@ -265,8 +269,6 @@ typedef struct {
   UINT32   Ext2FsGDSize;             // size of group descriptors
   EXT2GD  *Ext2FsGrpDes;             // group descriptors
 } M_EXT2FS;
-
-
 
 //
 //  Filesystem identification
@@ -449,11 +451,14 @@ EFI_STATUS
   );
 
 typedef struct {
-  UINTN                Signature;
-  UINT64               StartBlock;
-  UINT64               LastBlock;
-  UINT32               BlockSize;
-  UINT8                PhysicalDevNo;
+  UINTN                   Signature;
+  UINT64                  StartBlock;
+  UINT64                  LastBlock;
+  UINT32                  BlockSize;
+  EFI_HANDLE              *Handle;
+  EFI_BLOCK_IO_PROTOCOL   *BlockIo;
+  EFI_DISK_IO_PROTOCOL    *DiskIo;
+  EFI_DISK_IO2_PROTOCOL   *DiskIo2;
 } PEI_EXT_PRIVATE_DATA;
 
 /**
@@ -469,7 +474,7 @@ typedef struct {
   @retval 0 if success
   @retval other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 BDevStrategy (
   IN  VOID       *DevData,
@@ -491,7 +496,7 @@ BDevStrategy (
   @retval 0 if superblock validation is success
   @retval other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 Ext2SbValidate (
   IN CONST EFI_HANDLE  FsHandle,
@@ -508,7 +513,7 @@ Ext2SbValidate (
   @retval RETURN_SUCCESS if file open is success
   @retval other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 Ext2fsOpen (
   IN      CHAR8         *Path,
@@ -522,7 +527,7 @@ Ext2fsOpen (
 
   @retval RETURN_SUCCESS regardless of success/fail condition
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 Ext2fsClose (
   IN OUT  OPEN_FILE     *File
@@ -540,7 +545,7 @@ Ext2fsClose (
   @retval RETURN_SUCCESS if file read is success
   @retval other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 Ext2fsRead (
   IN OUT  OPEN_FILE     *File,
@@ -575,7 +580,7 @@ Ext2fsLs (
   @retval 0 if superblock compute is success
   @retval other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 ReadSBlock (
   IN      OPEN_FILE     *File,
@@ -591,7 +596,7 @@ ReadSBlock (
   @retval 0 if Group descriptor read is success
   @retval other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 ReadGDBlock (
   IN OUT  OPEN_FILE     *File,
@@ -607,7 +612,7 @@ ReadGDBlock (
   @retval         0 if success
   @retval         other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 ReadInode (
   IN    INODE32      INumber,
@@ -626,7 +631,7 @@ ReadInode (
   @retval     0 if success
   @retval     other if error.
 **/
-RETURN_STATUS
+EFI_STATUS
 EFIAPI
 BufReadFile (
   IN  OPEN_FILE     *File,
@@ -647,32 +652,93 @@ Ext2fsFileSize (
   IN  OPEN_FILE     *File
   );
 
-#ifdef EXT2FS_DEBUG
 /**
-  Dump the file system super block info.
+  Dump the file system super block information.
 
-  @param[in]  FileSystem     pointer to filesystem.
+  @param[in]  FileSystem            Pointer to file system.
 
-  @retval     none
+  @retval  NA
+
 **/
 VOID
 EFIAPI
 DumpSBlock (
-  IN  M_EXT2FS  *FileSystem
+  IN  M_EXT2FS                      *FileSystem
   );
 
 /**
   Dump the file group descriptor block info.
 
-  @param[in]  FileSystem     pointer to filesystem.
+  @param[in]  FileSystem            Pointer to file system.
 
-  @retval     none
+  @retval  NA
+
 **/
 VOID
 EFIAPI
 DumpGroupDesBlock (
-  IN  M_EXT2FS  *FileSystem
+  IN  M_EXT2FS                      *FileSystem
   );
-#endif
+
+/**
+  Reads the requested number of blocks from the specified block device.
+
+  The function reads the requested number of blocks from the device. All the
+  blocks are read, or an error is returned. If there is no media in the device,
+  the function returns EFI_NO_MEDIA.
+
+  @param[in]  FsHandle              The EXT2 FILE system handle.
+  @param[in]  StartLBA              The starting logical block address (LBA) to read from
+                                    on the device
+  @param[in]  BufferSize            The size of the Buffer in bytes. This number must be
+                                    a multiple of the intrinsic block size of the device.
+  @param[out] Buffer                A pointer to the destination buffer for the data.
+                                    The caller is responsible for the ownership of the
+                                    buffer.
+
+  @retval  EFI_SUCCESS              The data was read correctly from the device.
+  @retval  EFI_UNSUPPORTED          The interface is not supported.
+  @retval  EFI_NOT_READY            The MediaSetInterfaceType() has not been called yet.
+  @retval  EFI_DEVICE_ERROR         The device reported an error while attempting
+                                    to perform the read operation.
+  @retval  EFI_INVALID_PARAMETER    The read request contains LBAs that are not
+                                    valid, or the buffer is not properly aligned.
+  @retval  EFI_NO_MEDIA             There is no media in the device.
+  @retval  EFI_BAD_BUFFER_SIZE      The BufferSize parameter is not a multiple of
+                                    the intrinsic block size of the device.
+
+**/
+EFI_STATUS
+EFIAPI
+MediaReadBlocks (
+  IN  EFI_HANDLE                    FsHandle,
+  IN  EFI_LBA                       StartLBA,
+  IN  UINTN                         BufferSize,
+  OUT VOID                          *Buffer
+  );
+
+/**
+  Initialize the EXT2 FileSystem API structure.
+
+  @param[in]  Handle                The handle pointer.
+  @param[in]  BlockIo               The pointer to EFI_BLOCK_IO_PROTOCOL.
+  @param[in]  DiskIo                The pointer to EFI_DISK_IO_PROTOCOL.
+  @param[in]  DiskIo2               The pointer to EFI_DISK_IO2_PROTOCOL.
+  @param[in]  FsHandle              The EXT2 FILE system handle.
+
+  @retval  EFI_INVALID_PARAMETER    The Partition handle is not for EXT2/3, or
+                                    partition number exceeds the maxium number in Partition handle.
+  @retval  EFI_OUT_OF_RESOURCES     Can't allocate memory resource.
+
+**/
+EFI_STATUS
+EFIAPI
+ExtInitFileSystem (
+  IN  EFI_HANDLE                    *Handle,
+  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
+  IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
+  IN  EFI_DISK_IO2_PROTOCOL         *DiskIo2,
+  OUT EFI_HANDLE                    *FsHandle
+  );
 
 #endif  // __EXT2_FS_H__

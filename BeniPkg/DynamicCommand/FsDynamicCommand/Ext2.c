@@ -20,6 +20,7 @@
 **/
 
 #include "Fs.h"
+#include "Ext2Fs.h"
 
 /**
   Show EXT2 file system.
@@ -42,6 +43,7 @@ ShowExt2FileSystem (
   EFI_BLOCK_IO_PROTOCOL             *BlockIo;
   EFI_DISK_IO_PROTOCOL              *DiskIo;
   EFI_DISK_IO2_PROTOCOL             *DiskIo2;
+  EFI_HANDLE                        FsHandle;
 
   Status = gBS->LocateHandleBuffer (
                 ByProtocol,
@@ -90,6 +92,13 @@ ShowExt2FileSystem (
     if (EFI_ERROR (Status)) {
       Print (L"No disk IO 2 for %d\n", Index);
       continue;
+    }
+
+    Status = ExtInitFileSystem (Handles[Index], BlockIo, DiskIo, DiskIo2, &FsHandle);
+    if (EFI_ERROR (Status)) {
+      continue;
+    } else {
+
     }
   }
 
