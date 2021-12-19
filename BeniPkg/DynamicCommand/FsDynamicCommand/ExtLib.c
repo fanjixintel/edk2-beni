@@ -34,14 +34,14 @@ ExtInitFileSystem (
   )
 {
   EFI_STATUS              Status;
-  PEI_EXT_PRIVATE_DATA    *PrivateData;
+  EXT_PRIVATE_DATA        *PrivateData;
 
   if (NULL == FsHandle) {
     Status = EFI_INVALID_PARAMETER;
     goto DONE;
   }
 
-  PrivateData = (PEI_EXT_PRIVATE_DATA *)AllocateZeroPool (sizeof (PEI_EXT_PRIVATE_DATA));
+  PrivateData = (EXT_PRIVATE_DATA *)AllocateZeroPool (sizeof (EXT_PRIVATE_DATA));
   if (NULL == PrivateData) {
     Status = EFI_OUT_OF_RESOURCES;
     goto DONE;
@@ -97,10 +97,10 @@ ExtCloseFileSystem (
   IN  EFI_HANDLE                    FsHandle
   )
 {
-  PEI_EXT_PRIVATE_DATA *PrivateData = NULL;
+  EXT_PRIVATE_DATA *PrivateData = NULL;
 
   if (NULL != FsHandle) {
-    PrivateData = (PEI_EXT_PRIVATE_DATA *)FsHandle;
+    PrivateData = (EXT_PRIVATE_DATA *)FsHandle;
   }
 
   if ((NULL != PrivateData) && (PrivateData->Signature == FS_EXT_SIGNATURE)) {
@@ -131,12 +131,12 @@ ExtFsOpenFile (
   )
 {
   EFI_STATUS              Status;
-  PEI_EXT_PRIVATE_DATA    *PrivateData;
+  EXT_PRIVATE_DATA        *PrivateData;
   OPEN_FILE               *OpenFile;
   CHAR8                   *NameBuffer;
   UINTN                   NameSize;
 
-  PrivateData = (PEI_EXT_PRIVATE_DATA *)FsHandle;
+  PrivateData = (EXT_PRIVATE_DATA *)FsHandle;
   if ((NULL == PrivateData) || (PrivateData->Signature != FS_EXT_SIGNATURE)) {
     return EFI_INVALID_PARAMETER;
   }
@@ -319,7 +319,7 @@ MediaReadBlocks (
   OUT VOID                          *Buffer
   )
 {
-  PEI_EXT_PRIVATE_DATA *PrivateData = (PEI_EXT_PRIVATE_DATA *)FsHandle;
+  EXT_PRIVATE_DATA *PrivateData = (EXT_PRIVATE_DATA *)FsHandle;
 
   return PrivateData->BlockIo->ReadBlocks(
                     PrivateData->BlockIo,

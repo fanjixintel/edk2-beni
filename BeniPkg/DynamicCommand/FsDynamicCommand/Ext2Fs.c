@@ -162,10 +162,10 @@ BDevStrategy (
   )
 {
   EFI_STATUS              Status;
-  PEI_EXT_PRIVATE_DATA    *PrivateData;
+  EXT_PRIVATE_DATA        *PrivateData;
   UINT64                  Startblockno;
 
-  PrivateData = (PEI_EXT_PRIVATE_DATA *)DevData;
+  PrivateData = (EXT_PRIVATE_DATA *)DevData;
 
   if ((F_READ != ReadWrite) && (F_WRITE != ReadWrite)) {
     return EFI_INVALID_PARAMETER;
@@ -603,7 +603,7 @@ Ext2SbValidate (
   OUT EXT2FS                        *RExt2Fs OPTIONAL
   )
 {
-  PEI_EXT_PRIVATE_DATA    *PrivateData;
+  EXT_PRIVATE_DATA        *PrivateData;
   UINT8                   *Buffer;
   EXT2FS                  *Ext2Fs;
   UINT32                  BufSize;
@@ -618,7 +618,7 @@ Ext2SbValidate (
     goto DONE;
   }
 
-  PrivateData = (PEI_EXT_PRIVATE_DATA *)FsHandle;
+  PrivateData = (EXT_PRIVATE_DATA *)FsHandle;
 
   Buffer = AllocatePool ((PrivateData->BlockSize > SBSIZE) ? PrivateData->BlockSize : SBSIZE);
   if (NULL == Buffer) {
@@ -684,10 +684,10 @@ ReadSBlock (
   IN OUT M_EXT2FS                   *FileSystem
   )
 {
-  PEI_EXT_PRIVATE_DATA    *PrivateData;
+  EXT_PRIVATE_DATA        *PrivateData;
   EFI_STATUS              Status;
 
-  PrivateData = (PEI_EXT_PRIVATE_DATA*) File->FileDevData;
+  PrivateData = (EXT_PRIVATE_DATA*) File->FileDevData;
 
   Status = Ext2SbValidate ((EFI_HANDLE)PrivateData, File, &FileSystem->Ext2Fs);
   if (EFI_ERROR (Status)) {

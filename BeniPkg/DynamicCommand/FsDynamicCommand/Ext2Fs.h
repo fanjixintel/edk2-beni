@@ -79,17 +79,17 @@
 #include "Ext2FsDir.h"
 #include "LibsaFsStand.h"
 
-#define FS_EXT_SIGNATURE    SIGNATURE_32 ('p', 'e', 'x', 't')
+#define FS_EXT_SIGNATURE            SIGNATURE_32 ('p', 'e', 'x', 't')
 
-#define  PART_MAX_BLOCK_SIZE      8192
-#define  PART_MAX_BLOCK_DEVICE    64
+#define PART_MAX_BLOCK_SIZE         8192
+#define PART_MAX_BLOCK_DEVICE       64
 
 //
-// The block device
+// The block device.
 //
 typedef struct {
-  UINT64                        StartBlock;
-  UINT64                        LastBlock;
+  UINT64   StartBlock;
+  UINT64   LastBlock;
 } LOGICAL_BLOCK_DEVICE;
 
 typedef struct {
@@ -98,31 +98,31 @@ typedef struct {
 } DEVICE_BLOCK_INFO;
 
 typedef struct {
-  UINT32                        Signature;
-  BOOLEAN                       PartitionChecked;
-  UINT32                        PartitionType;
-  UINT32                        HarewareDevice;
-  UINT32                        BlockDeviceCount;
-  UINT64                        BlockData[PART_MAX_BLOCK_SIZE / 8];
-  LOGICAL_BLOCK_DEVICE          BlockDevice[PART_MAX_BLOCK_DEVICE];
-  DEVICE_BLOCK_INFO             BlockInfo;
+  UINT32                  Signature;
+  BOOLEAN                 PartitionChecked;
+  UINT32                  PartitionType;
+  UINT32                  HarewareDevice;
+  UINT32                  BlockDeviceCount;
+  UINT64                  BlockData[PART_MAX_BLOCK_SIZE / 8];
+  LOGICAL_BLOCK_DEVICE    BlockDevice[PART_MAX_BLOCK_DEVICE];
+  DEVICE_BLOCK_INFO       BlockInfo;
 } PART_BLOCK_DEVICE;
 
-/**
-  Each disk drive contains some number of file systems.
-  A file system consists of a number of cylinder groups.
-  Each cylinder group has inodes and data.
-
-  A file system is described by its super-block, which in turn
-  describes the cylinder groups.  The super-block is critical
-  data and is replicated in each cylinder group to protect against
-  catastrophic loss.  This is done at `newfs' time and the critical
-  super-block data does not change, so the copies need not be
-  referenced further unless disaster strikes.
-
-  The first boot and super blocks are given in absolute disk addresses.
-  The byte-offset forms are preferred, as they don't imply a sector size.
-**/
+//
+//  Each disk drive contains some number of file systems.
+//  A file system consists of a number of cylinder groups.
+//  Each cylinder group has inodes and data.
+//
+//  A file system is described by its super-block, which in turn
+//  describes the cylinder groups.  The super-block is critical
+//  data and is replicated in each cylinder group to protect against
+//  catastrophic loss.  This is done at `newfs' time and the critical
+//  super-block data does not change, so the copies need not be
+//  referenced further unless disaster strikes.
+//
+//  The first boot and super blocks are given in absolute disk addresses.
+//  The byte-offset forms are preferred, as they don't imply a sector size.
+//
 #define BBSIZE      1024
 #define SBSIZE      1024
 #define BBOFF       ((OFFSET)(0))
@@ -143,44 +143,44 @@ typedef struct {
 #define LIBSA_NO_FS_WRITE
 
 //
-// An (open) file:
+// An (opened) file.
 //
 typedef struct {
   OPEN_FILE Openfile;
 } _FILE;
 
-/**
-  Addresses stored in inodes are capable of addressing blocks
-  XXX
-
-  MINBSIZE is the smallest allowable block size.
-  MINBSIZE must be big enough to hold a cylinder group block,
-  thus changes to (struct cg) must keep its size within MINBSIZE.
-  Note that super blocks are always of size SBSIZE,
-  and that both SBSIZE and MAXBSIZE must be >= MINBSIZE.
-**/
+//
+// Addresses stored in inodes are capable of addressing blocks
+// XXX
+//
+// MINBSIZE is the smallest allowable block size.
+// MINBSIZE must be big enough to hold a cylinder group block,
+// thus changes to (struct cg) must keep its size within MINBSIZE.
+// Note that super blocks are always of size SBSIZE,
+// and that both SBSIZE and MAXBSIZE must be >= MINBSIZE.
+//
 #define LOG_MINBSIZE    10
 #define MINBSIZE        (1 << LOG_MINBSIZE)
 
-/**
-  The path name on which the file system is mounted is maintained
-  in fs_fsmnt. MAXMNTLEN defines the amount of space allocated in
-  the super block for this name.
-**/
+//
+// The path name on which the file system is mounted is maintained
+// in fs_fsmnt. MAXMNTLEN defines the amount of space allocated in
+// the super block for this name.
+//
 #define MAXMNTLEN    512
 
-/**
-  MINFREE gives the minimum acceptable percentage of file system
-  blocks which may be free. If the freelist drops below this level
-  only the superuser may continue to allocate blocks. This may
-  be set to 0 if no reserve of free blocks is deemed necessary,
-  however throughput drops by fifty percent if the file system
-  is run at between 95% and 100% full; thus the minimum default
-  value of fs_minfree is 5%. However, to get good clustering
-  performance, 10% is a better choice. hence we use 10% as our
-  default value. With 10% free space, fragmentation is not a
-  problem, so we choose to optimize for time.
-**/
+//
+// MINFREE gives the minimum acceptable percentage of file system
+// blocks which may be free. If the freelist drops below this level
+// only the superuser may continue to allocate blocks. This may
+// be set to 0 if no reserve of free blocks is deemed necessary,
+// however throughput drops by fifty percent if the file system
+// is run at between 95% and 100% full; thus the minimum default
+// value of fs_minfree is 5%. However, to get good clustering
+// performance, 10% is a better choice. hence we use 10% as our
+// default value. With 10% free space, fragmentation is not a
+// problem, so we choose to optimize for time.
+//
 #define MINFREE    5
 
 //
@@ -302,19 +302,19 @@ typedef struct {
 #define EXT2F_INCOMPAT_EXTENTS      0x0040
 #define EXT2F_INCOMPAT_FLEX_BG      0x0200
 
-/**
-  Features supported in this implementation
-
-  We support the following REV1 features:
-  - EXT2F_ROCOMPAT_SPARSESUPER
-     superblock backups stored only in cg_has_sb(bno) groups
-  - EXT2F_ROCOMPAT_LARGEFILE
-     use e2di_dacl in EXTFS_DINODE to store
-     upper 32bit of size for >2GB files
-  - EXT2F_INCOMPAT_FTYPE
-     store file type to e2d_type in EXT2FS_direct
-     (on REV0 e2d_namlen is UINT16 and no e2d_type, like ffs)
-**/
+//
+// Features supported in this implementation.
+//
+// We support the following REV1 features:
+// - EXT2F_ROCOMPAT_SPARSESUPER
+//     superblock backups stored only in cg_has_sb(bno) groups
+// - EXT2F_ROCOMPAT_LARGEFILE
+//     use e2di_dacl in EXTFS_DINODE to store
+//     upper 32bit of size for >2GB files
+// - EXT2F_INCOMPAT_FTYPE
+//     store file type to e2d_type in EXT2FS_direct
+//     (on REV0 e2d_namlen is UINT16 and no e2d_type, like ffs)
+//
 #define EXT2F_COMPAT_SUPP        0x0000
 #define EXT2F_ROCOMPAT_SUPP      (EXT2F_ROCOMPAT_SPARSESUPER \
                                  | EXT2F_ROCOMPAT_LARGEFILE)
@@ -325,15 +325,15 @@ typedef struct {
                                  | EXT2F_INCOMPAT_FLEX_BG)
 
 //
-//  Definitions of behavior on errors
+// Definitions of behavior on errors/
 //
-#define E2FS_BEH_CONTINUE   1   /* continue operation */
-#define E2FS_BEH_READONLY   2   /* remount fs read only */
-#define E2FS_BEH_PANIC      3   /* cause panic */
+#define E2FS_BEH_CONTINUE   1   // Continue operation.
+#define E2FS_BEH_READONLY   2   // Remount fs read only.
+#define E2FS_BEH_PANIC      3   // Cause panic.
 #define E2FS_BEH_DEFAULT    E2FS_BEH_CONTINUE
 
 //
-//  OS identification
+// OS identification.
 //
 #define E2FS_OS_LINUX   0
 #define E2FS_OS_HURD    1
@@ -342,18 +342,18 @@ typedef struct {
 #define E2FS_OS_LITES   4
 
 //
-//  Filesystem clean flags
+// Filesystem clean flags.
 //
 #define E2FS_ISCLEAN 0x01
 #define E2FS_ERRORS  0x02
 
-/**
-  The cache size (IND_CACHE_SZ) must be smaller or equal the number of pointers
-  in the indirect blocks: NINDIR = Ext2FsBlockSize / sizeof(UINT32).
-  For ext2fs minimal block size is 1kB and block pointer size is 4 (UINT32)
-  so LN2_IND_CACHE_SZ <= 8 (cache size IND_CACHE_SZ=2^8=256)
-  Optimal for file system speed is the biggest cache size possible.
-**/
+//
+// The cache size (IND_CACHE_SZ) must be smaller or equal the number of pointers
+// in the indirect blocks: NINDIR = Ext2FsBlockSize / sizeof(UINT32).
+// For ext2fs minimal block size is 1kB and block pointer size is 4 (UINT32)
+// so LN2_IND_CACHE_SZ <= 8 (cache size IND_CACHE_SZ=2^8=256)
+// Optimal for file system speed is the biggest cache size possible.
+//
 #define LN2_IND_CACHE_SZ    8
 #define IND_CACHE_SZ        (1 << LN2_IND_CACHE_SZ)
 #define IND_CACHE_MASK      (IND_CACHE_SZ - 1)
@@ -363,20 +363,19 @@ typedef struct {
 typedef UINT32 INODE32;
 
 //
-//  In-core open file.
+// In-core open file.
 //
 typedef struct {
-  OFFSET            SeekPtr;                  // seek pointer
-  M_EXT2FS          *SuperBlockPtr;           // pointer to super-block
-  EXTFS_DINODE      DiskInode;                // copy of on-disk inode
-  UINT32            NiShift;                  // for blocks in indirect block
+  OFFSET            SeekPtr;                  // Seek pointer.
+  M_EXT2FS          *SuperBlockPtr;           // Pointer to super-block.
+  EXTFS_DINODE      DiskInode;                // Copy of on-disk inode.
+  UINT32            NiShift;                  // For blocks in indirect block.
   INDPTR            InodeCacheBlock;
   INDPTR            InodeCache[IND_CACHE_SZ];
-  CHAR8             *Buffer;                  // buffer for data block
-  UINT32            BufferSize;               // size of data block
-  DADDRESS          BufferBlockNum;           // block number of data block
+  CHAR8             *Buffer;                  // Buffer for data block.
+  UINT32            BufferSize;               // Size of data block.
+  DADDRESS          BufferBlockNum;           // Block number of data block.
 } FILE;
-
 
 //
 // EXT2FS meta data is stored in little-endian byte order. These macros
@@ -388,38 +387,38 @@ typedef struct {
 #define E2FS_SBSAVE(old, new) CopyMem((new), (old), SBSIZE);
 #define E2FS_CGSAVE(old, new, size) CopyMem((new), (old), (size));
 
-/**
-  Turn file system block numbers into disk block addresses.
-  This maps file system blocks to device size blocks.
-**/
+//
+// Turn file system block numbers into disk block addresses.
+// This maps file system blocks to device size blocks.
+//
 #define FSBTODB(fs, b)    ((b) << (fs)->Ext2FsFsbtobd)
 #define DBTOFSB(fs, b)    ((b) >> (fs)->Ext2FsFsbtobd)
 
-/**
-  Macros for handling inode numbers:
-      inode number to file system block offset.
-      inode number to cylinder group number.
-      inode number to file system block address.
-**/
+//
+// Macros for handling inode numbers:
+//   inode number to file system block offset.
+//   inode number to cylinder group number.
+//   inode number to file system block address.
+//
 #define INOTOCG(fs, x)  (((x) - 1) / (fs)->Ext2Fs.Ext2FsINodesPerGroup)
 #define INODETOFSBA(fs, x)  \
     ((fs)->Ext2FsGrpDes[INOTOCG((fs), (x))].Ext2BGDInodeTables + \
     (((x) - 1) % (fs)->Ext2Fs.Ext2FsINodesPerGroup) / (fs)->Ext2FsInodesPerBlock)
 #define INODETOFSBO(fs, x)  ((((x) - 1) % (fs)->Ext2Fs.Ext2FsINodesPerGroup) % (fs)->Ext2FsInodesPerBlock)
 
-/**
-  Give cylinder group number for a file system block.
-  Give cylinder group block number for a file system block.
-**/
+//
+// Give cylinder group number for a file system block.
+// Give cylinder group block number for a file system block.
+//
 #define DTOG(fs, d) (((d) - (fs)->Ext2Fs.Ext2FsFirstDataBlock) / (fs)->Ext2Fs.Ext2FsFragsPerGroup)
 #define DTOGD(fs, d) \
     (((d) - (fs)->Ext2Fs.Ext2FsFirstDataBlock) % (fs)->Ext2Fs.Ext2FsFragsPerGroup)
 
-/**
-  The following macros optimize certain frequently calculated
-  quantities by using shifts and masks in place of divisions
-  modulos and multiplications.
-**/
+//
+// The following macros optimize certain frequently calculated
+// quantities by using shifts and masks in place of divisions
+// modulos and multiplications.
+//
 #define BLOCKOFFSET(fs, loc)     /* calculates (loc % fs->Ext2FsBlockSize) */ \
     ((loc) & (fs)->Ext2FsQuadBlockOffset)
 #define LBLKTOSIZE(fs, blk)      /* calculates (blk * fs->Ext2FsBlockSize) */ \
@@ -431,14 +430,14 @@ typedef struct {
 #define FRAGROUNDUP(fs, size)    /* calculates roundup(size, fs->Ext2FsBlockSize) */ \
     (((size) + (fs)->Ext2FsQuadBlockOffset) & (fs)->Ext2FsBlockOffset)
 //
-//  Determine the number of available frags given a
-//  percentage to hold in reserve.
+// Determine the number of available frags given a
+// percentage to hold in reserve.
 //
 #define FREESPACE(fs) \
    ((fs)->Ext2Fs.Ext2FsFreeBlockCount - (fs)->Ext2Fs.Ext2FsRsvdBlockCount)
 
 //
-//  Number of indirects in a file system block.
+// Number of indirects in a file system block.
 //
 #define NINDIR(fs) ((fs)->Ext2FsBlockSize / sizeof(UINT32))
 
@@ -460,147 +459,156 @@ typedef struct {
   EFI_BLOCK_IO_PROTOCOL   *BlockIo;
   EFI_DISK_IO_PROTOCOL    *DiskIo;
   EFI_DISK_IO2_PROTOCOL   *DiskIo2;
-} PEI_EXT_PRIVATE_DATA;
+} EXT_PRIVATE_DATA;
 
 /**
   Gives the info of device block config.
 
-  @param[in]    DevData     Device privete data.
-  @param[in]    ReadWrite   Read or Write
-  @param[in]    BlockNum    Block number to start
-  @param[in]    Size        Size to read block.
-  @param[out]   Buf         Buffer to read the block data.
-  @param[out]   RSize       Actual read size
+  @param[in]  DevData               Device privete data.
+  @param[in]  ReadWrite             Read or Write.
+  @param[in]  BlockNum              Block number to start.
+  @param[in]  Size                  Size to read block.
+  @param[out] Buf                   Buffer to read the block data.
+  @param[out] RSize                 Actual read size.
 
-  @retval 0 if success
-  @retval other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 BDevStrategy (
-  IN  VOID       *DevData,
-  IN  INT32       ReadWrite,
-  IN  DADDRESS    BlockNum,
-  IN  UINT32      Size,
-  OUT VOID       *Buf,
-  OUT UINT32     *RSize
+  IN  VOID                          *DevData,
+  IN  INT32                         ReadWrite,
+  IN  DADDRESS                      BlockNum,
+  IN  UINT32                        Size,
+  OUT VOID                          *Buf,
+  OUT UINT32                        *RSize
   );
-#define    DEV_STRATEGY(d)    BDevStrategy
+#define DEV_STRATEGY(d) BDevStrategy
 
 /**
-  Validate EXT2 Superblock
+  Validate EXT2 Superblock.
 
-  @param[in]      FsHandle      EXT file system handle.
-  @param[in]      File          File for which super block needs to be read.
-  @param[out]     RExt2Fs       EXT2FS meta data to retreive.
+  @param[in]  FsHandle              EXT file system handle.
+  @param[in]  File                  File for which super block needs to be read.
+  @param[out] RExt2Fs               EXT2FS meta data to retreive.
 
-  @retval 0 if superblock validation is success
-  @retval other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 Ext2SbValidate (
-  IN CONST EFI_HANDLE  FsHandle,
-  IN CONST OPEN_FILE   *File     OPTIONAL,
-  OUT      EXT2FS      *RExt2Fs  OPTIONAL
+  IN  CONST EFI_HANDLE              FsHandle,
+  IN  CONST OPEN_FILE               *File OPTIONAL,
+  OUT EXT2FS                        *RExt2Fs OPTIONAL
   );
 
 /**
   Open struct file.
 
-  @param[in]      Path          Path to locate the file
-  @param[in/out]  File          The struct having the device and file info
+  @param[in]     Path               Path to locate the file
+  @param[in/out] File               The struct having the device and file info
 
-  @retval RETURN_SUCCESS if file open is success
-  @retval other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 Ext2fsOpen (
-  IN      CHAR8         *Path,
-  IN OUT  OPEN_FILE     *File
+  IN     CHAR8                      *Path,
+  IN OUT OPEN_FILE                  *File
   );
 
 /**
   Close the opened file.
 
-  @param[in/out]    File        File to be closed.
+  @param[in/out] File               File to be closed.
 
-  @retval RETURN_SUCCESS regardless of success/fail condition
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 Ext2fsClose (
-  IN OUT  OPEN_FILE     *File
+  IN OUT OPEN_FILE                  *File
   );
 
 /**
   Copy a portion of a FILE into a memory.
   Cross block boundaries when necessary
 
-  @param[in/out]    File      File handle to be read
-  @param[in]        Start     Start address of read buffer
-  @param[in]        Size      Size to be read
-  @param[out]       ResId     Actual read size
+  @param[in/out] File               File handle to be read.
+  @param[in]     Start              Start address of read buffer.
+  @param[in]     Size               Size to be read.
+  @param[out]    ResId              Actual read size.
 
-  @retval RETURN_SUCCESS if file read is success
-  @retval other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 Ext2fsRead (
-  IN OUT  OPEN_FILE     *File,
-  IN      VOID          *Start,
-  IN      UINT32         Size,
-  OUT     UINT32        *ResId
+  IN OUT OPEN_FILE                  *File,
+  IN     VOID                       *Start,
+  IN     UINT32                     Size,
+  OUT    UINT32                     *ResId
   );
 
 /**
   Read Superblock of the file.
 
-  @param[in]      File          File for which super block needs to be read.
-  @param[in/out]  FileSystem    Fs on which super block is computed.
+  @param[in]     File               File for which super block needs to be read.
+  @param[in/out] FileSystem         Fs on which super block is computed.
 
-  @retval 0 if superblock compute is success
-  @retval other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 ReadSBlock (
-  IN      OPEN_FILE     *File,
-  IN OUT  M_EXT2FS      *FileSystem
+  IN     OPEN_FILE                  *File,
+  IN OUT M_EXT2FS                   *FileSystem
   );
 
 /**
   Read group descriptor of the file.
 
-  @param[in/out]  File          File for which group descriptor needs to be read.
-  @param[in]      FileSystem    Fs on which super block is computed.
+  @param[in/out] File               File for which group descriptor needs to be read.
+  @param[in]     FileSystem         Fs on which super block is computed.
 
-  @retval 0 if Group descriptor read is success
-  @retval other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 ReadGDBlock (
-  IN OUT  OPEN_FILE     *File,
-  IN      M_EXT2FS      *FileSystem
+  IN OUT OPEN_FILE                  *File,
+  IN     M_EXT2FS                   *FileSystem
   );
 
 /**
   Read a new inode into a FILE structure.
 
-  @param[in]      INumber     inode number
-  @param[in/out]  File        pointer to open file struct.
+  @param[in]     INumber            Inode number
+  @param[in/out] File               Pointer to open file struct.
 
-  @retval         0 if success
-  @retval         other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 ReadInode (
-  IN    INODE32      INumber,
-  IN    OPEN_FILE   *File
+  IN  INODE32                       INumber,
+  IN  OPEN_FILE                     *File
   );
 
 /**
@@ -608,32 +616,34 @@ ReadInode (
 
   Return the location in the buffer and the amount in the buffer.
 
-  @param[in]  File        Pointer to the open file.
-  @param[out] BufferPtr   buffer corresponding to offset
-  @param[out] SizePtr     Size of remainder of buffer.
+  @param[in]  File                  Pointer to the open file.
+  @param[out] BufferPtr             buffer corresponding to offset
+  @param[out] SizePtr               Size of remainder of buffer.
 
-  @retval     0 if success
-  @retval     other if error.
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
 **/
 EFI_STATUS
 EFIAPI
 BufReadFile (
-  IN  OPEN_FILE     *File,
-  OUT CHAR8        **BufferPtr,
-  OUT UINT32        *SizePtr
+  IN  OPEN_FILE                     *File,
+  OUT CHAR8                         **BufferPtr,
+  OUT UINT32                        *SizePtr
   );
 
 /**
   Gets the size of the file from descriptor.
 
-  @param[in]    File      File to be closed.
+  @param[in]  File                  File to be closed.
 
-  @retval size of the file from descriptor.
+  @retval  UINT32                   Size of the file from descriptor.
+
 **/
 UINT32
 EFIAPI
 Ext2fsFileSize (
-  IN  OPEN_FILE     *File
+  IN  OPEN_FILE                     *File
   );
 
 /**
