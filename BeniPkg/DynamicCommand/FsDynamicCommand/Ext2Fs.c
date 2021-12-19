@@ -99,9 +99,9 @@
   Given an offset in a FILE, find the disk block number that
   contains that block.
 
-  @param[in]  File            pointer to an Open file.
-  @param[in]  FileBlock       Block to find the file.
-  @param[out] DiskBlockPtr    Pointer to the disk which contains block.
+  @param[in]  File                  Pointer to an Open file.
+  @param[in]  FileBlock             Block to find the file.
+  @param[out] DiskBlockPtr          Pointer to the disk which contains block.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -110,18 +110,18 @@
 STATIC
 EFI_STATUS
 BlockMap (
-  IN  OPEN_FILE     *File,
-  IN  INDPTR         FileBlock,
-  OUT INDPTR        *DiskBlockPtr
+  IN  OPEN_FILE                     *File,
+  IN  INDPTR                        FileBlock,
+  OUT INDPTR                        *DiskBlockPtr
   );
 
 /**
   Search a directory for a Name and return its inode number.
 
-  @param[in]      Name        Name to compare with
-  @param[in]      Length      Length of the dir name
-  @param[in/out]  File        Pointer to file private data
-  @param[out]     INumPtr     pointer to Inode number.
+  @param[in]     Name               Name to compare with.
+  @param[in]     Length             Length of the dir name.
+  @param[in/out] File               Pointer to file private data.
+  @param[out]    INumPtr            Pointer to Inode number.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -130,10 +130,10 @@ BlockMap (
 STATIC
 EFI_STATUS
 SearchDirectory (
-  IN      CHAR8         *Name,
-  IN      INT32          Length,
-  IN OUT  OPEN_FILE     *File,
-  OUT     INODE32       *INumPtr
+  IN     CHAR8                      *Name,
+  IN     INT32                      Length,
+  IN OUT OPEN_FILE                  *File,
+  OUT    INODE32                    *INumPtr
   );
 
 /**
@@ -190,8 +190,8 @@ BDevStrategy (
 /**
   Read a new inode into a FILE structure.
 
-  @param[in]      INumber     inode number
-  @param[in/out]  File        pointer to open file struct.
+  @param[in]     INumber            Inode number.
+  @param[in/out] File               Pointer to open file struct.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -200,18 +200,18 @@ BDevStrategy (
 EFI_STATUS
 EFIAPI
 ReadInode (
-  IN    INODE32      INumber,
-  IN    OPEN_FILE   *File
+  IN  INODE32                       INumber,
+  IN  OPEN_FILE                     *File
   )
 {
-  FILE         *Fp;
-  M_EXT2FS     *FileSystem;
-  CHAR8        *Buf;
+  FILE          *Fp;
+  M_EXT2FS      *FileSystem;
+  CHAR8         *Buf;
   UINT32        RSize;
-  EFI_STATUS Status;
+  EFI_STATUS    Status;
   DADDRESS      InodeSector;
-  EXT2GD       *Ext2FsGrpDes;
-  EXTFS_DINODE *DInodePtr;
+  EXT2GD        *Ext2FsGrpDes;
+  EXTFS_DINODE  *DInodePtr;
 
   Fp = (FILE *)File->FileSystemSpecificData;
   FileSystem = Fp->SuperBlockPtr;
@@ -246,10 +246,11 @@ ReadInode (
   E2FSILOAD (DInodePtr, &Fp->DiskInode);
 
   //
-  // Clear out the Old buffers
+  // Clear out the old buffers.
   //
   Fp->InodeCacheBlock = ~0;
   Fp->BufferBlockNum = -1;
+
   return Status;
 }
 
@@ -257,9 +258,9 @@ ReadInode (
   Given an offset in a FILE, find the disk block number that
   contains that block.
 
-  @param[in]  File            pointer to an Open file.
-  @param[in]  FileBlock       Block to find the file.
-  @param[out] DiskBlockPtr    Pointer to the disk which contains block.
+  @param[in]  File                  Pointer to an Open file.
+  @param[in]  FileBlock             Block to find the file.
+  @param[out] DiskBlockPtr          Pointer to the disk which contains block.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -268,24 +269,24 @@ ReadInode (
 STATIC
 EFI_STATUS
 BlockMap (
-  IN  OPEN_FILE     *File,
-  IN  INDPTR         FileBlock,
-  OUT INDPTR        *DiskBlockPtr
+  IN  OPEN_FILE                     *File,
+  IN  INDPTR                        FileBlock,
+  OUT INDPTR                        *DiskBlockPtr
   )
 {
-  FILE     *Fp;
-  M_EXT2FS *FileSystem;
-  UINT32    Level;
-  INDPTR    IndCache;
-  INDPTR    IndBlockNum;
-  UINT32    RSize;
-  INDPTR   *Buf;
-  UINT32    Index;
-  UINT64    NextLevelNode;
-  EXT4_EXTENT_TABLE *Etable;
-  EXT4_EXTENT_INDEX *ExtIndex;
-  EXT4_EXTENT       *Extent;
-  EFI_STATUS     Status;
+  FILE                    *Fp;
+  M_EXT2FS                *FileSystem;
+  UINT32                  Level;
+  INDPTR                  IndCache;
+  INDPTR                  IndBlockNum;
+  UINT32                  RSize;
+  INDPTR                  *Buf;
+  UINT32                  Index;
+  UINT64                  NextLevelNode;
+  EXT4_EXTENT_TABLE       *Etable;
+  EXT4_EXTENT_INDEX       *ExtIndex;
+  EXT4_EXTENT             *Extent;
+  EFI_STATUS              Status;
 
   Fp = (FILE *)File->FileSystemSpecificData;
   FileSystem = Fp->SuperBlockPtr;
@@ -439,12 +440,11 @@ BlockMap (
 
 /**
   Read a portion of a FILE into an internal buffer.
-
   Return the location in the buffer and the amount in the buffer.
 
-  @param[in]  File        Pointer to the open file.
-  @param[out] BufferPtr   buffer corresponding to offset
-  @param[out] SizePtr     Size of remainder of buffer.
+  @param[in]  File                  Pointer to the open file.
+  @param[out] BufferPtr             Buffer corresponding to offset.
+  @param[out] SizePtr               Size of remainder of buffer.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -453,18 +453,18 @@ BlockMap (
 EFI_STATUS
 EFIAPI
 BufReadFile (
-  IN  OPEN_FILE     *File,
-  OUT CHAR8        **BufferPtr,
-  OUT UINT32        *SizePtr
+  IN  OPEN_FILE                     *File,
+  OUT CHAR8                         **BufferPtr,
+  OUT UINT32                        *SizePtr
   )
 {
-  FILE *Fp;
-  M_EXT2FS *FileSystem;
-  INT32 Off;
-  INDPTR FileBlock;
-  INDPTR DiskBlock;
-  UINT32 BlockSize;
-  EFI_STATUS Status;
+  FILE          *Fp;
+  M_EXT2FS      *FileSystem;
+  INT32         Off;
+  INDPTR        FileBlock;
+  INDPTR        DiskBlock;
+  UINT32        BlockSize;
+  EFI_STATUS    Status;
 
   Fp = (FILE *)File->FileSystemSpecificData;
   FileSystem = Fp->SuperBlockPtr;
@@ -519,10 +519,10 @@ BufReadFile (
 /**
   Search a directory for a Name and return its inode number.
 
-  @param[in]      Name        Name to compare with
-  @param[in]      Length      Length of the dir name
-  @param[in/out]  File        Pointer to file private data
-  @param[out]     INumPtr     pointer to Inode number.
+  @param[in]     Name               Name to compare with.
+  @param[in]     Length             Length of the dir name.
+  @param[in/out] File               Pointer to file private data.
+  @param[out]    INumPtr            Pointer to Inode number.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -531,25 +531,25 @@ BufReadFile (
 STATIC
 EFI_STATUS
 SearchDirectory (
-  IN      CHAR8         *Name,
-  IN      INT32          Length,
-  IN OUT  OPEN_FILE     *File,
-  OUT     INODE32       *INumPtr
+  IN     CHAR8                      *Name,
+  IN     INT32                      Length,
+  IN OUT OPEN_FILE                  *File,
+  OUT    INODE32                    *INumPtr
   )
 {
-  FILE *Fp;
+  FILE          *Fp;
   EXT2FS_DIRECT *Dp;
   EXT2FS_DIRECT *EdPtr;
-  CHAR8 *Buf;
-  UINT32 BufSize;
-  INT32 NameLen;
-  EFI_STATUS Status;
+  CHAR8         *Buf;
+  UINT32        BufSize;
+  INT32         NameLen;
+  EFI_STATUS    Status;
 
   Fp = (FILE *)File->FileSystemSpecificData;
 
   Fp->SeekPtr = 0;
   //
-  // XXX should handle LARGEFILE
+  // XXX should handle LARGEFILE.
   //
   while (Fp->SeekPtr < (OFFSET)Fp->DiskInode.Ext2DInodeSize) {
     Status = BufReadFile (File, &Buf, &BufSize);
@@ -571,7 +571,7 @@ SearchDirectory (
       if (NameLen == Length &&
           !CompareMem (Name, Dp->Ext2DirectName, Length)) {
         //
-        // found entry
+        // Found entry.
         //
         *INumPtr = Dp->Ext2DirectInodeNumber;
         File->FileNamePtr = Name;
@@ -580,6 +580,7 @@ SearchDirectory (
     }
     Fp->SeekPtr += BufSize;
   }
+
   return EFI_NOT_FOUND;
 }
 
@@ -669,8 +670,8 @@ DONE:
 /**
   Read Superblock of the file.
 
-  @param[in]      File          File for which super block needs to be read.
-  @param[in/out]  FileSystem    Fs on which super block is computed.
+  @param[in]     File               File for which super block needs to be read.
+  @param[in/out] FileSystem         Fs on which super block is computed.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -679,14 +680,12 @@ DONE:
 EFI_STATUS
 EFIAPI
 ReadSBlock (
-  IN      OPEN_FILE     *File,
-  IN OUT  M_EXT2FS      *FileSystem
+  IN     OPEN_FILE                  *File,
+  IN OUT M_EXT2FS                   *FileSystem
   )
 {
-  PEI_EXT_PRIVATE_DATA *PrivateData;
-  EFI_STATUS Status;
-
-  Status = 0;
+  PEI_EXT_PRIVATE_DATA    *PrivateData;
+  EFI_STATUS              Status;
 
   PrivateData = (PEI_EXT_PRIVATE_DATA*) File->FileDevData;
 
@@ -696,7 +695,7 @@ ReadSBlock (
   }
 
   //
-  // compute in-memory m_ext2fs values
+  // Compute in-memory m_ext2fs values.
   //
   FileSystem->Ext2FsNumCylinder       =
     HOWMANY (FileSystem->Ext2Fs.Ext2FsBlockCount - FileSystem->Ext2Fs.Ext2FsFirstDataBlock,
@@ -717,14 +716,15 @@ ReadSBlock (
   FileSystem->Ext2FsInodesTablePerGrp = FileSystem->Ext2Fs.Ext2FsINodesPerGroup / FileSystem->Ext2FsInodesPerBlock;
 
 DONE:
+
   return Status;
 }
 
 /**
   Read group descriptor of the file.
 
-  @param[in/out]  File          File for which group descriptor needs to be read.
-  @param[in]      FileSystem    Fs on which super block is computed.
+  @param[in/out] File               File for which group descriptor needs to be read.
+  @param[in]     FileSystem         Fs on which super block is computed.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -733,19 +733,19 @@ DONE:
 EFI_STATUS
 EFIAPI
 ReadGDBlock (
-  IN OUT  OPEN_FILE     *File,
-  IN      M_EXT2FS      *FileSystem
+  IN OUT OPEN_FILE                  *File,
+  IN     M_EXT2FS                   *FileSystem
   )
 {
-  FILE *Fp;
-  UINT32 RSize;
-  UINT32 gdpb;
-  INT32 Index;
-  EFI_STATUS Status;
+  FILE          *Fp;
+  UINT32        RSize;
+  UINT32        Gdpb;
+  INT32         Index;
+  EFI_STATUS    Status;
 
   Fp = (FILE *)File->FileSystemSpecificData;
 
-  gdpb = FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize;
+  Gdpb = FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize;
 
   for (Index = 0; Index < FileSystem->Ext2FsNumGrpDesBlock; Index++) {
     Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData, F_READ,
@@ -760,9 +760,9 @@ ReadGDBlock (
     }
 
     E2FS_CGLOAD ((EXT2GD *)Fp->Buffer,
-                 &FileSystem->Ext2FsGrpDes[Index * gdpb],
+                 &FileSystem->Ext2FsGrpDes[Index * Gdpb],
                  (Index == (FileSystem->Ext2FsNumGrpDesBlock - 1)) ?
-                 (FileSystem->Ext2FsNumCylinder - gdpb * Index) * FileSystem->Ext2FsGDSize :
+                 (FileSystem->Ext2FsNumCylinder - Gdpb * Index) * FileSystem->Ext2FsGDSize :
                  FileSystem->Ext2FsBlockSize);
   }
 
@@ -772,8 +772,8 @@ ReadGDBlock (
 /**
   Open struct file.
 
-  @param[in]      Path          Path to locate the file
-  @param[in/out]  File          The struct having the device and file info
+  @param[in]     Path               Path to locate the file.
+  @param[in/out] File               The struct having the device and file info.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -782,49 +782,49 @@ ReadGDBlock (
 EFI_STATUS
 EFIAPI
 Ext2fsOpen (
-  IN      CHAR8         *Path,
-  IN OUT  OPEN_FILE     *File
+  IN     CHAR8                      *Path,
+  IN OUT OPEN_FILE                  *File
   )
 {
 #ifndef LIBSA_FS_SINGLECOMPONENT
-  CHAR8 *Cp;
-  CHAR8 *Ncp;
-  INT32 Component;
+  CHAR8         *Cp;
+  CHAR8         *Ncp;
+  INT32         Component;
 #endif
-  INODE32 INumber;
-  FILE *Fp;
-  M_EXT2FS *FileSystem;
-  EFI_STATUS Status;
+  INODE32       INumber;
+  FILE          *Fp;
+  M_EXT2FS      *FileSystem;
+  EFI_STATUS    Status;
 #ifndef LIBSA_NO_FS_SYMLINK
-  INODE32 ParentInumber;
-  INT32 Nlinks;
-  CHAR8 NameBuf[MAXPATHLEN+1];
-  CHAR8 *Buf;
+  INODE32       ParentInumber;
+  INT32         Nlinks;
+  CHAR8         NameBuf[MAXPATHLEN+1];
+  CHAR8         *Buf;
 
   Nlinks = 0;
 #endif
 
-  INDPTR mult;
-  INT32  Length2;
+  INDPTR        Mult;
+  INT32         Length2;
 
   //
-  // allocate struct file system specific data structure
+  // Allocate struct file system specific data structure.
   //
   Fp = AllocatePool (sizeof (FILE));
   if (Fp == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
-    goto out;
+    goto DONE;
   }
 
   SetMem32 (Fp, sizeof (FILE), 0 );
   File->FileSystemSpecificData = (VOID *)Fp;
   //
-  // allocate space and read super block
+  // Allocate space and read super block.
   //
   FileSystem = AllocatePool (sizeof (*FileSystem));
   if (FileSystem == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
-    goto out;
+    goto DONE;
   }
 
   SetMem32 (FileSystem, sizeof (*FileSystem), 0);
@@ -832,40 +832,40 @@ Ext2fsOpen (
 
   Status = ReadSBlock (File, FileSystem);
   if (EFI_ERROR (Status)) {
-    goto out;
+    goto DONE;
   }
 
 #ifdef EXT2FS_DEBUG
   DumpSBlock (FileSystem);
 #endif
   //
-  // alloc a block sized buffer used for all FileSystem transfers
+  // Alloc a block sized buffer used for all FileSystem transfers.
   //
   Fp->Buffer = AllocatePool (FileSystem->Ext2FsBlockSize);
   //
-  // read group descriptor blocks
+  // Read group descriptor blocks
   //
   FileSystem->Ext2FsGrpDes = AllocatePool (FileSystem->Ext2FsGDSize * FileSystem->Ext2FsNumCylinder);
   Status = ReadGDBlock (File, FileSystem);
   if (EFI_ERROR (Status)) {
-    goto out;
+    goto DONE;
   }
 
 #ifdef EXT2FS_DEBUG
   DumpGroupDesBlock (FileSystem);
 #endif
   //
-  //  Calculate indirect block levels.
+  // Calculate indirect block levels.
   //
   //
-  //  We note that the number of indirect blocks is always
-  //  a power of 2.  This lets us use shifts and masks instead
-  //  of divide and remainder and avoinds pulling in the
-  //  64bit division routine into the boot code.
+  // We note that the number of indirect blocks is always
+  // a power of 2.  This lets us use shifts and masks instead
+  // of divide and remainder and avoinds pulling in the
+  // 64bit division routine into the boot code.
   //
-  mult = NINDIR (FileSystem);
-  for (Length2 = 0; mult != 1; Length2++) {
-    mult >>= 1;
+  Mult = NINDIR (FileSystem);
+  for (Length2 = 0; Mult != 1; Length2++) {
+    Mult >>= 1;
   }
 
   Fp->NiShift = Length2;
@@ -873,14 +873,14 @@ Ext2fsOpen (
   INumber = EXT2_ROOTINO;
   Status = ReadInode (INumber, File);
   if (EFI_ERROR (Status)) {
-    goto out;
+    goto DONE;
   }
 
 #ifndef LIBSA_FS_SINGLECOMPONENT
   Cp = Path;
   while (*Cp != '\0') {
     //
-    //  Remove extra separators
+    // Remove extra separators.
     //
     while (*Cp == '/') {
       Cp++;
@@ -890,15 +890,15 @@ Ext2fsOpen (
     }
 
     //
-    //  Check that current node is a directory.
+    // Check that current node is a directory.
     //
     if ((Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT) != EXT2_IFDIR) {
       Status = EFI_LOAD_ERROR;
-      goto out;
+      goto DONE;
     }
 
     //
-    //  Get next component of Path Name.
+    // Get next component of Path Name.
     //
     Ncp = Cp;
     while ((Component = *Cp) != '\0' && Component != '/') {
@@ -906,33 +906,33 @@ Ext2fsOpen (
     }
 
     //
-    //  Look up component in current directory.
-    //  Save directory INumber in case we find a
-    //  symbolic link.
+    // Look up component in current directory.
+    // Save directory INumber in case we find a
+    // symbolic link.
     //
 #ifndef LIBSA_NO_FS_SYMLINK
     ParentInumber = INumber;
 #endif
     Status = SearchDirectory (Ncp, (INT32)(Cp - Ncp), File, &INumber);
     if (EFI_ERROR (Status)) {
-      goto out;
+      goto DONE;
     }
 
     //
-    //  Open next component.
+    // Open next component.
     //
     Status = ReadInode (INumber, File);
     if (EFI_ERROR (Status)) {
-      goto out;
+      goto DONE;
     }
 
 #ifndef LIBSA_NO_FS_SYMLINK
     //
-    //  Check for symbolic link.
+    // Check for symbolic link.
     //
     if ((Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT) == EXT2_IFLNK) {
       //
-      // XXX should handle LARGEFILE
+      // XXX should handle LARGEFILE.
       //
       UINTN LinkLength;
       UINTN Len;
@@ -944,7 +944,7 @@ Ext2fsOpen (
       if (((LinkLength + Len) > MAXPATHLEN) ||
           ((++Nlinks) > MAXSYMLINKS)) {
         Status = RETURN_LOAD_ERROR;
-        goto out;
+        goto DONE;
       }
 
       CopyMem (&NameBuf[LinkLength], Cp, Len + 1);
@@ -953,7 +953,7 @@ Ext2fsOpen (
         CopyMem (NameBuf, Fp->DiskInode.Ext2DInodeBlocks, LinkLength);
       } else {
         //
-        //  Read FILE for symbolic link
+        // Read FILE for symbolic link.
         //
         UINT32 BufSize;
         INDPTR    DiskBlock;
@@ -961,22 +961,22 @@ Ext2fsOpen (
         Buf = Fp->Buffer;
         Status = BlockMap (File, (INDPTR)0, &DiskBlock);
         if (EFI_ERROR (Status)) {
-          goto out;
+          goto DONE;
         }
 
         Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData,
                                           F_READ, FSBTODB (FileSystem, DiskBlock),
                                           FileSystem->Ext2FsBlockSize, Buf, &BufSize);
         if (EFI_ERROR (Status)) {
-          goto out;
+          goto DONE;
         }
 
         CopyMem (NameBuf, Buf, LinkLength);
       }
 
       //
-      //  If relative pathname, restart at parent directory.
-      //  If absolute pathname, restart at root.
+      // If relative pathname, restart at parent directory.
+      // If absolute pathname, restart at root.
       //
       Cp = NameBuf;
       if (*Cp != '/') {
@@ -987,45 +987,47 @@ Ext2fsOpen (
 
       Status = ReadInode (INumber, File);
       if (EFI_ERROR (Status)) {
-        goto out;
+        goto DONE;
       }
     }
-#endif    // !LIBSA_NO_FS_SYMLINK
+#endif // !LIBSA_NO_FS_SYMLINK
   }
 
   //
-  //  Found terminal component.
+  // Found terminal component.
   //
   Status = RETURN_SUCCESS;
 
 #else // !LIBSA_FS_SINGLECOMPONENT
   //
-  // look up component in the current (root) directory
+  // Look up component in the current (root) directory.
   //
   Status = SearchDirectory (Path, AsciiStrLen (Path), File, &INumber);
   if (EFI_ERROR (Status)) {
-    goto out;
+    goto DONE;
   }
   //
-  // open it
+  // Open it.
   //
   Status = ReadInode (INumber, File);
 
 #endif // !LIBSA_FS_SINGLECOMPONENT
 
-  Fp->SeekPtr = 0;        // reset seek pointer
+  Fp->SeekPtr = 0; // Reset seek pointer.
 
-out:
+DONE:
+
   if (EFI_ERROR (Status)) {
     Ext2fsClose (File);
   }
+
   return Status;
 }
 
 /**
   Close the opened file.
 
-  @param[in/out]    File        File to be closed.
+  @param[in/out] File               File to be closed.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -1034,12 +1036,10 @@ out:
 EFI_STATUS
 EFIAPI
 Ext2fsClose (
-  IN OUT  OPEN_FILE     *File
+  IN OUT OPEN_FILE                  *File
   )
 {
-  FILE *Fp;
-
-  Fp = (FILE *)File->FileSystemSpecificData;
+  FILE *Fp = (FILE *)File->FileSystemSpecificData;
 
   File->FileSystemSpecificData = NULL;
   if (Fp == NULL) {
@@ -1054,13 +1054,14 @@ Ext2fsClose (
   }
   FreePool (Fp->SuperBlockPtr);
   FreePool (Fp);
+
   return RETURN_SUCCESS;
 }
 
 /**
   Gets the size of the file from descriptor.
 
-  @param[in]    File      File to be closed.
+  @param[in]  File                  File to be closed.
 
   @retval  UINT32                   The size of the file from descriptor.
 
@@ -1068,11 +1069,11 @@ Ext2fsClose (
 UINT32
 EFIAPI
 Ext2fsFileSize (
-  IN  OPEN_FILE     *File
+  IN  OPEN_FILE                     *File
   )
 {
-  FILE *Fp;
-  Fp = (FILE *)File->FileSystemSpecificData;
+  FILE *Fp = (FILE *)File->FileSystemSpecificData;
+
   return (UINT32)Fp->DiskInode.Ext2DInodeSize;
 }
 
@@ -1080,10 +1081,10 @@ Ext2fsFileSize (
   Copy a portion of a FILE into a memory.
   Cross block boundaries when necessary
 
-  @param[in/out]    File      File handle to be read
-  @param[in]        Start     Start address of read buffer
-  @param[in]        Size      Size to be read
-  @param[out]       ResId     Actual read size
+  @param[in/out] File               File handle to be read.
+  @param[in]     Start              Start address of read buffer.
+  @param[in]     Size               Size to be read.
+  @param[out]    ResId              Actual read size.
 
   @retval  EFI_SUCCESS              Operation succeeded.
   @retval  Others                   Error happened.
@@ -1092,18 +1093,18 @@ Ext2fsFileSize (
 EFI_STATUS
 EFIAPI
 Ext2fsRead (
-  IN OUT  OPEN_FILE     *File,
-  IN      VOID          *Start,
-  IN      UINT32         Size,
-  OUT     UINT32        *ResId
+  IN OUT OPEN_FILE                  *File,
+  IN     VOID                       *Start,
+  IN     UINT32                     Size,
+  OUT    UINT32                     *ResId
   )
 {
-  FILE *Fp;
-  UINT32 Csize;
-  CHAR8 *Buf;
-  UINT32 BufSize;
-  CHAR8 *Address;
-  EFI_STATUS Status;
+  FILE          *Fp;
+  UINT32        Csize;
+  CHAR8         *Buf;
+  UINT32        BufSize;
+  CHAR8         *Address;
+  EFI_STATUS    Status;
 
   Fp = (FILE *)File->FileSystemSpecificData;
   Status = RETURN_SUCCESS;
@@ -1111,7 +1112,7 @@ Ext2fsRead (
 
   while (Size != 0) {
     //
-    // XXX should handle LARGEFILE
+    // XXX should handle LARGEFILE.
     //
     if (Fp->SeekPtr >= (OFFSET)Fp->DiskInode.Ext2DInodeSize) {
       break;
@@ -1133,9 +1134,11 @@ Ext2fsRead (
     Address += Csize;
     Size -= Csize;
   }
+
   if (ResId != NULL) {
     *ResId = Size;
   }
+
   return Status;
 }
 
@@ -1143,7 +1146,7 @@ Ext2fsRead (
 /**
   Dump the file system super block info.
 
-  @param[in]  FileSystem     pointer to filesystem.
+  @param[in]  FileSystem            Pointer to filesystem.
 
   @retval  NA
 
@@ -1151,10 +1154,9 @@ Ext2fsRead (
 VOID
 EFIAPI
 DumpSBlock (
-  IN  M_EXT2FS  *FileSystem
+  IN  M_EXT2FS                      *FileSystem
   )
 {
-
   DEBUG ((DEBUG_INFO, "FileSystem->Ext2Fs.Ext2FsBlockCount = %u\n", FileSystem->Ext2Fs.Ext2FsBlockCount));
   DEBUG ((DEBUG_INFO, "FileSystem->Ext2Fs.Ext2FsFirstDataBlock = %u\n", FileSystem->Ext2Fs.Ext2FsFirstDataBlock));
   DEBUG ((DEBUG_INFO, "FileSystem->Ext2Fs.Ext2FsLogBlockSize = %u\n", FileSystem->Ext2Fs.Ext2FsLogBlockSize));
@@ -1190,7 +1192,7 @@ DumpSBlock (
 /**
   Dump the file group descriptor block info.
 
-  @param[in]  FileSystem     pointer to filesystem.
+  @param[in]  FileSystem            Pointer to filesystem.
 
   @retval  NA
 
@@ -1198,11 +1200,11 @@ DumpSBlock (
 VOID
 EFIAPI
 DumpGroupDesBlock (
-  IN  M_EXT2FS  *FileSystem
+  IN  M_EXT2FS                      *FileSystem
   )
 {
-  INT32     Index;
-  EXT2GD    *Ext2FsGrpDesEntry;
+  INT32    Index;
+  EXT2GD   *Ext2FsGrpDesEntry;
 
   for (Index=0; Index < FileSystem->Ext2FsNumCylinder; Index++) {
     Ext2FsGrpDesEntry = (EXT2GD*) ((UINT32) FileSystem->Ext2FsGrpDes + (Index * FileSystem->Ext2FsGDSize));

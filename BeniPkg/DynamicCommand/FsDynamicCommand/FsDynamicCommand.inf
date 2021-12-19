@@ -35,7 +35,6 @@
 [Sources.common]
   Ext2.c
   Ext2Fs.c
-  Ext2FsLs.c
   ExtLib.c
   Fs.c
   Fs.uni

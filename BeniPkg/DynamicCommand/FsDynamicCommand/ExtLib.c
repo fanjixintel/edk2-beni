@@ -65,7 +65,7 @@ ExtInitFileSystem (
     goto DONE;
   }
 
-  DEBUG ((DEBUG_INFO, "EXT2 detected.\n"));
+  Print (L"EXT2 detected.\n");
 
   *FsHandle = (EFI_HANDLE)PrivateData;
 
@@ -111,46 +111,46 @@ ExtCloseFileSystem (
 /**
   Open a file by its name and return its file handle.
 
-  @param[in]     FsHandle         file system handle.
-  @param[in]     FileName         The file name to get.
-  @param[out]    FileHandle       file handle
+  @param[in]  FsHandle              File system handle.
+  @param[in]  FileName              The file name to get.
+  @param[out] FileHandle            File handle,
 
-  @retval EFI_SUCCESS             The file opened correctly.
-  @retval EFI_INVALID_PARAMETER   Parameter is not valid.
-  @retval EFI_DEVICE_ERROR        A device error occurred.
-  @retval EFI_NOT_FOUND           A requested file cannot be found.
-  @retval EFI_OUT_OF_RESOURCES    Insufficant memory resource pool.
+  @retval  EFI_SUCCESS              The file opened correctly.
+  @retval  EFI_INVALID_PARAMETER    Parameter is not valid.
+  @retval  EFI_DEVICE_ERROR         A device error occurred.
+  @retval  EFI_NOT_FOUND            A requested file cannot be found.
+  @retval  EFI_OUT_OF_RESOURCES     Insufficant memory resource pool.
 
 **/
 EFI_STATUS
 EFIAPI
 ExtFsOpenFile (
-  IN  EFI_HANDLE                                    FsHandle,
-  IN  CHAR16                                       *FileName,
-  OUT EFI_HANDLE                                   *FileHandle
+  IN  EFI_HANDLE                    FsHandle,
+  IN  CHAR16                        *FileName,
+  OUT EFI_HANDLE                    *FileHandle
   )
 {
   EFI_STATUS              Status;
-  PEI_EXT_PRIVATE_DATA   *PrivateData;
-  OPEN_FILE              *OpenFile;
-  CHAR8                  *NameBuffer;
+  PEI_EXT_PRIVATE_DATA    *PrivateData;
+  OPEN_FILE               *OpenFile;
+  CHAR8                   *NameBuffer;
   UINTN                   NameSize;
 
   PrivateData = (PEI_EXT_PRIVATE_DATA *)FsHandle;
-  if (PrivateData == NULL || PrivateData->Signature != FS_EXT_SIGNATURE) {
+  if ((NULL == PrivateData) || (PrivateData->Signature != FS_EXT_SIGNATURE)) {
     return EFI_INVALID_PARAMETER;
   }
 
   NameSize = StrSize (FileName);
   NameBuffer = AllocatePool (NameSize);
   Status = UnicodeStrToAsciiStrS (FileName, NameBuffer, NameSize);
-  if (EFI_ERROR(Status)) {
+  if (EFI_ERROR (Status)) {
     FreePool (NameBuffer);
     return Status;
   }
 
   OpenFile = (OPEN_FILE *)AllocateZeroPool (sizeof (OPEN_FILE));
-  if (OpenFile == NULL) {
+  if (NULL == OpenFile) {
     Status = EFI_OUT_OF_RESOURCES;
     goto DONE;
   }
@@ -167,88 +167,83 @@ ExtFsOpenFile (
   return EFI_SUCCESS;
 
 DONE:
-  if (NameBuffer != NULL) {
+
+  if (NULL != NameBuffer) {
     FreePool (NameBuffer);
   }
-  if (OpenFile != NULL) {
+  if (NULL != OpenFile) {
     FreePool (OpenFile);
   }
+
   return Status;
 }
 
 /**
   Get file size by opened file handle.
 
-  @param[in]     FileHandle       file handle
-  @param[out]    FileSize         Pointer to file buffer size.
+  @param[in]  FileHandle            File handle.
+  @param[out] FileSize              Pointer to file buffer size.
 
-  @retval EFI_SUCCESS             The file was loaded correctly.
-  @retval EFI_INVALID_PARAMETER   Parameter is not valid.
+  @retval  EFI_SUCCESS              The file was loaded correctly.
+  @retval  EFI_INVALID_PARAMETER    Parameter is not valid.
 
 **/
 EFI_STATUS
 EFIAPI
 ExtFsGetFileSize (
-  IN  EFI_HANDLE                                  FileHandle,
-  OUT UINTN                                      *FileSize
+  IN  EFI_HANDLE                    FileHandle,
+  OUT UINTN                         *FileSize
   )
 {
-  OPEN_FILE              *OpenFile;
+  OPEN_FILE *OpenFile = (OPEN_FILE *)FileHandle;
 
-  OpenFile = (OPEN_FILE *)FileHandle;
-  ASSERT (OpenFile != NULL);
-  if (OpenFile == NULL) {
+  if ((NULL == OpenFile) || (NULL == FileSize)) {
     return EFI_INVALID_PARAMETER;
   }
 
   *FileSize = Ext2fsFileSize (OpenFile);
+
   return EFI_SUCCESS;
 }
 
 /**
   Read file into memory by opened file handle.
 
-  @param[in]     FileHandle       file handle
-  @param[out]    FileBufferPtr    Allocated file buffer pointer.
-  @param[out]    FileSize         Pointer to file buffer size.
+  @param[in]  FileHandle            File handle
+  @param[out] FileBufferPtr         Allocated file buffer pointer.
+  @param[out] FileSize              Pointer to file buffer size.
 
-  @retval EFI_SUCCESS             The file was loaded correctly.
-  @retval EFI_INVALID_PARAMETER   Parameter is not valid.
-  @retval EFI_DEVICE_ERROR        A device error occurred.
-  @retval EFI_NOT_FOUND           A requested file cannot be found.
-  @retval EFI_OUT_OF_RESOURCES    Insufficant memory resource pool.
-  @retval EFI_BUFFER_TOO_SMALL    Buffer size is too small.
+  @retval  EFI_SUCCESS              The file was loaded correctly.
+  @retval  EFI_INVALID_PARAMETER    Parameter is not valid.
+  @retval  EFI_DEVICE_ERROR         A device error occurred.
+  @retval  EFI_NOT_FOUND            A requested file cannot be found.
+  @retval  EFI_OUT_OF_RESOURCES     Insufficant memory resource pool.
+  @retval  EFI_BUFFER_TOO_SMALL     Buffer size is too small.
 
 **/
 EFI_STATUS
 EFIAPI
 ExtFsReadFile (
-  IN  EFI_HANDLE                                  FsHandle,
-  IN  EFI_HANDLE                                  FileHandle,
-  OUT VOID                                      **FileBufferPtr,
-  OUT UINTN                                      *FileSizePtr
+  IN  EFI_HANDLE                    FsHandle,
+  IN  EFI_HANDLE                    FileHandle,
+  OUT VOID                          **FileBufferPtr,
+  OUT UINTN                         *FileSizePtr
   )
 {
-  OPEN_FILE              *OpenFile;
-  VOID                   *FileBuffer;
-  UINT32                  FileSize;
-  UINT32                  Residual;
-  EFI_STATUS              Status;
+  OPEN_FILE     *OpenFile;
+  VOID          *FileBuffer;
+  UINT32        FileSize;
+  UINT32        Residual;
+  EFI_STATUS    Status;
 
   OpenFile = (OPEN_FILE *)FileHandle;
-  ASSERT (OpenFile != NULL);
-  if (OpenFile == NULL) {
+  if ((NULL == OpenFile) || (NULL == FileBufferPtr)) {
     return EFI_INVALID_PARAMETER;
   }
 
   FileSize = Ext2fsFileSize (OpenFile);
-  if (FileSize == 0) {
+  if (0 == FileSize) {
     return EFI_SUCCESS;
-  }
-
-  ASSERT (FileBufferPtr != NULL);
-  if (FileBufferPtr == NULL) {
-    return EFI_INVALID_PARAMETER;
   }
 
   FileBuffer = *FileBufferPtr;
@@ -264,65 +259,27 @@ ExtFsReadFile (
 }
 
 /**
-  Close a file by opened file handle
+  Close a file by opened file handle.
 
-  @param[in]     FileHandle       file handle
+  @param[in]  FileHandle            File handle
 
-  @retval                         none
+  @retval  NA
 
 **/
 VOID
 EFIAPI
 ExtFsCloseFile (
-  IN  EFI_HANDLE                                  FileHandle
+  IN  EFI_HANDLE                    FileHandle
   )
 {
-  OPEN_FILE              *OpenFile;
+  OPEN_FILE *OpenFile = (OPEN_FILE *)FileHandle;
 
-  OpenFile = (OPEN_FILE *)FileHandle;
-  if (OpenFile == NULL) {
+  if (NULL == OpenFile) {
     return;
   }
+
   Ext2fsClose (OpenFile);
   FreePool (OpenFile);
-}
-
-/**
-  List directories or files
-
-  @param[in]     FsHandle         file system handle.
-  @param[in]     DirFilePath      directory or file path
-  @param[in]     ConsoleOutFunc   redirect output message to a console
-
-  @retval EFI_SUCCESS             list directories of files successfully
-  @retval EFI_UNSUPPORTED         this api is not supported
-  @retval Others                  an error occurs
-
-**/
-EFI_STATUS
-EFIAPI
-ExtFsListDir (
-  IN  EFI_HANDLE                                  FsHandle,
-  IN  CHAR16                                     *DirFilePath
-  )
-{
-  EFI_STATUS              Status;
-  EFI_HANDLE              FileHandle;
-
-  Status = EFI_UNSUPPORTED;
-
-DEBUG_CODE_BEGIN ();
-  FileHandle = NULL;
-  Status = ExtFsOpenFile (FsHandle, DirFilePath, &FileHandle);
-  if (!EFI_ERROR (Status)) {
-    Status = Ext2fsLs ((OPEN_FILE *)FileHandle, NULL);
-  }
-  if (FileHandle != NULL) {
-    ExtFsCloseFile (FileHandle);
-  }
-DEBUG_CODE_END ();
-
-  return Status;
 }
 
 /**

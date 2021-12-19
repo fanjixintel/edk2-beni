@@ -67,6 +67,7 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/BaseLib.h>
 #include <Library/DebugLib.h>
+#include <Library/UefiLib.h>
 #include <Library/MemoryAllocationLib.h>
 
 #include <Protocol/BlockIo.h>
@@ -555,23 +556,6 @@ Ext2fsRead (
   );
 
 /**
-  List directories or files and print them
-
-  @param[in] File           pointer to an file private data
-  @param[in] Pattern        not used for now
-
-  @retval EFI_SUCCESS       list directories or files successfully
-  @retval EFI_NOT_FOUND     not found specified dir or file
-  @retval EFI_DEVICE_ERROR  an error while accessing filesystem
-**/
-EFI_STATUS
-EFIAPI
-Ext2fsLs (
-  IN  OPEN_FILE         *File,
-  IN  CONST CHAR8       *Pattern
-  );
-
-/**
   Read Superblock of the file.
 
   @param[in]      File          File for which super block needs to be read.
@@ -739,6 +723,83 @@ ExtInitFileSystem (
   IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
   IN  EFI_DISK_IO2_PROTOCOL         *DiskIo2,
   OUT EFI_HANDLE                    *FsHandle
+  );
+
+/**
+  Open a file by its name and return its file handle.
+
+  @param[in]  FsHandle              File system handle.
+  @param[in]  FileName              The file name to get.
+  @param[out] FileHandle            File handle,
+
+  @retval  EFI_SUCCESS              The file opened correctly.
+  @retval  EFI_INVALID_PARAMETER    Parameter is not valid.
+  @retval  EFI_DEVICE_ERROR         A device error occurred.
+  @retval  EFI_NOT_FOUND            A requested file cannot be found.
+  @retval  EFI_OUT_OF_RESOURCES     Insufficant memory resource pool.
+
+**/
+EFI_STATUS
+EFIAPI
+ExtFsOpenFile (
+  IN  EFI_HANDLE                    FsHandle,
+  IN  CHAR16                        *FileName,
+  OUT EFI_HANDLE                    *FileHandle
+  );
+
+/**
+  Get file size by opened file handle.
+
+  @param[in]  FileHandle            File handle.
+  @param[out] FileSize              Pointer to file buffer size.
+
+  @retval  EFI_SUCCESS              The file was loaded correctly.
+  @retval  EFI_INVALID_PARAMETER    Parameter is not valid.
+
+**/
+EFI_STATUS
+EFIAPI
+ExtFsGetFileSize (
+  IN  EFI_HANDLE                    FileHandle,
+  OUT UINTN                         *FileSize
+  );
+
+/**
+  Read file into memory by opened file handle.
+
+  @param[in]  FileHandle            File handle
+  @param[out] FileBufferPtr         Allocated file buffer pointer.
+  @param[out] FileSize              Pointer to file buffer size.
+
+  @retval  EFI_SUCCESS              The file was loaded correctly.
+  @retval  EFI_INVALID_PARAMETER    Parameter is not valid.
+  @retval  EFI_DEVICE_ERROR         A device error occurred.
+  @retval  EFI_NOT_FOUND            A requested file cannot be found.
+  @retval  EFI_OUT_OF_RESOURCES     Insufficant memory resource pool.
+  @retval  EFI_BUFFER_TOO_SMALL     Buffer size is too small.
+
+**/
+EFI_STATUS
+EFIAPI
+ExtFsReadFile (
+  IN  EFI_HANDLE                    FsHandle,
+  IN  EFI_HANDLE                    FileHandle,
+  OUT VOID                          **FileBufferPtr,
+  OUT UINTN                         *FileSizePtr
+  );
+
+/**
+  Close a file by opened file handle.
+
+  @param[in]  FileHandle            File handle
+
+  @retval  NA
+
+**/
+VOID
+EFIAPI
+ExtFsCloseFile (
+  IN  EFI_HANDLE                    FileHandle
   );
 
 #endif  // __EXT2_FS_H__
