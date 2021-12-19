@@ -77,7 +77,16 @@
 
 #include "Ext2FsDiNode.h"
 #include "Ext2FsDir.h"
-#include "LibsaFsStand.h"
+
+//
+// <sys/types.h>
+//
+typedef long int      DADDRESS;
+typedef long int      OFFSET;
+typedef unsigned long ULONG;
+typedef unsigned long INODE;
+typedef UINT32        INODE32;
+typedef INT32         INDPTR;
 
 #define FS_EXT_SIGNATURE            SIGNATURE_32 ('p', 'e', 'x', 't')
 
@@ -85,69 +94,36 @@
 #define PART_MAX_BLOCK_DEVICE       64
 
 //
-// The block device.
+// Seek method constants.
 //
-typedef struct {
-  UINT64   StartBlock;
-  UINT64   LastBlock;
-} LOGICAL_BLOCK_DEVICE;
-
-typedef struct {
-  UINT64   BlockNum;
-  UINT32   BlockSize;
-} DEVICE_BLOCK_INFO;
-
-typedef struct {
-  UINT32                  Signature;
-  BOOLEAN                 PartitionChecked;
-  UINT32                  PartitionType;
-  UINT32                  HarewareDevice;
-  UINT32                  BlockDeviceCount;
-  UINT64                  BlockData[PART_MAX_BLOCK_SIZE / 8];
-  LOGICAL_BLOCK_DEVICE    BlockDevice[PART_MAX_BLOCK_DEVICE];
-  DEVICE_BLOCK_INFO       BlockInfo;
-} PART_BLOCK_DEVICE;
+#define SEEK_SET                    0
+#define SEEK_CUR                    1
+#define SEEK_END                    2
 
 //
-//  Each disk drive contains some number of file systems.
-//  A file system consists of a number of cylinder groups.
-//  Each cylinder group has inodes and data.
+// Each disk drive contains some number of file systems.
+// A file system consists of a number of cylinder groups.
+// Each cylinder group has inodes and data.
 //
-//  A file system is described by its super-block, which in turn
-//  describes the cylinder groups.  The super-block is critical
-//  data and is replicated in each cylinder group to protect against
-//  catastrophic loss.  This is done at `newfs' time and the critical
-//  super-block data does not change, so the copies need not be
-//  referenced further unless disaster strikes.
+// A file system is described by its super-block, which in turn
+// describes the cylinder groups.  The super-block is critical
+// data and is replicated in each cylinder group to protect against
+// catastrophic loss.  This is done at `newfs' time and the critical
+// super-block data does not change, so the copies need not be
+// referenced further unless disaster strikes.
 //
-//  The first boot and super blocks are given in absolute disk addresses.
-//  The byte-offset forms are preferred, as they don't imply a sector size.
+// The first boot and super blocks are given in absolute disk addresses.
+// The byte-offset forms are preferred, as they don't imply a sector size.
 //
-#define BBSIZE      1024
-#define SBSIZE      1024
-#define BBOFF       ((OFFSET)(0))
-#define SBOFF       ((OFFSET)(BBOFF + BBSIZE))
-#define BBLOCK      ((DADDRESS)(0))
-#define SBLOCK      ((DADDRESS)(BBLOCK + BBSIZE / DEV_BSIZE))
+#define BBSIZE                      1024
+#define SBSIZE                      1024
+#define BBOFF                       ((OFFSET)(0))
+#define SBOFF                       ((OFFSET)(BBOFF + BBSIZE))
+#define BBLOCK                      ((DADDRESS)(0))
+#define SBLOCK                      ((DADDRESS)(BBLOCK + BBSIZE / DEV_BSIZE))
 
-#define MAXSYMLINKS 1
-
-#define MAXPATHLEN 260
-
-#undef  LIBSA_FS_SINGLECOMPONENT
-#define LIBSA_FS_SINGLE_DEVICE
-#define LIBSA_FS_SINGLE_FILESYSTEM
-#undef  LIBSA_NO_FS_SYMLINK
-#define LIBSA_NO_TWIDDLE
-#undef  LIBSA_ENABLE_LS_OP
-#define LIBSA_NO_FS_WRITE
-
-//
-// An (opened) file.
-//
-typedef struct {
-  OPEN_FILE Openfile;
-} _FILE;
+#define MAXSYMLINKS                 1
+#define MAXPATHLEN                  260
 
 //
 // Addresses stored in inodes are capable of addressing blocks
@@ -159,15 +135,15 @@ typedef struct {
 // Note that super blocks are always of size SBSIZE,
 // and that both SBSIZE and MAXBSIZE must be >= MINBSIZE.
 //
-#define LOG_MINBSIZE    10
-#define MINBSIZE        (1 << LOG_MINBSIZE)
+#define LOG_MINBSIZE                10
+#define MINBSIZE                    (1 << LOG_MINBSIZE)
 
 //
 // The path name on which the file system is mounted is maintained
 // in fs_fsmnt. MAXMNTLEN defines the amount of space allocated in
 // the super block for this name.
 //
-#define MAXMNTLEN    512
+#define MAXMNTLEN                   512
 
 //
 // MINFREE gives the minimum acceptable percentage of file system
@@ -181,104 +157,17 @@ typedef struct {
 // default value. With 10% free space, fragmentation is not a
 // problem, so we choose to optimize for time.
 //
-#define MINFREE    5
+#define MINFREE                     5
+
 
 //
-// Super block for an ext2fs file system.
+// Filesystem identification.
 //
-typedef struct {
-  UINT32  Ext2FsINodeCount;         // Inode count
-  UINT32  Ext2FsBlockCount;         // blocks count
-  UINT32  Ext2FsRsvdBlockCount;     // reserved blocks count
-  UINT32  Ext2FsFreeBlockCount;     // free blocks count
-  UINT32  Ext2FsFreeINodeCount;     // free inodes count
-  UINT32  Ext2FsFirstDataBlock;     // first data block
-  UINT32  Ext2FsLogBlockSize;       // block size = 1024*(2^Ext2FsLogBlockSize)
-  UINT32  Ext2FsFragmentSize;       // fragment size
-  UINT32  Ext2FsBlocksPerGroup;     // blocks per group
-  UINT32  Ext2FsFragsPerGroup;      // frags per group
-  UINT32  Ext2FsINodesPerGroup;     // inodes per group
-  UINT32  Ext2FsMountTime;          // mount time
-  UINT32  Ext2FsWriteTime;          // write time
-  UINT16  Ext2FsMountCount;         // mount count
-  UINT16  Ext2FsMaxMountCount;      // max mount count
-  UINT16  Ext2FsMagic;              // magic number
-  UINT16  Ext2FsState;              // file system state
-  UINT16  Ext2FsBehavior;           // behavior on errors
-  UINT16  Ext2FsMinorRev;           // minor revision level
-  UINT32  Ext2FsLastFsck;           // time of last fsck
-  UINT32  Ext2FsFsckInterval;       // max time between fscks
-  UINT32  Ext2FsCreator;            // creator OS
-  UINT32  Ext2FsRev;                // revision level
-  UINT16  Ext2FsRsvdUid;            // default uid for reserved blocks
-  UINT16  Ext2FsRsvdGid;            // default gid for reserved blocks
-  //
-  // EXT2_DYNAMIC_REV superblocks
-  //
-  UINT32  Ext2FsFirstInode;         /* first non-reserved inode */
-  UINT16  Ext2FsInodeSize;          /* size of inode structure */
-  UINT16  Ext2FsBlockGrpNum;        /* block grp number of this sblk*/
-  UINT32  Ext2FsFeaturesCompat;     /*  compatible feature set */
-  UINT32  Ext2FsFeaturesIncompat;   /* incompatible feature set */
-  UINT32  Ext2FsFeaturesROCompat;   /* RO-compatible feature set */
-  UINT8   Ext2FsUuid[16];           /* 128-bit uuid for volume */
-  CHAR8   Ext2FsVolumeName[16];     /* volume name */
-  CHAR8   Ext2FsFSMnt[64];          /* name mounted on */
-  UINT32  Ext2FsAlgorithm;          /* For compression */
-  UINT8   Ext2FsPreAlloc;           /* # of blocks to preallocate */
-  UINT8   Ext2FsDirPreAlloc;        /* # of blocks to preallocate for dir */
-  UINT16  Ext2FsRsvdGDBlock;        /* # of reserved gd blocks for resize */
-  UINT32  Rsvd2[11];
-  UINT16  Rsvd3;
-  UINT16  Ext2FsGDSize;             /* size of group descriptors, in bytes, if the 64bit incompat feature flag is set */
-  UINT32  Rsvd4[192];
-} EXT2FS;
-
+#define E2FS_MAGIC                  0xEF53  // The ext2fs magic number.
+#define E2FS_REV0                   0       // GOOD_OLD revision.
+#define E2FS_REV1                   1       // Support compat/incompat features.
 //
-// Ext2 file system block group descriptor
-//
-typedef struct {
-  UINT32 Ext2BGDBlockBitmap;    /* blocks bitmap block */
-  UINT32 Ext2BGDInodeBitmap;    /* inodes bitmap block */
-  UINT32 Ext2BGDInodeTables;    /* inodes table block  */
-  UINT16 Ext2BGDFreeBlocks;     /* number of free blocks */
-  UINT16 Ext2BGDFreeInodes;     /* number of free inodes */
-  UINT16 Ext2BGDNumDir;         /* number of directories */
-  UINT16 Rsvd;
-  UINT32 Rsvd2[5];
-  UINT32 Ext2BGDInodeTablesHi;  /* upper 32 bits of inodes table block, if the 64bit incompat feature flag is set */
-  UINT32 Rsvd3[5];
-} EXT2GD;
-
-//
-// In-memory data for ext2fs
-//
-typedef struct {
-  EXT2FS   Ext2Fs;
-  UINT8    Ext2FsFSMnt[MAXMNTLEN];   // name mounted on
-  CHAR8    Ext2FsReadOnly;           // mounted read-only flag
-  CHAR8    Ext2FsModified;           // super block modified flag
-  INT32    Ext2FsBlockSize;          // block size
-  INT32    Ext2FsLogicalBlock;       // ``lblkno'' calc of logical blkno
-  INT32    Ext2FsBlockOffset;        // ``blkoff'' calc of blk offsets
-  INT64    Ext2FsQuadBlockOffset;    // ~fs_bmask - for use with quad size
-  INT32    Ext2FsFsbtobd;            // FSBTODB and DBTOFSB shift constant
-  INT32    Ext2FsNumCylinder;        // number of cylinder groups
-  INT32    Ext2FsNumGrpDesBlock;     // number of group descriptor block
-  INT32    Ext2FsInodesPerBlock;     // number of inodes per block
-  INT32    Ext2FsInodesTablePerGrp;  // number of inode table per group
-  UINT32   Ext2FsGDSize;             // size of group descriptors
-  EXT2GD  *Ext2FsGrpDes;             // group descriptors
-} M_EXT2FS;
-
-//
-//  Filesystem identification
-//
-#define E2FS_MAGIC   0xef53 /* the ext2fs magic number */
-#define E2FS_REV0    0      /* GOOD_OLD revision */
-#define E2FS_REV1    1      /* Support compat/incompat features */
-//
-// Compatible/incompatible features
+// Compatible/incompatible features.
 //
 #define EXT2F_COMPAT_PREALLOC       0x0001
 #define EXT2F_COMPAT_HASJOURNAL     0x0004
@@ -315,37 +204,22 @@ typedef struct {
 //     store file type to e2d_type in EXT2FS_direct
 //     (on REV0 e2d_namlen is UINT16 and no e2d_type, like ffs)
 //
-#define EXT2F_COMPAT_SUPP        0x0000
-#define EXT2F_ROCOMPAT_SUPP      (EXT2F_ROCOMPAT_SPARSESUPER \
-                                 | EXT2F_ROCOMPAT_LARGEFILE)
-#define EXT2F_INCOMPAT_SUPP      (EXT2F_INCOMPAT_FTYPE    \
-                                 | EXT2F_INCOMPAT_RECOVER \
-                                 | EXT2F_INCOMPAT_64BIT   \
-                                 | EXT2F_INCOMPAT_EXTENTS \
-                                 | EXT2F_INCOMPAT_FLEX_BG)
+#define EXT2F_COMPAT_SUPP           0x0000
+#define EXT2F_ROCOMPAT_SUPP         (EXT2F_ROCOMPAT_SPARSESUPER \
+                                    | EXT2F_ROCOMPAT_LARGEFILE)
+#define EXT2F_INCOMPAT_SUPP         (EXT2F_INCOMPAT_FTYPE    \
+                                    | EXT2F_INCOMPAT_RECOVER \
+                                    | EXT2F_INCOMPAT_64BIT   \
+                                    | EXT2F_INCOMPAT_EXTENTS \
+                                    | EXT2F_INCOMPAT_FLEX_BG)
 
 //
-// Definitions of behavior on errors/
+// Definitions of behavior on errors.
 //
-#define E2FS_BEH_CONTINUE   1   // Continue operation.
-#define E2FS_BEH_READONLY   2   // Remount fs read only.
-#define E2FS_BEH_PANIC      3   // Cause panic.
-#define E2FS_BEH_DEFAULT    E2FS_BEH_CONTINUE
-
-//
-// OS identification.
-//
-#define E2FS_OS_LINUX   0
-#define E2FS_OS_HURD    1
-#define E2FS_OS_MASIX   2
-#define E2FS_OS_FREEBSD 3
-#define E2FS_OS_LITES   4
-
-//
-// Filesystem clean flags.
-//
-#define E2FS_ISCLEAN 0x01
-#define E2FS_ERRORS  0x02
+#define E2FS_BEH_CONTINUE           1 // Continue operation.
+#define E2FS_BEH_READONLY           2 // Remount fs read only.
+#define E2FS_BEH_PANIC              3 // Cause panic.
+#define E2FS_BEH_DEFAULT            E2FS_BEH_CONTINUE
 
 //
 // The cache size (IND_CACHE_SZ) must be smaller or equal the number of pointers
@@ -354,45 +228,17 @@ typedef struct {
 // so LN2_IND_CACHE_SZ <= 8 (cache size IND_CACHE_SZ=2^8=256)
 // Optimal for file system speed is the biggest cache size possible.
 //
-#define LN2_IND_CACHE_SZ    8
-#define IND_CACHE_SZ        (1 << LN2_IND_CACHE_SZ)
-#define IND_CACHE_MASK      (IND_CACHE_SZ - 1)
+#define LN2_IND_CACHE_SZ            8
+#define IND_CACHE_SZ                (1 << LN2_IND_CACHE_SZ)
+#define IND_CACHE_MASK              (IND_CACHE_SZ - 1)
 
-#define INDPTR      INT32
-
-typedef UINT32 INODE32;
-
-//
-// In-core open file.
-//
-typedef struct {
-  OFFSET            SeekPtr;                  // Seek pointer.
-  M_EXT2FS          *SuperBlockPtr;           // Pointer to super-block.
-  EXTFS_DINODE      DiskInode;                // Copy of on-disk inode.
-  UINT32            NiShift;                  // For blocks in indirect block.
-  INDPTR            InodeCacheBlock;
-  INDPTR            InodeCache[IND_CACHE_SZ];
-  CHAR8             *Buffer;                  // Buffer for data block.
-  UINT32            BufferSize;               // Size of data block.
-  DADDRESS          BufferBlockNum;           // Block number of data block.
-} FILE;
-
-//
-// EXT2FS meta data is stored in little-endian byte order. These macros
-// help with reading the meta data.
-//
-
-#define E2FS_SBLOAD(old, new) CopyMem((new), (old), SBSIZE);
-#define E2FS_CGLOAD(old, new, size) CopyMem((new), (old), (size));
-#define E2FS_SBSAVE(old, new) CopyMem((new), (old), SBSIZE);
-#define E2FS_CGSAVE(old, new, size) CopyMem((new), (old), (size));
 
 //
 // Turn file system block numbers into disk block addresses.
 // This maps file system blocks to device size blocks.
 //
-#define FSBTODB(fs, b)    ((b) << (fs)->Ext2FsFsbtobd)
-#define DBTOFSB(fs, b)    ((b) >> (fs)->Ext2FsFsbtobd)
+#define FSBTODB(fs, b)              ((b) << (fs)->Ext2FsFsbtobd)
+#define DBTOFSB(fs, b)              ((b) >> (fs)->Ext2FsFsbtobd)
 
 //
 // Macros for handling inode numbers:
@@ -400,55 +246,161 @@ typedef struct {
 //   inode number to cylinder group number.
 //   inode number to file system block address.
 //
-#define INOTOCG(fs, x)  (((x) - 1) / (fs)->Ext2Fs.Ext2FsINodesPerGroup)
-#define INODETOFSBA(fs, x)  \
-    ((fs)->Ext2FsGrpDes[INOTOCG((fs), (x))].Ext2BGDInodeTables + \
-    (((x) - 1) % (fs)->Ext2Fs.Ext2FsINodesPerGroup) / (fs)->Ext2FsInodesPerBlock)
-#define INODETOFSBO(fs, x)  ((((x) - 1) % (fs)->Ext2Fs.Ext2FsINodesPerGroup) % (fs)->Ext2FsInodesPerBlock)
+#define INOTOCG(fs, x)              (((x) - 1) / (fs)->Ext2Fs.Ext2FsINodesPerGroup)
+#define INODETOFSBA(fs, x)          ((fs)->Ext2FsGrpDes[INOTOCG((fs), (x))].Ext2BGDInodeTables + (((x) - 1) % (fs)->Ext2Fs.Ext2FsINodesPerGroup) / (fs)->Ext2FsInodesPerBlock)
+#define INODETOFSBO(fs, x)          ((((x) - 1) % (fs)->Ext2Fs.Ext2FsINodesPerGroup) % (fs)->Ext2FsInodesPerBlock)
 
 //
 // Give cylinder group number for a file system block.
 // Give cylinder group block number for a file system block.
 //
-#define DTOG(fs, d) (((d) - (fs)->Ext2Fs.Ext2FsFirstDataBlock) / (fs)->Ext2Fs.Ext2FsFragsPerGroup)
-#define DTOGD(fs, d) \
-    (((d) - (fs)->Ext2Fs.Ext2FsFirstDataBlock) % (fs)->Ext2Fs.Ext2FsFragsPerGroup)
+#define DTOG(fs, d)                 (((d) - (fs)->Ext2Fs.Ext2FsFirstDataBlock) / (fs)->Ext2Fs.Ext2FsFragsPerGroup)
+#define DTOGD(fs, d)                (((d) - (fs)->Ext2Fs.Ext2FsFirstDataBlock) % (fs)->Ext2Fs.Ext2FsFragsPerGroup)
 
 //
 // The following macros optimize certain frequently calculated
 // quantities by using shifts and masks in place of divisions
 // modulos and multiplications.
 //
-#define BLOCKOFFSET(fs, loc)     /* calculates (loc % fs->Ext2FsBlockSize) */ \
-    ((loc) & (fs)->Ext2FsQuadBlockOffset)
-#define LBLKTOSIZE(fs, blk)      /* calculates (blk * fs->Ext2FsBlockSize) */ \
-    ((blk) << (fs)->Ext2FsLogicalBlock)
-#define LBLKNO(fs, loc)          /* calculates (loc / fs->Ext2FsBlockSize) */ \
-    ((loc) >> (fs)->Ext2FsLogicalBlock)
-#define BLKROUNDUP(fs, size)     /* calculates roundup(size, fs->Ext2FsBlockSize) */ \
-    (((size) + (fs)->Ext2FsQuadBlockOffset) & (fs)->Ext2FsBlockOffset)
-#define FRAGROUNDUP(fs, size)    /* calculates roundup(size, fs->Ext2FsBlockSize) */ \
-    (((size) + (fs)->Ext2FsQuadBlockOffset) & (fs)->Ext2FsBlockOffset)
+#define BLOCKOFFSET(fs, loc)        ((loc) & (fs)->Ext2FsQuadBlockOffset)
+#define LBLKTOSIZE(fs, blk)         ((blk) << (fs)->Ext2FsLogicalBlock)
+#define LBLKNO(fs, loc)             ((loc) >> (fs)->Ext2FsLogicalBlock)
+#define BLKROUNDUP(fs, size)        (((size) + (fs)->Ext2FsQuadBlockOffset) & (fs)->Ext2FsBlockOffset)
+#define FRAGROUNDUP(fs, size)       (((size) + (fs)->Ext2FsQuadBlockOffset) & (fs)->Ext2FsBlockOffset)
+
 //
 // Determine the number of available frags given a
 // percentage to hold in reserve.
 //
-#define FREESPACE(fs) \
-   ((fs)->Ext2Fs.Ext2FsFreeBlockCount - (fs)->Ext2Fs.Ext2FsRsvdBlockCount)
+#define FREESPACE(fs)               ((fs)->Ext2Fs.Ext2FsFreeBlockCount - (fs)->Ext2Fs.Ext2FsRsvdBlockCount)
 
 //
 // Number of indirects in a file system block.
 //
-#define NINDIR(fs) ((fs)->Ext2FsBlockSize / sizeof(UINT32))
+#define NINDIR(fs)                  ((fs)->Ext2FsBlockSize / sizeof(UINT32))
 
-typedef
-EFI_STATUS
-( *MEDIA_READ_BLOCKS) (
-  IN  UINTN         DeviceIndex,
-  IN  EFI_LBA       StartLBA,
-  IN  UINTN         BufferSize,
-  OUT VOID         *Buffer
-  );
+//
+// EXT2FS meta data is stored in little-endian byte order. These macros
+// help with reading the meta data.
+//
+#define E2FS_SBLOAD(old, new)       CopyMem((new), (old), SBSIZE);
+#define E2FS_CGLOAD(old, new, size) CopyMem((new), (old), (size));
+#define E2FS_SBSAVE(old, new)       CopyMem((new), (old), SBSIZE);
+#define E2FS_CGSAVE(old, new, size) CopyMem((new), (old), (size));
+
+//
+// Opened file struct for EXT2 file system.
+//
+typedef struct {
+  INT32    FileFlags;               // See F_* below.
+  VOID     *FileDevData;            // Device specific data.
+  VOID     *FileSystemSpecificData; // File system specific data.
+  OFFSET   FileOffset;              // Current file offset (F_RAW).
+  CHAR8    *FileNamePtr;            // File name.
+} OPEN_FILE;
+
+//
+// Super block for an ext2fs file system.
+//
+typedef struct {
+  UINT32   Ext2FsINodeCount;        // Inode count.
+  UINT32   Ext2FsBlockCount;        // blocks count.
+  UINT32   Ext2FsRsvdBlockCount;    // reserved blocks count.
+  UINT32   Ext2FsFreeBlockCount;    // free blocks count.
+  UINT32   Ext2FsFreeINodeCount;    // free inodes count.
+  UINT32   Ext2FsFirstDataBlock;    // first data block.
+  UINT32   Ext2FsLogBlockSize;      // block size = 1024*(2^Ext2FsLogBlockSize).
+  UINT32   Ext2FsFragmentSize;      // fragment size.
+  UINT32   Ext2FsBlocksPerGroup;    // blocks per group.
+  UINT32   Ext2FsFragsPerGroup;     // frags per group.
+  UINT32   Ext2FsINodesPerGroup;    // inodes per group.
+  UINT32   Ext2FsMountTime;         // mount time.
+  UINT32   Ext2FsWriteTime;         // write time.
+  UINT16   Ext2FsMountCount;        // mount count.
+  UINT16   Ext2FsMaxMountCount;     // max mount count.
+  UINT16   Ext2FsMagic;             // magic number.
+  UINT16   Ext2FsState;             // file system state.
+  UINT16   Ext2FsBehavior;          // behavior on errors.
+  UINT16   Ext2FsMinorRev;          // minor revision level.
+  UINT32   Ext2FsLastFsck;          // time of last fsck.
+  UINT32   Ext2FsFsckInterval;      // max time between fscks.
+  UINT32   Ext2FsCreator;           // creator OS.
+  UINT32   Ext2FsRev;               // revision level.
+  UINT16   Ext2FsRsvdUid;           // default uid for reserved blocks.
+  UINT16   Ext2FsRsvdGid;           // default gid for reserved blocks.
+  //
+  // EXT2_DYNAMIC_REV superblocks.
+  //
+  UINT32   Ext2FsFirstInode;        // first non-reserved inode.
+  UINT16   Ext2FsInodeSize;         // size of inode structure.
+  UINT16   Ext2FsBlockGrpNum;       // block grp number of this sblk.
+  UINT32   Ext2FsFeaturesCompat;    //  compatible feature set.
+  UINT32   Ext2FsFeaturesIncompat;  // incompatible feature set.
+  UINT32   Ext2FsFeaturesROCompat;  // RO-compatible feature set.
+  UINT8    Ext2FsUuid[16];          // 128-bit uuid for volume.
+  CHAR8    Ext2FsVolumeName[16];    // volume name.
+  CHAR8    Ext2FsFSMnt[64];         // name mounted on.
+  UINT32   Ext2FsAlgorithm;         // For compression.
+  UINT8    Ext2FsPreAlloc;          // # of blocks to preallocate.
+  UINT8    Ext2FsDirPreAlloc;       // # of blocks to preallocate for dir.
+  UINT16   Ext2FsRsvdGDBlock;       // # of reserved gd blocks for resize.
+  UINT32   Rsvd2[11];
+  UINT16   Rsvd3;
+  UINT16   Ext2FsGDSize;            // size of group descriptors, in bytes, if the 64bit incompat feature flag is set.
+  UINT32   Rsvd4[192];
+} EXT2FS;
+
+//
+// Ext2 file system block group descriptor.
+//
+typedef struct {
+  UINT32   Ext2BGDBlockBitmap;      // blocks bitmap block.
+  UINT32   Ext2BGDInodeBitmap;      // inodes bitmap block.
+  UINT32   Ext2BGDInodeTables;      // inodes table block.
+  UINT16   Ext2BGDFreeBlocks;       // number of free blocks.
+  UINT16   Ext2BGDFreeInodes;       // number of free inodes.
+  UINT16   Ext2BGDNumDir;           // number of directories.
+  UINT16   Rsvd;
+  UINT32   Rsvd2[5];
+  UINT32   Ext2BGDInodeTablesHi;    // upper 32 bits of inodes table block, if the 64bit incompat feature flag is set.
+  UINT32   Rsvd3[5];
+} EXT2GD;
+
+//
+// In-memory data for ext2fs.
+//
+typedef struct {
+  EXT2FS   Ext2Fs;
+  UINT8    Ext2FsFSMnt[MAXMNTLEN];  // name mounted on.
+  CHAR8    Ext2FsReadOnly;          // mounted read-only flag.
+  CHAR8    Ext2FsModified;          // super block modified flag.
+  INT32    Ext2FsBlockSize;         // block size.
+  INT32    Ext2FsLogicalBlock;      // ``lblkno'' calc of logical blkno.
+  INT32    Ext2FsBlockOffset;       // ``blkoff'' calc of blk offsets.
+  INT64    Ext2FsQuadBlockOffset;   // ~fs_bmask - for use with quad size.
+  INT32    Ext2FsFsbtobd;           // FSBTODB and DBTOFSB shift constant.
+  INT32    Ext2FsNumCylinder;       // number of cylinder groups.
+  INT32    Ext2FsNumGrpDesBlock;    // number of group descriptor block.
+  INT32    Ext2FsInodesPerBlock;    // number of inodes per block.
+  INT32    Ext2FsInodesTablePerGrp; // number of inode table per group.
+  UINT32   Ext2FsGDSize;            // size of group descriptors.
+  EXT2GD   *Ext2FsGrpDes;           // group descriptors.
+} M_EXT2FS;
+
+//
+// In-core open file.
+//
+typedef struct {
+  OFFSET        SeekPtr;                      // Seek pointer.
+  M_EXT2FS      *SuperBlockPtr;               // Pointer to super-block.
+  EXTFS_DINODE  DiskInode;                    // Copy of on-disk inode.
+  UINT32        NiShift;                      // For blocks in indirect block.
+  INDPTR        InodeCacheBlock;
+  INDPTR        InodeCache[IND_CACHE_SZ];
+  CHAR8         *Buffer;                      // Buffer for data block.
+  UINT32        BufferSize;                   // Size of data block.
+  DADDRESS      BufferBlockNum;               // Block number of data block.
+} FILE;
 
 typedef struct {
   UINTN                   Signature;
@@ -465,7 +417,6 @@ typedef struct {
   Gives the info of device block config.
 
   @param[in]  DevData               Device privete data.
-  @param[in]  ReadWrite             Read or Write.
   @param[in]  BlockNum              Block number to start.
   @param[in]  Size                  Size to read block.
   @param[out] Buf                   Buffer to read the block data.
@@ -479,13 +430,11 @@ EFI_STATUS
 EFIAPI
 BDevStrategy (
   IN  VOID                          *DevData,
-  IN  INT32                         ReadWrite,
   IN  DADDRESS                      BlockNum,
   IN  UINT32                        Size,
   OUT VOID                          *Buf,
   OUT UINT32                        *RSize
   );
-#define DEV_STRATEGY(d) BDevStrategy
 
 /**
   Validate EXT2 Superblock.

@@ -91,10 +91,6 @@
 
 #define HOWMANY(x, y)  (((x)+((y)-1))/(y))
 
-#if defined(LIBSA_FS_SINGLECOMPONENT) && !defined(LIBSA_NO_FS_SYMLINK)
-#define LIBSA_NO_FS_SYMLINK
-#endif
-
 /**
   Given an offset in a FILE, find the disk block number that
   contains that block.
@@ -140,7 +136,6 @@ SearchDirectory (
   Gives the information of device block config.
 
   @param[in]  DevData               Device privete data.
-  @param[in]  ReadWrite             Read or Write.
   @param[in]  BlockNum              Block number to start.
   @param[in]  Size                  Size to read block.
   @param[out] Buf                   Buffer to read the block data.
@@ -154,7 +149,6 @@ EFI_STATUS
 EFIAPI
 BDevStrategy (
   IN  VOID                          *DevData,
-  IN  INT32                         ReadWrite,
   IN  DADDRESS                      BlockNum,
   IN  UINT32                        Size,
   OUT VOID                          *Buf,
@@ -163,28 +157,25 @@ BDevStrategy (
 {
   EFI_STATUS              Status;
   EXT_PRIVATE_DATA        *PrivateData;
-  UINT64                  Startblockno;
 
   PrivateData = (EXT_PRIVATE_DATA *)DevData;
-
-  if ((F_READ != ReadWrite) && (F_WRITE != ReadWrite)) {
-    return EFI_INVALID_PARAMETER;
-  }
-  if ((Size % PrivateData->BlockSize) != 0) {
+  if (0 != (Size % PrivateData->BlockSize)) {
     return EFI_INVALID_PARAMETER;
   }
 
-  Startblockno = BlockNum + PrivateData->StartBlock;
-  if (ReadWrite == F_READ) {
-    Status = MediaReadBlocks (PrivateData, (UINT32)Startblockno, Size, Buf);
-    if (EFI_ERROR (Status)) {
-      return Status;
-    }
+  Status = MediaReadBlocks (
+            PrivateData,
+            BlockNum + PrivateData->StartBlock,
+            Size,
+            Buf
+            );
+  if (EFI_ERROR (Status)) {
+    return Status;
   }
 
   *RSize = Size;
 
-  return RETURN_SUCCESS;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -232,7 +223,7 @@ ReadInode (
   // Read inode and save it.
   //
   Buf = Fp->Buffer;
-  Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData, F_READ,
+  Status = BDevStrategy (File->FileDevData,
                                     InodeSector, FileSystem->Ext2FsBlockSize, Buf, &RSize);
   if (EFI_ERROR (Status)) {
     return Status;
@@ -321,9 +312,9 @@ BlockMap (
         //
         // We need to read the next level node of the extent tree since the data was not in the current level.
         //
-        Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData, F_READ,
-                                          FSBTODB (Fp->SuperBlockPtr, (DADDRESS) NextLevelNode), FileSystem->Ext2FsBlockSize,
-                                          Buf, &RSize);
+        Status = BDevStrategy (File->FileDevData,
+                               FSBTODB (Fp->SuperBlockPtr, (DADDRESS) NextLevelNode), FileSystem->Ext2FsBlockSize,
+                               Buf, &RSize);
         if (EFI_ERROR (Status)) {
           return Status;
         }
@@ -410,9 +401,9 @@ BlockMap (
       //  of a filesystem block.
       //  However we don't do this very often anyway...
       //
-      Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData, F_READ,
-                                        FSBTODB (Fp->SuperBlockPtr, IndBlockNum), FileSystem->Ext2FsBlockSize,
-                                        Buf, &RSize);
+      Status = BDevStrategy (File->FileDevData,
+                             FSBTODB (Fp->SuperBlockPtr, IndBlockNum), FileSystem->Ext2FsBlockSize,
+                             Buf, &RSize);
       if (EFI_ERROR (Status)) {
         return Status;
       }
@@ -435,7 +426,7 @@ BlockMap (
     *DiskBlockPtr = IndBlockNum;
   }
 
-  return RETURN_SUCCESS;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -485,9 +476,9 @@ BufReadFile (
       Fp->BufferSize = BlockSize;
     } else {
 
-      Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData, F_READ,
-                                        FSBTODB (FileSystem, DiskBlock),
-                                        BlockSize, Fp->Buffer, &Fp->BufferSize);
+      Status = BDevStrategy (File->FileDevData,
+                             FSBTODB (FileSystem, DiskBlock),
+                             BlockSize, Fp->Buffer, &Fp->BufferSize);
       if (Status != 0) {
         return Status;
       }
@@ -626,16 +617,14 @@ Ext2SbValidate (
     goto DONE;
   }
 
-  if (File == NULL) {
-    Status = BDevStrategy (PrivateData, F_READ,
-                       SBOFF / PrivateData->BlockSize, PrivateData->BlockSize, Buffer, &BufSize);
-  } else {
-    Status = DEV_STRATEGY (File->DevPtr) (PrivateData, F_READ,
-                                      SBOFF / PrivateData->BlockSize, PrivateData->BlockSize,
-                                      Buffer, &BufSize);
-  }
-
-  if (Status != 0) {
+  Status = BDevStrategy (
+            PrivateData,
+            SBOFF / PrivateData->BlockSize,
+            PrivateData->BlockSize,
+            Buffer,
+            &BufSize
+            );
+  if (EFI_ERROR (Status)) {
     goto DONE;
   }
 
@@ -748,10 +737,10 @@ ReadGDBlock (
   Gdpb = FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize;
 
   for (Index = 0; Index < FileSystem->Ext2FsNumGrpDesBlock; Index++) {
-    Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData, F_READ,
-                                      FSBTODB (FileSystem, FileSystem->Ext2Fs.Ext2FsFirstDataBlock +
-                                          1 /* superblock */ + Index),
-                                      FileSystem->Ext2FsBlockSize, Fp->Buffer, &RSize);
+    Status = BDevStrategy (File->FileDevData,
+                           FSBTODB (FileSystem, FileSystem->Ext2Fs.Ext2FsFirstDataBlock +
+                           1 /* superblock */ + Index),
+                           FileSystem->Ext2FsBlockSize, Fp->Buffer, &RSize);
     if (EFI_ERROR (Status)) {
       return Status;
     }
@@ -766,7 +755,7 @@ ReadGDBlock (
                  FileSystem->Ext2FsBlockSize);
   }
 
-  return RETURN_SUCCESS;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -786,24 +775,19 @@ Ext2fsOpen (
   IN OUT OPEN_FILE                  *File
   )
 {
-#ifndef LIBSA_FS_SINGLECOMPONENT
   CHAR8         *Cp;
   CHAR8         *Ncp;
   INT32         Component;
-#endif
   INODE32       INumber;
   FILE          *Fp;
   M_EXT2FS      *FileSystem;
   EFI_STATUS    Status;
-#ifndef LIBSA_NO_FS_SYMLINK
   INODE32       ParentInumber;
   INT32         Nlinks;
   CHAR8         NameBuf[MAXPATHLEN+1];
   CHAR8         *Buf;
 
   Nlinks = 0;
-#endif
-
   INDPTR        Mult;
   INT32         Length2;
 
@@ -876,7 +860,6 @@ Ext2fsOpen (
     goto DONE;
   }
 
-#ifndef LIBSA_FS_SINGLECOMPONENT
   Cp = Path;
   while (*Cp != '\0') {
     //
@@ -910,9 +893,7 @@ Ext2fsOpen (
     // Save directory INumber in case we find a
     // symbolic link.
     //
-#ifndef LIBSA_NO_FS_SYMLINK
     ParentInumber = INumber;
-#endif
     Status = SearchDirectory (Ncp, (INT32)(Cp - Ncp), File, &INumber);
     if (EFI_ERROR (Status)) {
       goto DONE;
@@ -926,7 +907,6 @@ Ext2fsOpen (
       goto DONE;
     }
 
-#ifndef LIBSA_NO_FS_SYMLINK
     //
     // Check for symbolic link.
     //
@@ -964,9 +944,9 @@ Ext2fsOpen (
           goto DONE;
         }
 
-        Status = DEV_STRATEGY (File->DevPtr) (File->FileDevData,
-                                          F_READ, FSBTODB (FileSystem, DiskBlock),
-                                          FileSystem->Ext2FsBlockSize, Buf, &BufSize);
+        Status = BDevStrategy (File->FileDevData,
+                               FSBTODB (FileSystem, DiskBlock),
+                               FileSystem->Ext2FsBlockSize, Buf, &BufSize);
         if (EFI_ERROR (Status)) {
           goto DONE;
         }
@@ -990,28 +970,12 @@ Ext2fsOpen (
         goto DONE;
       }
     }
-#endif // !LIBSA_NO_FS_SYMLINK
   }
 
   //
   // Found terminal component.
   //
-  Status = RETURN_SUCCESS;
-
-#else // !LIBSA_FS_SINGLECOMPONENT
-  //
-  // Look up component in the current (root) directory.
-  //
-  Status = SearchDirectory (Path, AsciiStrLen (Path), File, &INumber);
-  if (EFI_ERROR (Status)) {
-    goto DONE;
-  }
-  //
-  // Open it.
-  //
-  Status = ReadInode (INumber, File);
-
-#endif // !LIBSA_FS_SINGLECOMPONENT
+  Status = EFI_SUCCESS;
 
   Fp->SeekPtr = 0; // Reset seek pointer.
 
@@ -1043,7 +1007,7 @@ Ext2fsClose (
 
   File->FileSystemSpecificData = NULL;
   if (Fp == NULL) {
-    return RETURN_SUCCESS;
+    return EFI_SUCCESS;
   }
 
   if (Fp->SuperBlockPtr->Ext2FsGrpDes) {
@@ -1055,7 +1019,7 @@ Ext2fsClose (
   FreePool (Fp->SuperBlockPtr);
   FreePool (Fp);
 
-  return RETURN_SUCCESS;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -1107,7 +1071,7 @@ Ext2fsRead (
   EFI_STATUS    Status;
 
   Fp = (FILE *)File->FileSystemSpecificData;
-  Status = RETURN_SUCCESS;
+  Status = EFI_SUCCESS;
   Address = Start;
 
   while (Size != 0) {

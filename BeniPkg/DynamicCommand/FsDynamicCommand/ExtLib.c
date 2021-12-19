@@ -137,7 +137,7 @@ ExtFsOpenFile (
   UINTN                   NameSize;
 
   PrivateData = (EXT_PRIVATE_DATA *)FsHandle;
-  if ((NULL == PrivateData) || (PrivateData->Signature != FS_EXT_SIGNATURE)) {
+  if ((NULL == PrivateData) || (FS_EXT_SIGNATURE != PrivateData->Signature)) {
     return EFI_INVALID_PARAMETER;
   }
 
