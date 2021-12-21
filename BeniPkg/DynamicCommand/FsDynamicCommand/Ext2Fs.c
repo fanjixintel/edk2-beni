@@ -213,7 +213,7 @@ ReadInode (
   InodeSector = (DADDRESS) (Ext2FsGrpDes->Ext2BGDInodeTables + DivU64x32 (ModU64x32 ((INumber - 1), FileSystem->Ext2Fs.Ext2FsINodesPerGroup), FileSystem->Ext2FsInodesPerBlock));
 
   if (FileSystem->Ext2FsGDSize > 32) {
-    if (Ext2FsGrpDes->Ext2BGDInodeTablesHi !=0) {
+    if (0 != Ext2FsGrpDes->Ext2BGDInodeTablesHi) {
       InodeSector |= LShiftU64 ((UINT64) (Ext2FsGrpDes->Ext2BGDInodeTablesHi), 32);
     }
   }
@@ -223,8 +223,7 @@ ReadInode (
   // Read inode and save it.
   //
   Buf = Fp->Buffer;
-  Status = BDevStrategy (File->FileDevData,
-                                    InodeSector, FileSystem->Ext2FsBlockSize, Buf, &RSize);
+  Status = BDevStrategy (File->FileDevData, InodeSector, FileSystem->Ext2FsBlockSize, Buf, &RSize);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -680,7 +679,7 @@ ReadSBlock (
 
   Status = Ext2SbValidate ((EFI_HANDLE)PrivateData, File, &FileSystem->Ext2Fs);
   if (EFI_ERROR (Status)) {
-    goto DONE;
+    return Status;
   }
 
   //
@@ -695,7 +694,7 @@ ReadSBlock (
   FileSystem->Ext2FsLogicalBlock      = LOG_MINBSIZE + FileSystem->Ext2Fs.Ext2FsLogBlockSize;
   FileSystem->Ext2FsQuadBlockOffset   = FileSystem->Ext2FsBlockSize - 1;
   FileSystem->Ext2FsBlockOffset       = (UINT32)~FileSystem->Ext2FsQuadBlockOffset;
-  FileSystem->Ext2FsGDSize            = 32;
+  FileSystem->Ext2FsGDSize            = 32; // sizeof (EXT2GD) 32 or 64.
   if (FileSystem->Ext2Fs.Ext2FsFeaturesIncompat & EXT2F_INCOMPAT_64BIT) {
     FileSystem->Ext2FsGDSize          = FileSystem->Ext2Fs.Ext2FsGDSize;
   }
@@ -704,9 +703,7 @@ ReadSBlock (
   FileSystem->Ext2FsInodesPerBlock    = FileSystem->Ext2FsBlockSize / FileSystem->Ext2Fs.Ext2FsInodeSize;
   FileSystem->Ext2FsInodesTablePerGrp = FileSystem->Ext2Fs.Ext2FsINodesPerGroup / FileSystem->Ext2FsInodesPerBlock;
 
-DONE:
-
-  return Status;
+  return EFI_SUCCESS;
 }
 
 /**
@@ -738,9 +735,9 @@ ReadGDBlock (
 
   for (Index = 0; Index < FileSystem->Ext2FsNumGrpDesBlock; Index++) {
     Status = BDevStrategy (File->FileDevData,
-                           FSBTODB (FileSystem, FileSystem->Ext2Fs.Ext2FsFirstDataBlock +
-                           1 /* superblock */ + Index),
-                           FileSystem->Ext2FsBlockSize, Fp->Buffer, &RSize);
+                           FSBTODB (FileSystem, FileSystem->Ext2Fs.Ext2FsFirstDataBlock + 1 /* superblock */ + Index),
+                           FileSystem->Ext2FsBlockSize, Fp->Buffer, &RSize
+                           );
     if (EFI_ERROR (Status)) {
       return Status;
     }
@@ -751,8 +748,9 @@ ReadGDBlock (
     E2FS_CGLOAD ((EXT2GD *)Fp->Buffer,
                  &FileSystem->Ext2FsGrpDes[Index * Gdpb],
                  (Index == (FileSystem->Ext2FsNumGrpDesBlock - 1)) ?
-                 (FileSystem->Ext2FsNumCylinder - Gdpb * Index) * FileSystem->Ext2FsGDSize :
-                 FileSystem->Ext2FsBlockSize);
+                    (FileSystem->Ext2FsNumCylinder - Gdpb * Index) * FileSystem->Ext2FsGDSize :
+                    FileSystem->Ext2FsBlockSize
+                );
   }
 
   return EFI_SUCCESS;
@@ -786,32 +784,31 @@ Ext2fsOpen (
   INT32         Nlinks;
   CHAR8         NameBuf[MAXPATHLEN+1];
   CHAR8         *Buf;
+  INDPTR        Mult;
+  INT32         Length;
+  UINTN         LinkLength;
+  UINTN         Len;
 
   Nlinks = 0;
-  INDPTR        Mult;
-  INT32         Length2;
 
   //
   // Allocate struct file system specific data structure.
   //
-  Fp = AllocatePool (sizeof (FILE));
-  if (Fp == NULL) {
+  Fp = AllocateZeroPool (sizeof (FILE));
+  if (NULL == Fp) {
     Status = EFI_OUT_OF_RESOURCES;
     goto DONE;
   }
-
-  SetMem32 (Fp, sizeof (FILE), 0 );
   File->FileSystemSpecificData = (VOID *)Fp;
+
   //
   // Allocate space and read super block.
   //
-  FileSystem = AllocatePool (sizeof (*FileSystem));
-  if (FileSystem == NULL) {
+  FileSystem = AllocateZeroPool (sizeof (M_EXT2FS));
+  if (NULL == FileSystem) {
     Status = EFI_OUT_OF_RESOURCES;
     goto DONE;
   }
-
-  SetMem32 (FileSystem, sizeof (*FileSystem), 0);
   Fp->SuperBlockPtr = FileSystem;
 
   Status = ReadSBlock (File, FileSystem);
@@ -827,7 +824,8 @@ Ext2fsOpen (
   //
   Fp->Buffer = AllocatePool (FileSystem->Ext2FsBlockSize);
   //
-  // Read group descriptor blocks
+  // Read group descriptor blocks. Every group has the group descriptor for all groups,
+  // that's way "* FileSystem->Ext2FsNumCylinder".
   //
   FileSystem->Ext2FsGrpDes = AllocatePool (FileSystem->Ext2FsGDSize * FileSystem->Ext2FsNumCylinder);
   Status = ReadGDBlock (File, FileSystem);
@@ -848,12 +846,15 @@ Ext2fsOpen (
   // 64bit division routine into the boot code.
   //
   Mult = NINDIR (FileSystem);
-  for (Length2 = 0; Mult != 1; Length2++) {
+  for (Length = 0; Mult != 1; Length++) {
     Mult >>= 1;
   }
 
-  Fp->NiShift = Length2;
+  Fp->NiShift = Length;
 
+  //
+  // Read the root directory Inode.
+  //
   INumber = EXT2_ROOTINO;
   Status = ReadInode (INumber, File);
   if (EFI_ERROR (Status)) {
@@ -861,14 +862,14 @@ Ext2fsOpen (
   }
 
   Cp = Path;
-  while (*Cp != '\0') {
+  while ('\0' != *Cp) {
     //
-    // Remove extra separators.
+    // Remove extra separators (the root directory "/").
     //
-    while (*Cp == '/') {
+    while ('/' == *Cp) {
       Cp++;
     }
-    if (*Cp == '\0') {
+    if ('\0' == *Cp) {
       break;
     }
 
@@ -884,7 +885,7 @@ Ext2fsOpen (
     // Get next component of Path Name.
     //
     Ncp = Cp;
-    while ((Component = *Cp) != '\0' && Component != '/') {
+    while (((Component = *Cp) != '\0') && ('/' != Component)) {
       Cp++;
     }
 
@@ -911,15 +912,8 @@ Ext2fsOpen (
     // Check for symbolic link.
     //
     if ((Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT) == EXT2_IFLNK) {
-      //
-      // XXX should handle LARGEFILE.
-      //
-      UINTN LinkLength;
-      UINTN Len;
-
       LinkLength = Fp->DiskInode.Ext2DInodeSize;
-
-      Len = AsciiStrLen (Cp);
+      Len        = AsciiStrLen (Cp);
 
       if (((LinkLength + Len) > MAXPATHLEN) ||
           ((++Nlinks) > MAXSYMLINKS)) {
@@ -936,7 +930,7 @@ Ext2fsOpen (
         // Read FILE for symbolic link.
         //
         UINT32 BufSize;
-        INDPTR    DiskBlock;
+        INDPTR DiskBlock;
 
         Buf = Fp->Buffer;
         Status = BlockMap (File, (INDPTR)0, &DiskBlock);
@@ -946,7 +940,8 @@ Ext2fsOpen (
 
         Status = BDevStrategy (File->FileDevData,
                                FSBTODB (FileSystem, DiskBlock),
-                               FileSystem->Ext2FsBlockSize, Buf, &BufSize);
+                               FileSystem->Ext2FsBlockSize, Buf, &BufSize
+                               );
         if (EFI_ERROR (Status)) {
           goto DONE;
         }
@@ -959,7 +954,7 @@ Ext2fsOpen (
       // If absolute pathname, restart at root.
       //
       Cp = NameBuf;
-      if (*Cp != '/') {
+      if ('/' != *Cp) {
         INumber = ParentInumber;
       } else {
         INumber = (INODE32)EXT2_ROOTINO;
@@ -1003,12 +998,14 @@ Ext2fsClose (
   IN OUT OPEN_FILE                  *File
   )
 {
-  FILE *Fp = (FILE *)File->FileSystemSpecificData;
+  FILE     *Fp;
 
-  File->FileSystemSpecificData = NULL;
-  if (Fp == NULL) {
+  if (NULL == File->FileSystemSpecificData) {
     return EFI_SUCCESS;
   }
+
+  Fp = (FILE *)File->FileSystemSpecificData;
+  File->FileSystemSpecificData = NULL;
 
   if (Fp->SuperBlockPtr->Ext2FsGrpDes) {
     FreePool (Fp->SuperBlockPtr->Ext2FsGrpDes);
@@ -1016,8 +1013,12 @@ Ext2fsClose (
   if (Fp->Buffer) {
     FreePool (Fp->Buffer);
   }
-  FreePool (Fp->SuperBlockPtr);
-  FreePool (Fp);
+  if (Fp->SuperBlockPtr) {
+    (Fp->SuperBlockPtr);
+  }
+  if (Fp) {
+    FreePool (Fp);
+  }
 
   return EFI_SUCCESS;
 }
@@ -1171,8 +1172,8 @@ DumpGroupDesBlock (
   EXT2GD   *Ext2FsGrpDesEntry;
 
   for (Index=0; Index < FileSystem->Ext2FsNumCylinder; Index++) {
-    Ext2FsGrpDesEntry = (EXT2GD*) ((UINT32) FileSystem->Ext2FsGrpDes + (Index * FileSystem->Ext2FsGDSize));
-    DEBUG ((DEBUG_INFO, "Ext2FsGrpDes[Index=%u]\n", Index));
+    Ext2FsGrpDesEntry = (EXT2GD *) ((UINT32 *) FileSystem->Ext2FsGrpDes + (Index * FileSystem->Ext2FsGDSize));
+    DEBUG ((DEBUG_INFO, "Ext2FsGrpDes[Index = %u]\n", Index));
     DEBUG ((DEBUG_INFO, "  Ext2BGDBlockBitmap   %u\n", Ext2FsGrpDesEntry->Ext2BGDBlockBitmap));
     DEBUG ((DEBUG_INFO, "  Ext2BGDInodeBitmap   %u\n", Ext2FsGrpDesEntry->Ext2BGDInodeBitmap));
     DEBUG ((DEBUG_INFO, "  Ext2BGDInodeTables   %u\n", Ext2FsGrpDesEntry->Ext2BGDInodeTables));

@@ -77,7 +77,7 @@ Ext2fsLs (
   Fp     = (FILE *)File->FileSystemSpecificData;
 
   if (EXT2_IFREG == (Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT)) {
-    DEBUG ((DEBUG_INFO, "  %-16a %u\n", File->FileNamePtr, Fp->DiskInode.Ext2DInodeSize));
+    Print (L"  %-16a %u\n", File->FileNamePtr, Fp->DiskInode.Ext2DInodeSize);
     return EFI_SUCCESS;
   } else if (EXT2_IFDIR != (Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT)) {
     return EFI_NOT_FOUND;
@@ -120,7 +120,7 @@ Ext2fsLs (
         //  handle this case specially, if
         //  there were a pressing need...
         //
-        DEBUG ((DEBUG_INFO, "Bad dir entry - %d\n", Dp->Ext2DirectType));
+        Print (L"Bad dir entry - %d\n", Dp->Ext2DirectType);
         Status = EFI_DEVICE_ERROR;
         goto DONE;
       }
@@ -128,8 +128,8 @@ Ext2fsLs (
 
       New = AllocateZeroPool (sizeof * New + AsciiStrLen (Dp->Ext2DirectName));
       if (NULL == New) {
-        DEBUG ((DEBUG_INFO, "%d: %s (%s)\n",
-                Dp->Ext2DirectInodeNumber, Dp->Ext2DirectName, Type));
+        Print (L"%d: %s (%s)\n",
+                Dp->Ext2DirectInodeNumber, Dp->Ext2DirectName, Type);
         continue;
       }
 
@@ -153,7 +153,7 @@ Ext2fsLs (
     do {
       New = PNames;
       if (2 == New->EntryType) {
-        DEBUG ((DEBUG_INFO, "  %a/\n", New->EntryName));
+        Print (L"  %a/\n", New->EntryName);
       } else if (1 == New->EntryType) {
         FileSize = 0;
         Status = ReadInode (New->EntryInode, File);
@@ -162,7 +162,7 @@ Ext2fsLs (
           FileSize = Fp->DiskInode.Ext2DInodeSize;
         }
         Status = RETURN_SUCCESS;
-        DEBUG ((DEBUG_INFO, "  %-16a %u\n", New->EntryName, FileSize));
+        Print (L"  %-16a %u\n", New->EntryName, FileSize);
       }
       PNames = New->EntryNext;
     } while (PNames != NULL);

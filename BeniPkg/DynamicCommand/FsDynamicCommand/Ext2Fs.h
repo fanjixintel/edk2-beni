@@ -78,6 +78,8 @@
 #include "Ext2FsDiNode.h"
 #include "Ext2FsDir.h"
 
+#define EXT2FS_DEBUG
+
 //
 // <sys/types.h>
 //
@@ -294,7 +296,7 @@ typedef INT32         INDPTR;
 typedef struct {
   INT32    FileFlags;               // See F_* below.
   VOID     *FileDevData;            // Device specific data.
-  VOID     *FileSystemSpecificData; // File system specific data.
+  VOID     *FileSystemSpecificData; // File system specific data (struct FILE).
   OFFSET   FileOffset;              // Current file offset (F_RAW).
   CHAR8    *FileNamePtr;            // File name.
 } OPEN_FILE;
@@ -334,7 +336,7 @@ typedef struct {
   UINT32   Ext2FsFirstInode;        // first non-reserved inode.
   UINT16   Ext2FsInodeSize;         // size of inode structure.
   UINT16   Ext2FsBlockGrpNum;       // block grp number of this sblk.
-  UINT32   Ext2FsFeaturesCompat;    //  compatible feature set.
+  UINT32   Ext2FsFeaturesCompat;    // Compatible feature set.
   UINT32   Ext2FsFeaturesIncompat;  // incompatible feature set.
   UINT32   Ext2FsFeaturesROCompat;  // RO-compatible feature set.
   UINT8    Ext2FsUuid[16];          // 128-bit uuid for volume.
@@ -346,7 +348,7 @@ typedef struct {
   UINT16   Ext2FsRsvdGDBlock;       // # of reserved gd blocks for resize.
   UINT32   Rsvd2[11];
   UINT16   Rsvd3;
-  UINT16   Ext2FsGDSize;            // size of group descriptors, in bytes, if the 64bit incompat feature flag is set.
+  UINT16   Ext2FsGDSize;            // Size of group descriptors, in bytes, if the 64bit incompat feature flag is set.
   UINT32   Rsvd4[192];
 } EXT2FS;
 
@@ -354,15 +356,15 @@ typedef struct {
 // Ext2 file system block group descriptor.
 //
 typedef struct {
-  UINT32   Ext2BGDBlockBitmap;      // blocks bitmap block.
-  UINT32   Ext2BGDInodeBitmap;      // inodes bitmap block.
-  UINT32   Ext2BGDInodeTables;      // inodes table block.
-  UINT16   Ext2BGDFreeBlocks;       // number of free blocks.
-  UINT16   Ext2BGDFreeInodes;       // number of free inodes.
-  UINT16   Ext2BGDNumDir;           // number of directories.
+  UINT32   Ext2BGDBlockBitmap;      // Blocks bitmap block.
+  UINT32   Ext2BGDInodeBitmap;      // Inodes bitmap block.
+  UINT32   Ext2BGDInodeTables;      // Inodes table block.
+  UINT16   Ext2BGDFreeBlocks;       // Number of free blocks.
+  UINT16   Ext2BGDFreeInodes;       // Number of free inodes.
+  UINT16   Ext2BGDNumDir;           // Number of directories.
   UINT16   Rsvd;
   UINT32   Rsvd2[5];
-  UINT32   Ext2BGDInodeTablesHi;    // upper 32 bits of inodes table block, if the 64bit incompat feature flag is set.
+  UINT32   Ext2BGDInodeTablesHi;    // Upper 32 bits of inodes table block, if the 64bit incompat feature flag is set.
   UINT32   Rsvd3[5];
 } EXT2GD;
 
@@ -371,20 +373,20 @@ typedef struct {
 //
 typedef struct {
   EXT2FS   Ext2Fs;
-  UINT8    Ext2FsFSMnt[MAXMNTLEN];  // name mounted on.
-  CHAR8    Ext2FsReadOnly;          // mounted read-only flag.
-  CHAR8    Ext2FsModified;          // super block modified flag.
-  INT32    Ext2FsBlockSize;         // block size.
+  UINT8    Ext2FsFSMnt[MAXMNTLEN];  // Name mounted on.
+  CHAR8    Ext2FsReadOnly;          // Mounted read-only flag.
+  CHAR8    Ext2FsModified;          // Super block modified flag.
+  INT32    Ext2FsBlockSize;         // Block size.
   INT32    Ext2FsLogicalBlock;      // ``lblkno'' calc of logical blkno.
   INT32    Ext2FsBlockOffset;       // ``blkoff'' calc of blk offsets.
   INT64    Ext2FsQuadBlockOffset;   // ~fs_bmask - for use with quad size.
   INT32    Ext2FsFsbtobd;           // FSBTODB and DBTOFSB shift constant.
-  INT32    Ext2FsNumCylinder;       // number of cylinder groups.
-  INT32    Ext2FsNumGrpDesBlock;    // number of group descriptor block.
-  INT32    Ext2FsInodesPerBlock;    // number of inodes per block.
-  INT32    Ext2FsInodesTablePerGrp; // number of inode table per group.
-  UINT32   Ext2FsGDSize;            // size of group descriptors.
-  EXT2GD   *Ext2FsGrpDes;           // group descriptors.
+  INT32    Ext2FsNumCylinder;       // Number of cylinder groups (block groups).
+  INT32    Ext2FsNumGrpDesBlock;    // Number of group descriptor block.
+  INT32    Ext2FsInodesPerBlock;    // Number of inodes per block.
+  INT32    Ext2FsInodesTablePerGrp; // Number of inode table per group.
+  UINT32   Ext2FsGDSize;            // Size of group descriptors.
+  EXT2GD   *Ext2FsGrpDes;           // Group descriptors.
 } M_EXT2FS;
 
 //

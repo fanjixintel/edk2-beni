@@ -64,24 +64,24 @@
    Modified for ext2fs by Manuel Bouyer.
  **/
 
-#ifndef _UFS_EXT2FS_EXT2FS_DINODE_H_
-#define _UFS_EXT2FS_EXT2FS_DINODE_H_
+#ifndef __EXT2_FS_DINODE_H__
+#define __EXT2_FS_DINODE_H__
 
 /**
-  The root inode is the root of the file system.  Inode 0 can't be used for
+  The root inode is the root of the file system. Inode 0 can't be used for
   normal purposes and bad blocks are normally linked to inode 1, thus
   the root inode is 2.
   Inode 3 to 10 are reserved in ext2fs.
 **/
-#define    EXT2_BADBLKINO      ((INODE)1)
-#define    EXT2_ROOTINO        ((INODE)2)
-#define    EXT2_ACLIDXINO      ((INODE)3)
-#define    EXT2_ACLDATAINO     ((INODE)4)
-#define    EXT2_BOOTLOADERINO  ((INODE)5)
-#define    EXT2_UNDELDIRINO    ((INODE)6)
-#define    EXT2_RESIZEINO      ((INODE)7)
-#define    EXT2_JOURNALINO     ((INODE)8)
-#define    EXT2_FIRSTINO       ((INODE)11)
+#define EXT2_BADBLKINO              ((INODE)1)
+#define EXT2_ROOTINO                ((INODE)2)
+#define EXT2_ACLIDXINO              ((INODE)3)
+#define EXT2_ACLDATAINO             ((INODE)4)
+#define EXT2_BOOTLOADERINO          ((INODE)5)
+#define EXT2_UNDELDIRINO            ((INODE)6)
+#define EXT2_RESIZEINO              ((INODE)7)
+#define EXT2_JOURNALINO             ((INODE)8)
+#define EXT2_FIRSTINO               ((INODE)11)
 
 /**
   A dinode contains all the meta-data associated with a UFS file.
@@ -89,40 +89,38 @@
   this structure describes an on-disk structure, all its fields
   are defined by types with precise widths.
 **/
-
-#define NDADDR  12          // Direct addresses in inode.
-#define NIADDR  3           // Indirect addresses in inode.
-
-#define EXT2_MAXSYMLINKLEN ((NDADDR+NIADDR) * sizeof (UINT32))
+#define NDADDR                      12          // Direct addresses in inode.
+#define NIADDR                      3           // Indirect addresses in inode.
+#define EXT2_MAXSYMLINKLEN          ((NDADDR + NIADDR) * sizeof (UINT32))
 
 typedef struct {
   UINT16    Ext2DInodeMode;                     //   0: IFMT, permissions; see below.
-  UINT16    Ext2DInodeUid;                      //   2: Owner UID
-  UINT32    Ext2DInodeSize;                     //   4: Size (in bytes)
-  UINT32    Ext2DInodeAcessTime;                //   8: Acces time
-  UINT32    Ext2DInodeCreatTime;                //  12: Create time
-  UINT32    Ext2DInodeModificationTime;         //  16: Modification time
-  UINT32    Ext2DInodeDeletionTime;             //  20: Deletion time
-  UINT16    Ext2DInodeGid;                      //  24: Owner GID
-  UINT16    Ext2DInodeLinkcount;                //  26: File link count
-  UINT32    Ext2DInodeBlockcount;               //  28: Blocks count
-  UINT32    Ext2DInodeStatusFlags;              //  32: Status flags (chflags)
-  UINT32    Ext2DInodeLinuxRsvd1;               // 36
-  UINT32    Ext2DInodeBlocks[NDADDR + NIADDR];  // 40: disk blocks
-  UINT32    Ext2DInodeGen;                      // 100: generation number
-  UINT32    Ext2DInodeFileAcl;                  // 104: file ACL (not implemented)
-  UINT32    Ext2DInodeDirAcl;                   // 108: dir ACL (not implemented)
-  UINT32    Ext2DInodeFragmentAddr;             // 112: fragment address
-  UINT8     Ext2DInodeFragmentNum;              // 116: fragment number
-  UINT8     Ext2DInodeFragmentSize;             // 117: fragment size
-  UINT16    Ext2DInodeLinuxRsvd2;               // 118
-  UINT16    Ext2DInodeUidHigh;                  // 120: Owner UID top 16 bits
-  UINT16    Ext2DInodeGidHigh;                  // 122: Owner GID top 16 bits
-  UINT32    Ext2DInodeLinuxRsvd3;               // 124
+  UINT16    Ext2DInodeUid;                      //   2: Owner UID.
+  UINT32    Ext2DInodeSize;                     //   4: Size (in bytes).
+  UINT32    Ext2DInodeAcessTime;                //   8: Acces time.
+  UINT32    Ext2DInodeCreatTime;                //  12: Create time.
+  UINT32    Ext2DInodeModificationTime;         //  16: Modification time.
+  UINT32    Ext2DInodeDeletionTime;             //  20: Deletion time.
+  UINT16    Ext2DInodeGid;                      //  24: Owner GID.
+  UINT16    Ext2DInodeLinkCount;                //  26: File link count.
+  UINT32    Ext2DInodeBlockCount;               //  28: Blocks count.
+  UINT32    Ext2DInodeStatusFlags;              //  32: Status flags (chflags).
+  UINT32    Ext2DInodeLinuxRsvd1;               //  36: Reserved.
+  UINT32    Ext2DInodeBlocks[NDADDR + NIADDR];  //  40: Disk blocks.
+  UINT32    Ext2DInodeGen;                      // 100: Generation number.
+  UINT32    Ext2DInodeFileAcl;                  // 104: File ACL (not implemented).
+  UINT32    Ext2DInodeDirAcl;                   // 108: Dir ACL (not implemented).
+  UINT32    Ext2DInodeFragmentAddr;             // 112: Fragment address.
+  UINT8     Ext2DInodeFragmentNum;              // 116: Fragment number.
+  UINT8     Ext2DInodeFragmentSize;             // 117: Fragment size.
+  UINT16    Ext2DInodeLinuxRsvd2;               // 118: Reserved.
+  UINT16    Ext2DInodeUidHigh;                  // 120: Owner UID top 16 bits.
+  UINT16    Ext2DInodeGidHigh;                  // 122: Owner GID top 16 bits.
+  UINT32    Ext2DInodeLinuxRsvd3;               // 124: Reserved.
 } EXTFS_DINODE;
 
-#define EXT4_MAX_HEADER_EXTENT_ENTRIES  4
-#define EXT4_EXTENT_HEADER_MAGIC        0xF30A
+#define EXT4_MAX_HEADER_EXTENT_ENTRIES   4
+#define EXT4_EXTENT_HEADER_MAGIC         0xF30A
 
 typedef struct {
   UINT16    EhMagic;      // magic number: 0xF30A
@@ -154,46 +152,46 @@ typedef struct {
   } Enodes;
 } EXT4_EXTENT_TABLE;
 
-#define    E2MAXSYMLINKLEN    ((NDADDR + NIADDR) * sizeof(UINT32))
+#define E2MAXSYMLINKLEN             ((NDADDR + NIADDR) * sizeof(UINT32))
 //
 // File permissions.
 //
-#define    EXT2_IEXEC      0000100        // Executable.
-#define    EXT2_IWRITE     0000200        // Writable.
-#define    EXT2_IREAD      0000400        // Readable.
-#define    EXT2_ISVTX      0001000        // Sticky bit.
-#define    EXT2_ISGID      0002000        // Set-gid.
-#define    EXT2_ISUID      0004000        // Set-uid.
+#define EXT2_IEXEC                  0000100 // Executable.
+#define EXT2_IWRITE                 0000200 // Writable.
+#define EXT2_IREAD                  0000400 // Readable.
+#define EXT2_ISVTX                  0001000 // Sticky bit.
+#define EXT2_ISGID                  0002000 // Set-gid.
+#define EXT2_ISUID                  0004000 // Set-uid.
 //
 // File types.
 //
-#define    EXT2_IFMT       0170000     // Mask of file type.
-#define    EXT2_IFIFO      0010000     // Named pipe (fifo).
-#define    EXT2_IFCHR      0020000     // Character device.
-#define    EXT2_IFDIR      0040000     // Directory file.
-#define    EXT2_IFBLK      0060000     // Block device.
-#define    EXT2_IFREG      0100000     // Regular file.
-#define    EXT2_IFLNK      0120000     // Symbolic link.
-#define    EXT2_IFSOCK     0140000     // UNIX domain socket.
+#define EXT2_IFMT                   0170000 // Mask of file type.
+#define EXT2_IFIFO                  0010000 // Named pipe (fifo).
+#define EXT2_IFCHR                  0020000 // Character device.
+#define EXT2_IFDIR                  0040000 // Directory file.
+#define EXT2_IFBLK                  0060000 // Block device.
+#define EXT2_IFREG                  0100000 // Regular file.
+#define EXT2_IFLNK                  0120000 // Symbolic link.
+#define EXT2_IFSOCK                 0140000 // UNIX domain socket.
 //
-// file flags
+// File flags.
 //
-#define EXT2_SECRM      0x00000001      // Secure deletion
-#define EXT2_UNRM       0x00000002      // Undelete
-#define EXT2_COMPR      0x00000004      // Compress file
-#define EXT2_SYNC       0x00000008      // Synchronous updates
-#define EXT2_IMMUTABLE  0x00000010      // Immutable file
-#define EXT2_APPEND     0x00000020      // writes to file may only append
-#define EXT2_NODUMP     0x00000040      // do not dump file
-#define EXT4_EXTENTS    0x00080000      // Inode uses extents
+#define EXT2_SECRM                  0x00000001  // Secure deletion.
+#define EXT2_UNRM                   0x00000002  // Undelete.
+#define EXT2_COMPR                  0x00000004  // Compress file.
+#define EXT2_SYNC                   0x00000008  // Synchronous updates.
+#define EXT2_IMMUTABLE              0x00000010  // Immutable file.
+#define EXT2_APPEND                 0x00000020  // Writes to file may only append.
+#define EXT2_NODUMP                 0x00000040  // Do not dump file.
+#define EXT4_EXTENTS                0x00080000  // Inode uses extents.
 
 //
 // Size of on-disk inode.
 //
-#define EXT2_REV0_DINODE_SIZE   sizeof(EXTFS_DINODE)
-#define EXT2_DINODE_SIZE(fs)    ((fs)->Ext2Fs.Ext2FsRev > E2FS_REV0 ?    \
-                    (fs)->Ext2Fs.Ext2FsInodeSize :    \
-                    EXT2_REV0_DINODE_SIZE)
+#define EXT2_REV0_DINODE_SIZE       sizeof(EXTFS_DINODE)
+#define EXT2_DINODE_SIZE(fs)        ((fs)->Ext2Fs.Ext2FsRev > E2FS_REV0 ?    \
+                                     (fs)->Ext2Fs.Ext2FsInodeSize :    \
+                                     EXT2_REV0_DINODE_SIZE)
 
 /**
  * The Ext2DInodeBlocks fields may be overlaid with other information for
@@ -206,10 +204,7 @@ typedef struct {
 //
 // Ext2Fs needs byte swapping on big-endian systems
 //
-#define E2FSILOAD(OLD, NEW)    \
-        CopyMem((NEW),(OLD),sizeof(EXTFS_DINODE))
-#define E2FSISAVE(OLD, NEW)    \
-        CopyMem((NEW),(OLD),sizeof(EXTFS_DINODE))
+#define E2FSILOAD(OLD, NEW)         CopyMem((NEW),(OLD),sizeof(EXTFS_DINODE))
+#define E2FSISAVE(OLD, NEW)         CopyMem((NEW),(OLD),sizeof(EXTFS_DINODE))
 
-
-#endif // !_UFS_EXT2FS_EXT2FS_DINODE_H_
+#endif // __EXT2_FS_DINODE_H__
