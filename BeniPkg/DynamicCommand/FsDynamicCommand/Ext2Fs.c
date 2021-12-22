@@ -474,7 +474,6 @@ BufReadFile (
       SetMem32 (Fp->Buffer, BlockSize, 0);
       Fp->BufferSize = BlockSize;
     } else {
-
       Status = BDevStrategy (File->FileDevData,
                              FSBTODB (FileSystem, DiskBlock),
                              BlockSize, Fp->Buffer, &Fp->BufferSize);

@@ -306,42 +306,42 @@ typedef struct {
 //
 typedef struct {
   UINT32   Ext2FsINodeCount;        // Inode count.
-  UINT32   Ext2FsBlockCount;        // blocks count.
-  UINT32   Ext2FsRsvdBlockCount;    // reserved blocks count.
-  UINT32   Ext2FsFreeBlockCount;    // free blocks count.
-  UINT32   Ext2FsFreeINodeCount;    // free inodes count.
-  UINT32   Ext2FsFirstDataBlock;    // first data block.
-  UINT32   Ext2FsLogBlockSize;      // block size = 1024*(2^Ext2FsLogBlockSize).
-  UINT32   Ext2FsFragmentSize;      // fragment size.
-  UINT32   Ext2FsBlocksPerGroup;    // blocks per group.
-  UINT32   Ext2FsFragsPerGroup;     // frags per group.
-  UINT32   Ext2FsINodesPerGroup;    // inodes per group.
-  UINT32   Ext2FsMountTime;         // mount time.
-  UINT32   Ext2FsWriteTime;         // write time.
-  UINT16   Ext2FsMountCount;        // mount count.
-  UINT16   Ext2FsMaxMountCount;     // max mount count.
-  UINT16   Ext2FsMagic;             // magic number.
-  UINT16   Ext2FsState;             // file system state.
-  UINT16   Ext2FsBehavior;          // behavior on errors.
-  UINT16   Ext2FsMinorRev;          // minor revision level.
-  UINT32   Ext2FsLastFsck;          // time of last fsck.
-  UINT32   Ext2FsFsckInterval;      // max time between fscks.
-  UINT32   Ext2FsCreator;           // creator OS.
-  UINT32   Ext2FsRev;               // revision level.
-  UINT16   Ext2FsRsvdUid;           // default uid for reserved blocks.
-  UINT16   Ext2FsRsvdGid;           // default gid for reserved blocks.
+  UINT32   Ext2FsBlockCount;        // Blocks count.
+  UINT32   Ext2FsRsvdBlockCount;    // Reserved blocks count.
+  UINT32   Ext2FsFreeBlockCount;    // Free blocks count.
+  UINT32   Ext2FsFreeINodeCount;    // Rree inodes count.
+  UINT32   Ext2FsFirstDataBlock;    // First data block.
+  UINT32   Ext2FsLogBlockSize;      // Block size = 1024*(2^Ext2FsLogBlockSize).
+  UINT32   Ext2FsFragmentSize;      // Fragment size.
+  UINT32   Ext2FsBlocksPerGroup;    // Blocks per group.
+  UINT32   Ext2FsFragsPerGroup;     // Frags per group.
+  UINT32   Ext2FsINodesPerGroup;    // Inodes per group.
+  UINT32   Ext2FsMountTime;         // Mount time.
+  UINT32   Ext2FsWriteTime;         // Write time.
+  UINT16   Ext2FsMountCount;        // Mount count.
+  UINT16   Ext2FsMaxMountCount;     // Max mount count.
+  UINT16   Ext2FsMagic;             // Magic number.
+  UINT16   Ext2FsState;             // File system state.
+  UINT16   Ext2FsBehavior;          // Behavior on errors.
+  UINT16   Ext2FsMinorRev;          // Minor revision level.
+  UINT32   Ext2FsLastFsck;          // Time of last fsck.
+  UINT32   Ext2FsFsckInterval;      // Max time between fscks.
+  UINT32   Ext2FsCreator;           // Creator OS.
+  UINT32   Ext2FsRev;               // Revision level.
+  UINT16   Ext2FsRsvdUid;           // Default uid for reserved blocks.
+  UINT16   Ext2FsRsvdGid;           // Default gid for reserved blocks.
   //
   // EXT2_DYNAMIC_REV superblocks.
   //
-  UINT32   Ext2FsFirstInode;        // first non-reserved inode.
-  UINT16   Ext2FsInodeSize;         // size of inode structure.
-  UINT16   Ext2FsBlockGrpNum;       // block grp number of this sblk.
+  UINT32   Ext2FsFirstInode;        // First non-reserved inode.
+  UINT16   Ext2FsInodeSize;         // Size of inode structure.
+  UINT16   Ext2FsBlockGrpNum;       // Block grp number of this sblk.
   UINT32   Ext2FsFeaturesCompat;    // Compatible feature set.
-  UINT32   Ext2FsFeaturesIncompat;  // incompatible feature set.
+  UINT32   Ext2FsFeaturesIncompat;  // Incompatible feature set.
   UINT32   Ext2FsFeaturesROCompat;  // RO-compatible feature set.
   UINT8    Ext2FsUuid[16];          // 128-bit uuid for volume.
-  CHAR8    Ext2FsVolumeName[16];    // volume name.
-  CHAR8    Ext2FsFSMnt[64];         // name mounted on.
+  CHAR8    Ext2FsVolumeName[16];    // Volume name.
+  CHAR8    Ext2FsFSMnt[64];         // Name mounted on.
   UINT32   Ext2FsAlgorithm;         // For compression.
   UINT8    Ext2FsPreAlloc;          // # of blocks to preallocate.
   UINT8    Ext2FsDirPreAlloc;       // # of blocks to preallocate for dir.
