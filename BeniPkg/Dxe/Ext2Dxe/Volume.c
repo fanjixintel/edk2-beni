@@ -60,10 +60,7 @@ Ext2AllocateVolume (
   // Initialize the structure.
   //
   Volume->Signature = EXT2_VOLUME_SIGNATURE;
-<<<<<<< HEAD
   Volume->Handle    = Handle;
-=======
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
   Volume->DiskIo    = DiskIo;
   Volume->DiskIo2   = DiskIo2;
   Volume->BlockIo   = BlockIo;
@@ -79,11 +76,8 @@ Ext2AllocateVolume (
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "Ext2OpenDevice failed. - %r\n", Status));
     goto EXIT;
-<<<<<<< HEAD
   } else {
     DumpSBlock (Volume);
-=======
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
   }
 
   //
@@ -102,14 +96,10 @@ Ext2AllocateVolume (
   //
   // Volume installed.
   //
-<<<<<<< HEAD
-  DEBUG ((EFI_D_ERROR, "Install gEfiSimpleFileSystemProtocolGuid on %p:\n %s\n",
+  DEBUG ((EFI_D_ERROR, "Install gEfiSimpleFileSystemProtocolGuid on 0x%p:\n\t%s\n",
           Volume->Handle,
           ConvertDevicePathToText(DevicePathFromHandle (Volume->Handle), FALSE, FALSE)
           ));
-=======
-  DEBUG ((EFI_D_INIT, "Installed EXT2 filesystem on %p\n", Handle));
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
   Volume->Valid = TRUE;
 
 EXIT:

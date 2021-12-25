@@ -44,7 +44,6 @@
 #include <Protocol/SimpleFileSystem.h>
 #include <Protocol/UnicodeCollation.h>
 
-<<<<<<< HEAD
 typedef long int                    DADDRESS;
 typedef long int                    OFFSET;
 typedef unsigned long               ULONG;
@@ -52,14 +51,11 @@ typedef unsigned long               INODE;
 typedef UINT32                      INODE32;
 typedef INT32                       INDPTR;
 
-=======
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
 //
 // The EXT2 macros.
 //
 #define EXT2_VOLUME_SIGNATURE         SIGNATURE_32 ('e', 'x', 't', '2')
 #define VOLUME_FROM_VOL_INTERFACE(a)  CR (a, EXT2_VOLUME, VolumeInterface, EXT2_VOLUME_SIGNATURE);
-<<<<<<< HEAD
 #define HOWMANY(x, y)                 (((x)+((y)-1))/(y))
 //
 // The path name on which the file system is mounted is maintained
@@ -174,7 +170,6 @@ typedef INT32                       INDPTR;
 #define EXT2F_INCOMPAT_EXTENTS      0x0040
 #define EXT2F_INCOMPAT_FLEX_BG      0x0200
 
-
 //
 // Super block for an ext2fs file system.
 //
@@ -272,36 +267,12 @@ typedef struct _EXT2_VOLUME {
   INT32                             Ext2FsInodesTablePerGrp; // Number of inode table per group.
   UINT32                            Ext2FsGDSize;            // Size of group descriptors.
   EXT2GD                            *Ext2FsGrpDes;           // Group descriptors.
-=======
-
-//
-// Structure for EXT2.
-//
-typedef struct _EXT2_VOLUME {
-  UINTN                             Signature;
-
-  EFI_HANDLE                        Handle;
-  BOOLEAN                           Valid;
-  BOOLEAN                           DiskError;
-
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL   VolumeInterface;
-
-  //
-  // If opened, the parent handle and BlockIo interface.
-  //
-  EFI_BLOCK_IO_PROTOCOL             *BlockIo;
-  EFI_DISK_IO_PROTOCOL              *DiskIo;
-  EFI_DISK_IO2_PROTOCOL             *DiskIo2;
-  UINT32                            MediaId;
-  BOOLEAN                           ReadOnly;
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
 } EXT2_VOLUME;
 
 //
 // Function Prototypes
 //
 // ------------------------------- Misc.c -------------------------------
-<<<<<<< HEAD
 /**
   Detects EXT2 file system on sisk and set relevant fields of Volume.
 
@@ -345,74 +316,10 @@ Ext2OpenDevice (
   @retval  EFI_NO_MEDIA             There is no media in the device.
   @retval  EFI_BAD_BUFFER_SIZE      The BufferSize parameter is not a multiple of
                                     the intrinsic block size of the device.
-=======
-/**
-  Detects EXT2 file system on sisk and set relevant fields of Volume.
-
-  @param[in]  Volume                The volume structure.
-
-  @retval  EFI_SUCCESS              The EXT2 File System is detected successfully
-  @retval  EFI_UNSUPPORTED          The volume is not FAT file system.
-  @retval  EFI_VOLUME_CORRUPTED     The volume is corrupted.
-
-**/
-EFI_STATUS
-Ext2OpenDevice (
-  IN OUT EXT2_VOLUME                *Volume
-  );
-// ------------------------------- Misc.c -------------------------------
-
-// ------------------------------ Volume.c ------------------------------
-/**
-  Allocates volume structure, detects EXT2 file system, installs protocol.
-
-  @param[in]  Handle                The handle of parent device.
-  @param[in]  DiskIo                The DiskIo of parent device.
-  @param[in]  DiskIo2               The DiskIo2 of parent device.
-  @param[in]  BlockIo               The BlockIo of parent device.
-
-  @retval  EFI_SUCCESS              Allocate a new volume successfully.
-  @retval  EFI_OUT_OF_RESOURCES     Can not allocate the memory.
-  @return  Others                   Allocating a new volume failed.
-
-**/
-EFI_STATUS
-Ext2AllocateVolume (
-  IN  EFI_HANDLE                    Handle,
-  IN  EFI_DISK_IO_PROTOCOL          *DiskIo,
-  IN  EFI_DISK_IO2_PROTOCOL         *DiskIo2,
-  IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo
-  );
-
-/**
-  Called by Ext2DriverBindingStop(), Abandon the volume.
-
-  @param[in]  Volume                The volume to be abandoned.
-
-  @retval  EFI_SUCCESS              Abandoned the volume successfully.
-  @return  Others                   Can not uninstall the protocol interfaces.
-
-**/
-EFI_STATUS
-Ext2AbandonVolume (
-  IN  EXT2_VOLUME                   *Volume
-  );
-
-/**
-  Implements Simple File System Protocol interface function OpenVolume().
-
-  @param[in]  This                  Calling context.
-  @param[out] File                  the Root Directory of the volume.
-
-  @retval  EFI_OUT_OF_RESOURCES     Can not allocate the memory.
-  @retval  EFI_VOLUME_CORRUPTED     The FAT type is error.
-  @retval  EFI_SUCCESS              Open the volume successfully.
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
 
 **/
 EFI_STATUS
 EFIAPI
-<<<<<<< HEAD
 MediaReadBlocks (
   IN  EFI_BLOCK_IO_PROTOCOL         *BlockIo,
   IN  EFI_LBA                       StartLBA,
@@ -424,26 +331,6 @@ MediaReadBlocks (
   Dump the file system super block information.
 
   @param[in]  Volume                Pointer to EXT2_VOLUME.
-=======
-Ext2OpenVolume (
-  IN  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL    *This,
-  OUT EFI_FILE_PROTOCOL                  **File
-  );
-
-/**
-  Free volume structure.
-
-  @param[in]  Volume                The volume structure to be freed.
-
-  @retval  NA
-
-**/
-VOID
-Ext2FreeVolume (
-  IN  EXT2_VOLUME                   *Volume
-  );
-// ------------------------------ Volume.c ------------------------------
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
 
   @retval  NA
 
@@ -453,12 +340,10 @@ EFIAPI
 DumpSBlock (
   IN  EXT2_VOLUME                   *Volume
   );
-
 // -------------------------------- Lib.c -------------------------------
 
 // ------------------------------ Volume.c ------------------------------
 /**
-<<<<<<< HEAD
   Allocates volume structure, detects EXT2 file system, installs protocol.
 
   @param[in]  Handle                The handle of parent device.
@@ -534,16 +419,6 @@ Ext2FreeVolume (
   @param[in]  OpenMode              Open mode.
   @param[in]  Attributes            Attributes to set if the file is created.
 
-=======
-  Implements Open() of Simple File System Protocol.
-
-  @param[in]  FHand                 File handle of the file serves as a starting reference point.
-  @param[out] NewHandle             Handle of the file that is newly opened.
-  @param[in]  FileName              File name relative to FHand.
-  @param[in]  OpenMode              Open mode.
-  @param[in]  Attributes            Attributes to set if the file is created.
-
->>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
   @retval  EFI_INVALID_PARAMETER    The FileName is NULL or the file string is empty.
                                     The OpenMode is not supported.
                                     The Attributes is not the valid attributes.
