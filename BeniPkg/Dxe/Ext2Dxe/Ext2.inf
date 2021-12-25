@@ -37,7 +37,10 @@
   ComponentName.c
   Ext2.c
   Interface.c
+<<<<<<< HEAD
   Lib.c
+=======
+>>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
   Misc.c
   Volume.c
 

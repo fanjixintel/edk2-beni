@@ -239,10 +239,13 @@ Ext2DriverBindingStart (
     DiskIo2 = NULL;
   }
 
+<<<<<<< HEAD
   if (NULL != DevicePathFromHandle (ControllerHandle)) {
     DEBUG ((DEBUG_ERROR, "%a %d 0x%p\n", __FUNCTION__, __LINE__, ControllerHandle));
   }
 
+=======
+>>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
   //
   // Allocate Volume structure. In Ext2AllocateVolume(), Resources
   // are allocated with protocol installed.

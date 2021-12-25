@@ -36,6 +36,7 @@ Ext2OpenDevice (
   IN OUT EXT2_VOLUME                *Volume
   )
 {
+<<<<<<< HEAD
   EFI_STATUS    Status;
   UINT8         *Buffer;
   UINT32        BlockSize;
@@ -116,4 +117,7 @@ Ext2OpenDevice (
 DONE:
 
   return Status;
+=======
+  return EFI_UNSUPPORTED;
+>>>>>>> 08fd28f8ad9569abe05301594c5542bc2107ff6e
 }
