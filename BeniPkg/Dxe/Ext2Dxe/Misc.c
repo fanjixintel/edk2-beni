@@ -91,29 +91,56 @@ Ext2OpenDevice (
     goto DONE;
   }
 
-  E2FS_SBLOAD ((VOID *)Ext2Fs, (VOID *)&Volume->Ext2Fs);
-  //
-  // Compute in-memory m_ext2fs values.
-  //
-  Volume->Ext2FsNumCylinder       =
-    HOWMANY (Volume->Ext2Fs.Ext2FsBlockCount - Volume->Ext2Fs.Ext2FsFirstDataBlock,
-             Volume->Ext2Fs.Ext2FsBlocksPerGroup);
-
-  Volume->Ext2FsFsbtobd           = (INT32)(Volume->Ext2Fs.Ext2FsLogBlockSize + 10) - (INT32)HighBitSet32 (BlockSize);
-  Volume->Ext2FsBlockSize         = MINBSIZE << Volume->Ext2Fs.Ext2FsLogBlockSize;
-  Volume->Ext2FsLogicalBlock      = LOG_MINBSIZE + Volume->Ext2Fs.Ext2FsLogBlockSize;
-  Volume->Ext2FsQuadBlockOffset   = Volume->Ext2FsBlockSize - 1;
-  Volume->Ext2FsBlockOffset       = (UINT32)~Volume->Ext2FsQuadBlockOffset;
-  Volume->Ext2FsGDSize            = 32; // sizeof (EXT2GD) 32 or 64.
-  if (Volume->Ext2Fs.Ext2FsFeaturesIncompat & EXT2F_INCOMPAT_64BIT) {
-    Volume->Ext2FsGDSize          = Volume->Ext2Fs.Ext2FsGDSize;
-  }
-  Volume->Ext2FsNumGrpDesBlock    =
-    HOWMANY (Volume->Ext2FsNumCylinder, Volume->Ext2FsBlockSize / Volume->Ext2FsGDSize);
-  Volume->Ext2FsInodesPerBlock    = Volume->Ext2FsBlockSize / Volume->Ext2Fs.Ext2FsInodeSize;
-  Volume->Ext2FsInodesTablePerGrp = Volume->Ext2Fs.Ext2FsINodesPerGroup / Volume->Ext2FsInodesPerBlock;
+  E2FS_SBLOAD ((VOID *)Ext2Fs, (VOID *)&Volume->SuperBlock.Ext2Fs);
 
 DONE:
 
   return Status;
+}
+
+/**
+  Read group descriptor of the file.
+
+  @param[in]  Volume                Pointer to EXT2_VOLUME.
+
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Error happened.
+
+**/
+EFI_STATUS
+EFIAPI
+ReadGDBlock (
+  IN  EXT2_VOLUME                   *Volume
+  )
+{
+  FILE          *Fp;
+  UINT32        Gdpb;
+  INT32         Index;
+  EFI_STATUS    Status;
+  M_EXT2FS      *FileSystem;
+
+  Fp = (FILE *)&Volume->Root.FileSystemSpecificData;
+  FileSystem = (M_EXT2FS *)&Volume->SuperBlock;
+  Gdpb = FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize;
+
+  for (Index = 0; Index < FileSystem->Ext2FsNumGrpDesBlock; Index++) {
+    Status = MediaReadBlocks (
+              Volume->BlockIo,
+              FSBTODB (FileSystem, FileSystem->Ext2Fs.Ext2FsFirstDataBlock + 1 /* superblock */ + Index),
+              FileSystem->Ext2FsBlockSize,
+              Fp->Buffer
+              );
+    if (EFI_ERROR (Status)) {
+      return Status;
+    }
+
+    E2FS_CGLOAD ((EXT2GD *)Fp->Buffer,
+                 &FileSystem->Ext2FsGrpDes[Index * Gdpb],
+                 (Index == (FileSystem->Ext2FsNumGrpDesBlock - 1)) ?
+                    (FileSystem->Ext2FsNumCylinder - Gdpb * Index) * FileSystem->Ext2FsGDSize :
+                    FileSystem->Ext2FsBlockSize
+                );
+  }
+
+  return EFI_SUCCESS;
 }

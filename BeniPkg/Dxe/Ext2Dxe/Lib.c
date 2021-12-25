@@ -21,7 +21,7 @@
 
 #include "Ext2.h"
 
-#define EXT2_DEBUG 1
+#define EXT2_DEBUG 0
 
 /**
   Reads the requested number of blocks from the specified block device.
@@ -69,7 +69,6 @@ MediaReadBlocks (
                     );
 }
 
-#if EXT2_DEBUG
 /**
   Dump the file system super block information.
 
@@ -84,40 +83,42 @@ DumpSBlock (
   IN  EXT2_VOLUME                   *Volume
   )
 {
-  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsBlockCount = %u\n", Volume->Ext2Fs.Ext2FsBlockCount));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsFirstDataBlock = %u\n", Volume->Ext2Fs.Ext2FsFirstDataBlock));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsLogBlockSize = %u\n", Volume->Ext2Fs.Ext2FsLogBlockSize));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsBlocksPerGroup = %u\n", Volume->Ext2Fs.Ext2FsBlocksPerGroup));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsINodesPerGroup = %u\n", Volume->Ext2Fs.Ext2FsINodesPerGroup));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsMagic = 0x%x\n", Volume->Ext2Fs.Ext2FsMagic));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsRev = %u\n", Volume->Ext2Fs.Ext2FsRev));
+#if EXT2_DEBUG
+  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsBlockCount = %u\n", Volume->SuperBlock.Ext2Fs.Ext2FsBlockCount));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsFirstDataBlock = %u\n", Volume->SuperBlock.Ext2Fs.Ext2FsFirstDataBlock));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsLogBlockSize = %u\n", Volume->SuperBlock.Ext2Fs.Ext2FsLogBlockSize));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsBlocksPerGroup = %u\n", Volume->SuperBlock.Ext2Fs.Ext2FsBlocksPerGroup));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsINodesPerGroup = %u\n", Volume->SuperBlock.Ext2Fs.Ext2FsINodesPerGroup));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsMagic = 0x%x\n", Volume->SuperBlock.Ext2Fs.Ext2FsMagic));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsRev = %u\n", Volume->SuperBlock.Ext2Fs.Ext2FsRev));
 
-  if (Volume->Ext2Fs.Ext2FsRev == E2FS_REV1) {
+  if (Volume->SuperBlock.Ext2Fs.Ext2FsRev == E2FS_REV1) {
     DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsFirstInode = %u\n",
-            Volume->Ext2Fs.Ext2FsFirstInode));
+            Volume->SuperBlock.Ext2Fs.Ext2FsFirstInode));
     DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsInodeSize = %u\n",
-            Volume->Ext2Fs.Ext2FsInodeSize));
+            Volume->SuperBlock.Ext2Fs.Ext2FsInodeSize));
     DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsFeaturesCompat = %u\n",
-            Volume->Ext2Fs.Ext2FsFeaturesCompat));
+            Volume->SuperBlock.Ext2Fs.Ext2FsFeaturesCompat));
     DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsFeaturesIncompat = %u\n",
-            Volume->Ext2Fs.Ext2FsFeaturesIncompat));
+            Volume->SuperBlock.Ext2Fs.Ext2FsFeaturesIncompat));
     DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsFeaturesROCompat = %u\n",
-            Volume->Ext2Fs.Ext2FsFeaturesROCompat));
+            Volume->SuperBlock.Ext2Fs.Ext2FsFeaturesROCompat));
     DEBUG ((DEBUG_INFO, "Volume->Ext2Fs.Ext2FsRsvdGDBlock = %u\n",
-            Volume->Ext2Fs.Ext2FsRsvdGDBlock));
+            Volume->SuperBlock.Ext2Fs.Ext2FsRsvdGDBlock));
   }
 
-  DEBUG ((DEBUG_INFO, "Volume->Ext2FsGDSize = %u\n", Volume->Ext2FsGDSize));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2FsBlockSize = %u\n", Volume->Ext2FsBlockSize));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2FsFsbtobd = %u\n", Volume->Ext2FsFsbtobd));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2FsNumCylinder = %u\n", Volume->Ext2FsNumCylinder));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2FsNumGrpDesBlock = %u\n", Volume->Ext2FsNumGrpDesBlock));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2FsInodesPerBlock = %u\n", Volume->Ext2FsInodesPerBlock));
-  DEBUG ((DEBUG_INFO, "Volume->Ext2FsInodesTablePerGrp = %u\n", Volume->Ext2FsInodesTablePerGrp));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2FsGDSize = %u\n", Volume->SuperBlock.Ext2FsGDSize));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2FsBlockSize = %u\n", Volume->SuperBlock.Ext2FsBlockSize));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2FsFsbtobd = %u\n", Volume->SuperBlock.Ext2FsFsbtobd));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2FsNumCylinder = %u\n", Volume->SuperBlock.Ext2FsNumCylinder));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2FsNumGrpDesBlock = %u\n", Volume->SuperBlock.Ext2FsNumGrpDesBlock));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2FsInodesPerBlock = %u\n", Volume->SuperBlock.Ext2FsInodesPerBlock));
+  DEBUG ((DEBUG_INFO, "Volume->Ext2FsInodesTablePerGrp = %u\n", Volume->SuperBlock.Ext2FsInodesTablePerGrp));
+#endif
 }
-#else
+
 /**
-  Dump the file system super block information.
+  Dump the file group descriptor block info.
 
   @param[in]  Volume                Pointer to EXT2_VOLUME.
 
@@ -126,10 +127,29 @@ DumpSBlock (
 **/
 VOID
 EFIAPI
-DumpSBlock (
+DumpGroupDesBlock (
   IN  EXT2_VOLUME                   *Volume
   )
 {
-  return;
+#if EXT2_DEBUG
+  INT32    Index;
+  EXT2GD   *Ext2FsGrpDesEntry;
+  M_EXT2FS *FileSystem;
+
+  FileSystem = (M_EXT2FS *)&Volume->SuperBlock;
+
+  for (Index = 0; Index < FileSystem->Ext2FsNumCylinder; Index++) {
+    Ext2FsGrpDesEntry = (EXT2GD *) ((UINT32 *) FileSystem->Ext2FsGrpDes + (Index * FileSystem->Ext2FsGDSize));
+    DEBUG ((DEBUG_INFO, "Ext2FsGrpDes[Index = %u]\n", Index));
+    DEBUG ((DEBUG_INFO, "  Ext2BGDBlockBitmap   %u\n", Ext2FsGrpDesEntry->Ext2BGDBlockBitmap));
+    DEBUG ((DEBUG_INFO, "  Ext2BGDInodeBitmap   %u\n", Ext2FsGrpDesEntry->Ext2BGDInodeBitmap));
+    DEBUG ((DEBUG_INFO, "  Ext2BGDInodeTables   %u\n", Ext2FsGrpDesEntry->Ext2BGDInodeTables));
+    DEBUG ((DEBUG_INFO, "  Ext2BGDFreeBlocks    %u\n", Ext2FsGrpDesEntry->Ext2BGDFreeBlocks));
+    DEBUG ((DEBUG_INFO, "  Ext2BGDFreeInodes    %u\n", Ext2FsGrpDesEntry->Ext2BGDFreeInodes));
+    DEBUG ((DEBUG_INFO, "  Ext2BGDNumDir        %u\n", Ext2FsGrpDesEntry->Ext2BGDNumDir));
+    if (FileSystem->Ext2FsGDSize > 32) {
+      DEBUG ((DEBUG_INFO, "  Ext2BGDInodeTablesHi %u\n", Ext2FsGrpDesEntry->Ext2BGDInodeTablesHi));
+    }
+  }
+#endif
 }
-#endif // EXT2_DEBUG

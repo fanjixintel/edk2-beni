@@ -1,6 +1,6 @@
 /**
 *  @Package     : BeniPkg
-*  @FileName    : OpenVolume.c
+*  @FileName    : Volume.c
 *  @Date        : 20211130
 *  @Author      : Jiangwei
 *  @Version     : 1.0
@@ -59,18 +59,18 @@ Ext2AllocateVolume (
   //
   // Initialize the structure.
   //
-  Volume->Signature = EXT2_VOLUME_SIGNATURE;
-  Volume->Handle    = Handle;
-  Volume->DiskIo    = DiskIo;
-  Volume->DiskIo2   = DiskIo2;
-  Volume->BlockIo   = BlockIo;
-  Volume->MediaId   = BlockIo->Media->MediaId;
-  Volume->ReadOnly  = BlockIo->Media->ReadOnly;
+  Volume->Signature                   = EXT2_VOLUME_SIGNATURE;
+  Volume->Handle                      = Handle;
+  Volume->DiskIo                      = DiskIo;
+  Volume->DiskIo2                     = DiskIo2;
+  Volume->BlockIo                     = BlockIo;
+  Volume->MediaId                     = BlockIo->Media->MediaId;
+  Volume->ReadOnly                    = BlockIo->Media->ReadOnly;
   Volume->VolumeInterface.Revision    = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION;
   Volume->VolumeInterface.OpenVolume  = Ext2OpenVolume;
 
   //
-  // Check to see if there's a file system on the volume
+  // Check to see if there's a file system on the volume.
   //
   Status = Ext2OpenDevice (Volume);
   if (EFI_ERROR (Status)) {
@@ -90,13 +90,14 @@ Ext2AllocateVolume (
                   NULL
                   );
   if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "Install gEfiSimpleFileSystemProtocolGuid failed. - %r\n", Status));
     goto EXIT;
   }
 
   //
   // Volume installed.
   //
-  DEBUG ((EFI_D_ERROR, "Install gEfiSimpleFileSystemProtocolGuid on 0x%p:\n\t%s\n",
+  DEBUG ((EFI_D_INFO, "Install gEfiSimpleFileSystemProtocolGuid on 0x%p:\n\t%s\n",
           Volume->Handle,
           ConvertDevicePathToText(DevicePathFromHandle (Volume->Handle), FALSE, FALSE)
           ));
@@ -164,5 +165,63 @@ Ext2OpenVolume (
   OUT EFI_FILE_PROTOCOL                  **File
   )
 {
-  return EFI_UNSUPPORTED;
+  EFI_STATUS    Status;
+  EXT2_VOLUME   *Volume;
+  OPEN_FILE     *OFile;
+  FILE          *Fp;
+  M_EXT2FS      *FileSystem;
+
+  Status        = EFI_UNSUPPORTED;
+  Volume        = NULL;
+  OFile         = NULL;
+  Fp            = NULL;
+  FileSystem    = NULL;
+
+  Volume = VOLUME_FROM_VOL_INTERFACE (This);
+  Fp = &Volume->Root.FileSystemSpecificData;
+  Fp->SuperBlockPtr = (M_EXT2FS *)&Volume->SuperBlock;;
+  FileSystem = Fp->SuperBlockPtr;
+
+  //
+  // Compute in-memory m_ext2fs values.
+  //
+  FileSystem->Ext2FsNumCylinder       =
+    HOWMANY ((FileSystem->Ext2Fs.Ext2FsBlockCount - FileSystem->Ext2Fs.Ext2FsFirstDataBlock),
+             FileSystem->Ext2Fs.Ext2FsBlocksPerGroup);
+
+  FileSystem->Ext2FsFsbtobd           = (INT32)(FileSystem->Ext2Fs.Ext2FsLogBlockSize + 10) -
+                                        (INT32)HighBitSet32 (Volume->BlockIo->Media->BlockSize);
+  FileSystem->Ext2FsBlockSize         = MINBSIZE << FileSystem->Ext2Fs.Ext2FsLogBlockSize;
+  FileSystem->Ext2FsLogicalBlock      = LOG_MINBSIZE + FileSystem->Ext2Fs.Ext2FsLogBlockSize;
+  FileSystem->Ext2FsQuadBlockOffset   = FileSystem->Ext2FsBlockSize - 1;
+  FileSystem->Ext2FsBlockOffset       = (UINT32)~FileSystem->Ext2FsQuadBlockOffset;
+  FileSystem->Ext2FsGDSize            = 32; // sizeof (EXT2GD) 32 or 64.
+  if (FileSystem->Ext2Fs.Ext2FsFeaturesIncompat & EXT2F_INCOMPAT_64BIT) {
+    FileSystem->Ext2FsGDSize          = FileSystem->Ext2Fs.Ext2FsGDSize;
+  }
+  FileSystem->Ext2FsNumGrpDesBlock    =
+    HOWMANY (FileSystem->Ext2FsNumCylinder, FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize);
+  FileSystem->Ext2FsInodesPerBlock    = FileSystem->Ext2FsBlockSize / FileSystem->Ext2Fs.Ext2FsInodeSize;
+  FileSystem->Ext2FsInodesTablePerGrp = FileSystem->Ext2Fs.Ext2FsINodesPerGroup / FileSystem->Ext2FsInodesPerBlock;
+
+  DumpSBlock (Volume);
+
+  //
+  // Alloc a block sized buffer used for all FileSystem transfers.
+  //
+  Fp->Buffer = AllocatePool (FileSystem->Ext2FsBlockSize);
+
+  Status = ReadGDBlock (Volume);
+  if (EFI_ERROR (Status)) {
+    goto DONE;
+  }
+
+  DumpGroupDesBlock (Volume);
+
+  CopyMem (&(Volume->Root.Handle), &gExt2FileInterface, sizeof (EFI_FILE_PROTOCOL));
+  *File = &Volume->Root.Handle;
+
+DONE:
+
+  return Status;
 }
