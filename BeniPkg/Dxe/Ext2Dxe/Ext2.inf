@@ -35,8 +35,11 @@
 
 [Sources]
   ComponentName.c
-  Ext2.h
   Ext2.c
+  Interface.c
+  Lib.c
+  Misc.c
+  Volume.c
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -58,3 +61,7 @@
   gEfiSimpleFileSystemProtocolGuid                      ## BY_START
   gEfiUnicodeCollationProtocolGuid                      ## TO_START
   gEfiUnicodeCollation2ProtocolGuid                     ## TO_START
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLang             ## SOMETIMES_CONSUMES
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLang     ## SOMETIMES_CONSUMES

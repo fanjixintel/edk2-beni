@@ -21,6 +21,76 @@
 
 #include "Ext2.h"
 
+/**
+  Test to see if this driver supports ControllerHandle.
+
+  @param[in]  This                  Protocol instance pointer.
+  @param[in]  ControllerHandle      Handle of the device to test.
+  @param[in]  RemainingDevicePath   Optional parameter use to pick a specific
+                                    child device to start.
+
+  @retval  EFI_SUCCESS              This driver supports this device.
+  @retval  EFI_ALREADY_STARTED      This driver is already running on this device.
+  @retval  Others                   This driver does not support this device.
+
+**/
+EFI_STATUS
+EFIAPI
+Ext2DriverBindingSupported (
+  IN  EFI_DRIVER_BINDING_PROTOCOL   *This,
+  IN  EFI_HANDLE                    ControllerHandle,
+  IN  EFI_DEVICE_PATH_PROTOCOL      *RemainingDevicePath OPTIONAL
+  );
+
+/**
+  Start this driver on ControllerHandle.
+
+  @param[in]  This                  Protocol instance pointer.
+  @param[in]  ControllerHandle      Handle of device to bind driver to.
+  @param[in]  RemainingDevicePath   Optional parameter use to pick a specific child
+                                    device to start.
+
+  @retval  EFI_SUCCESS              The driver is added to ControllerHandle.
+  @retval  EFI_OUT_OF_RESOURCES     There are not enough resources to start the
+                                    driver.
+  @retval  Others                   The driver cannot be added to ControllerHandle.
+
+**/
+EFI_STATUS
+EFIAPI
+Ext2DriverBindingStart (
+  IN EFI_DRIVER_BINDING_PROTOCOL    *This,
+  IN EFI_HANDLE                     ControllerHandle,
+  IN EFI_DEVICE_PATH_PROTOCOL       *RemainingDevicePath OPTIONAL
+  );
+
+/**
+  Stop this driver on ControllerHandle.
+
+  @param[in]  This                  A pointer to the EFI_DRIVER_BINDING_PROTOCOL instance.
+  @param[in]  ControllerHandle      A handle to the device being stopped. The handle must
+                                    support a bus specific I/O protocol for the driver
+                                    to use to stop the device.
+  @param[in]  NumberOfChildren      The number of child device handles in ChildHandleBuffer.
+  @param[in]  ChildHandleBuffer     An array of child handles to be freed. May be NULL
+                                    if NumberOfChildren is 0.
+
+  @retval  EFI_SUCCESS              The device was stopped.
+  @retval  EFI_DEVICE_ERROR         The device could not be stopped due to a device error.
+
+**/
+EFI_STATUS
+EFIAPI
+Ext2DriverBindingStop (
+  IN  EFI_DRIVER_BINDING_PROTOCOL   *This,
+  IN  EFI_HANDLE                    ControllerHandle,
+  IN  UINTN                         NumberOfChildren,
+  IN  EFI_HANDLE                    *ChildHandleBuffer OPTIONAL
+  );
+
+//
+// DriverBinding protocol instance.
+//
 EFI_DRIVER_BINDING_PROTOCOL gExt2DriverBinding = {
   Ext2DriverBindingSupported,
   Ext2DriverBindingStart,
@@ -116,11 +186,99 @@ Ext2DriverBindingStart (
   IN  EFI_DEVICE_PATH_PROTOCOL      *RemainingDevicePath OPTIONAL
   )
 {
-  EFI_STATUS                        Status;
+  EFI_STATUS              Status;
+  EFI_BLOCK_IO_PROTOCOL   *BlockIo;
+  EFI_DISK_IO_PROTOCOL    *DiskIo;
+  EFI_DISK_IO2_PROTOCOL   *DiskIo2;
 
-  Status        = EFI_DEVICE_ERROR;
+  Status = EFI_DEVICE_ERROR;
 
   BENI_MODULE_START
+
+  // Status = InitializeUnicodeCollationSupport (This->DriverBindingHandle);
+  // if (EFI_ERROR (Status)) {
+  //   goto EXIT;
+  // }
+
+  //
+  // Open our required BlockIo and DiskIo.
+  //
+  Status = gBS->OpenProtocol (
+                  ControllerHandle,
+                  &gEfiBlockIoProtocolGuid,
+                  (VOID **) &BlockIo,
+                  This->DriverBindingHandle,
+                  ControllerHandle,
+                  EFI_OPEN_PROTOCOL_GET_PROTOCOL
+                  );
+  if (EFI_ERROR (Status)) {
+    goto EXIT;
+  }
+
+  Status = gBS->OpenProtocol (
+                  ControllerHandle,
+                  &gEfiDiskIoProtocolGuid,
+                  (VOID **) &DiskIo,
+                  This->DriverBindingHandle,
+                  ControllerHandle,
+                  EFI_OPEN_PROTOCOL_BY_DRIVER
+                  );
+  if (EFI_ERROR (Status)) {
+    goto EXIT;
+  }
+
+  Status = gBS->OpenProtocol (
+                  ControllerHandle,
+                  &gEfiDiskIo2ProtocolGuid,
+                  (VOID **) &DiskIo2,
+                  This->DriverBindingHandle,
+                  ControllerHandle,
+                  EFI_OPEN_PROTOCOL_BY_DRIVER
+                  );
+  if (EFI_ERROR (Status)) {
+    DiskIo2 = NULL;
+  }
+
+  if (NULL != DevicePathFromHandle (ControllerHandle)) {
+    DEBUG ((DEBUG_ERROR, "%a %d 0x%p\n", __FUNCTION__, __LINE__, ControllerHandle));
+  }
+
+  //
+  // Allocate Volume structure. In Ext2AllocateVolume(), Resources
+  // are allocated with protocol installed.
+  //
+  Status = Ext2AllocateVolume (ControllerHandle, DiskIo, DiskIo2, BlockIo);
+  //
+  // When the media changes on a device it will Reinstall the BlockIo interface.
+  // This will cause a call to our Stop(), and a subsequent reentrant call to our
+  // Start() successfully. We should leave the device open when this happen.
+  //
+  if (EFI_ERROR (Status)) {
+    Status = gBS->OpenProtocol (
+                    ControllerHandle,
+                    &gEfiSimpleFileSystemProtocolGuid,
+                    NULL,
+                    This->DriverBindingHandle,
+                    ControllerHandle,
+                    EFI_OPEN_PROTOCOL_TEST_PROTOCOL
+                    );
+    if (EFI_ERROR (Status)) {
+      gBS->CloseProtocol (
+             ControllerHandle,
+             &gEfiDiskIoProtocolGuid,
+             This->DriverBindingHandle,
+             ControllerHandle
+             );
+      gBS->CloseProtocol (
+             ControllerHandle,
+             &gEfiDiskIo2ProtocolGuid,
+             This->DriverBindingHandle,
+             ControllerHandle
+             );
+    }
+  }
+
+EXIT:
 
   BENI_MODULE_END
 
@@ -151,7 +309,50 @@ Ext2DriverBindingStop (
   IN  EFI_HANDLE                    *ChildHandleBuffer OPTIONAL
   )
 {
-  return EFI_SUCCESS;
+  EFI_STATUS                        Status;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL   *FileSystem;
+  EXT2_VOLUME                       *Volume;
+  EFI_DISK_IO2_PROTOCOL             *DiskIo2;
+
+  DiskIo2 = NULL;
+
+  //
+  // Get our context back.
+  //
+  Status = gBS->OpenProtocol (
+                  ControllerHandle,
+                  &gEfiSimpleFileSystemProtocolGuid,
+                  (VOID **) &FileSystem,
+                  This->DriverBindingHandle,
+                  ControllerHandle,
+                  EFI_OPEN_PROTOCOL_GET_PROTOCOL
+                  );
+  if (!EFI_ERROR (Status)) {
+    Volume  = VOLUME_FROM_VOL_INTERFACE (FileSystem);
+    DiskIo2 = Volume->DiskIo2;
+    Status  = Ext2AbandonVolume (Volume);
+  }
+
+  if (!EFI_ERROR (Status)) {
+    if (DiskIo2 != NULL) {
+      Status = gBS->CloseProtocol (
+                      ControllerHandle,
+                      &gEfiDiskIo2ProtocolGuid,
+                      This->DriverBindingHandle,
+                      ControllerHandle
+                      );
+      ASSERT_EFI_ERROR (Status);
+    }
+    Status = gBS->CloseProtocol (
+                    ControllerHandle,
+                    &gEfiDiskIoProtocolGuid,
+                    This->DriverBindingHandle,
+                    ControllerHandle
+                    );
+    ASSERT_EFI_ERROR (Status);
+  }
+
+  return Status;
 }
 
 /**
