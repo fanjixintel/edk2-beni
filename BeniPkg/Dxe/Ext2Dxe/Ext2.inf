@@ -50,9 +50,12 @@
   UefiDriverEntryPoint
   UefiBootServicesTableLib
   UefiLib
+  BaseLib
   BaseMemoryLib
   MemoryAllocationLib
   DebugLib
+  DevicePathLib
+  PrintLib
 
 [Protocols]
   gEfiDiskIoProtocolGuid                                ## TO_START

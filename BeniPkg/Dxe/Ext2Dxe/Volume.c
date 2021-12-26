@@ -49,7 +49,7 @@ Ext2AllocateVolume (
   Volume = NULL;
 
   //
-  // Allocate a volume structure.
+  // Allocate a volume structure, fill all 0s first.
   //
   Volume = AllocateZeroPool (sizeof (EXT2_VOLUME));
   if (NULL == Volume) {
@@ -65,7 +65,7 @@ Ext2AllocateVolume (
   Volume->DiskIo2                     = DiskIo2;
   Volume->BlockIo                     = BlockIo;
   Volume->MediaId                     = BlockIo->Media->MediaId;
-  Volume->ReadOnly                    = BlockIo->Media->ReadOnly;
+  Volume->ReadOnly                    = TRUE; // EXT2 is read only.
   Volume->VolumeInterface.Revision    = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION;
   Volume->VolumeInterface.OpenVolume  = Ext2OpenVolume;
 
@@ -75,9 +75,7 @@ Ext2AllocateVolume (
   Status = Ext2OpenDevice (Volume);
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "Ext2OpenDevice failed. - %r\n", Status));
-    goto EXIT;
-  } else {
-    DumpSBlock (Volume);
+    goto DONE;
   }
 
   //
@@ -91,7 +89,7 @@ Ext2AllocateVolume (
                   );
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "Install gEfiSimpleFileSystemProtocolGuid failed. - %r\n", Status));
-    goto EXIT;
+    goto DONE;
   }
 
   //
@@ -102,8 +100,9 @@ Ext2AllocateVolume (
           ConvertDevicePathToText(DevicePathFromHandle (Volume->Handle), FALSE, FALSE)
           ));
   Volume->Valid = TRUE;
+  Volume->DiskError = FALSE;
 
-EXIT:
+DONE:
 
   if (EFI_ERROR (Status)) {
     Ext2FreeVolume (Volume);
@@ -125,8 +124,13 @@ Ext2FreeVolume (
   IN  EXT2_VOLUME                   *Volume
   )
 {
+  if (NULL != Volume->SuperBlock.Ext2FsGrpDes) {
+    FreePool (Volume->SuperBlock.Ext2FsGrpDes);
+    Volume->SuperBlock.Ext2FsGrpDes = NULL;
+  }
   if (NULL != Volume) {
     FreePool (Volume);
+    Volume = NULL;
   }
 }
 
@@ -167,59 +171,34 @@ Ext2OpenVolume (
 {
   EFI_STATUS    Status;
   EXT2_VOLUME   *Volume;
-  OPEN_FILE     *OFile;
+  OPEN_FILE     *Root;
   FILE          *Fp;
-  M_EXT2FS      *FileSystem;
 
   Status        = EFI_UNSUPPORTED;
   Volume        = NULL;
-  OFile         = NULL;
+  Root          = NULL;
   Fp            = NULL;
-  FileSystem    = NULL;
 
   Volume = VOLUME_FROM_VOL_INTERFACE (This);
-  Fp = &Volume->Root.FileSystemSpecificData;
-  Fp->SuperBlockPtr = (M_EXT2FS *)&Volume->SuperBlock;;
-  FileSystem = Fp->SuperBlockPtr;
+  Root = &Volume->Root;
 
-  //
-  // Compute in-memory m_ext2fs values.
-  //
-  FileSystem->Ext2FsNumCylinder       =
-    HOWMANY ((FileSystem->Ext2Fs.Ext2FsBlockCount - FileSystem->Ext2Fs.Ext2FsFirstDataBlock),
-             FileSystem->Ext2Fs.Ext2FsBlocksPerGroup);
-
-  FileSystem->Ext2FsFsbtobd           = (INT32)(FileSystem->Ext2Fs.Ext2FsLogBlockSize + 10) -
-                                        (INT32)HighBitSet32 (Volume->BlockIo->Media->BlockSize);
-  FileSystem->Ext2FsBlockSize         = MINBSIZE << FileSystem->Ext2Fs.Ext2FsLogBlockSize;
-  FileSystem->Ext2FsLogicalBlock      = LOG_MINBSIZE + FileSystem->Ext2Fs.Ext2FsLogBlockSize;
-  FileSystem->Ext2FsQuadBlockOffset   = FileSystem->Ext2FsBlockSize - 1;
-  FileSystem->Ext2FsBlockOffset       = (UINT32)~FileSystem->Ext2FsQuadBlockOffset;
-  FileSystem->Ext2FsGDSize            = 32; // sizeof (EXT2GD) 32 or 64.
-  if (FileSystem->Ext2Fs.Ext2FsFeaturesIncompat & EXT2F_INCOMPAT_64BIT) {
-    FileSystem->Ext2FsGDSize          = FileSystem->Ext2Fs.Ext2FsGDSize;
-  }
-  FileSystem->Ext2FsNumGrpDesBlock    =
-    HOWMANY (FileSystem->Ext2FsNumCylinder, FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize);
-  FileSystem->Ext2FsInodesPerBlock    = FileSystem->Ext2FsBlockSize / FileSystem->Ext2Fs.Ext2FsInodeSize;
-  FileSystem->Ext2FsInodesTablePerGrp = FileSystem->Ext2Fs.Ext2FsINodesPerGroup / FileSystem->Ext2FsInodesPerBlock;
-
-  DumpSBlock (Volume);
-
-  //
-  // Alloc a block sized buffer used for all FileSystem transfers.
-  //
-  Fp->Buffer = AllocatePool (FileSystem->Ext2FsBlockSize);
-
-  Status = ReadGDBlock (Volume);
+  Root->Signature = EXT2_OFILE_SIGNATURE;
+  CopyMem (&(Root->Handle), &gExt2FileInterface, sizeof (EFI_FILE_PROTOCOL));
+  Root->BlockIo = Volume->BlockIo;
+  Root->DiskIo  = Volume->DiskIo;
+  Root->DiskIo2 = Volume->DiskIo2;
+  Fp = &Root->FileSystemSpecificData;
+  Fp->SuperBlockPtr = &Volume->SuperBlock;;
+  Status = ReadInode (EXT2_ROOTINO, Root);
   if (EFI_ERROR (Status)) {
     goto DONE;
   }
+  //
+  // Alloc a block sized buffer used for all FileSystem transfers.
+  //
+  Fp->Buffer = AllocatePool (Fp->SuperBlockPtr->Ext2FsBlockSize);
 
-  DumpGroupDesBlock (Volume);
-
-  CopyMem (&(Volume->Root.Handle), &gExt2FileInterface, sizeof (EFI_FILE_PROTOCOL));
-  *File = &Volume->Root.Handle;
+  *File = &Root->Handle;
 
 DONE:
 

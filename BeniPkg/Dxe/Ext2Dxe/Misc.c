@@ -40,24 +40,31 @@ Ext2OpenDevice (
   UINT8         *Buffer;
   UINT32        BlockSize;
   UINT32        BufferSize;
-  UINTN         SbOffset;
+  OFFSET        SbOffset;
   EXT2FS        *Ext2Fs;
+  M_EXT2FS      *FileSystem;
 
-  Status = EFI_UNSUPPORTED;
-  Buffer = NULL;
+  Status    = EFI_UNSUPPORTED;
+  Buffer    = NULL;
   BlockSize = 0;
 
   if (NULL == Volume) {
+    DEBUG ((EFI_D_ERROR, "Invalid parameter\n"));
     Status = EFI_INVALID_PARAMETER;
     goto DONE;
   }
 
   BlockSize = Volume->BlockIo->Media->BlockSize;
   if (0 == BlockSize) {
+    DEBUG ((EFI_D_ERROR, "Disk block size is 0\n"));
     Status = EFI_INVALID_PARAMETER;
     goto DONE;
   }
 
+  //
+  // Read super block in disk, which is of size SBSIZE, but if the disk block
+  // is larger than SBSIZE, just read one disk block.
+  //
   BufferSize = (BlockSize > SBSIZE) ? BlockSize : SBSIZE;
   Buffer = AllocatePool (BufferSize);
   if (NULL == Buffer) {
@@ -65,6 +72,9 @@ Ext2OpenDevice (
     goto DONE;
   }
 
+  //
+  // Get super block from disk.
+  //
   Status = MediaReadBlocks (
             Volume->BlockIo,
             SBOFF / BlockSize,
@@ -74,26 +84,80 @@ Ext2OpenDevice (
   if (EFI_ERROR (Status)) {
     goto DONE;
   }
-
   SbOffset = (SBOFF < BlockSize) ? SBOFF : 0;
   Ext2Fs = (EXT2FS *)(&Buffer[SbOffset]);
-  if (Ext2Fs->Ext2FsMagic != E2FS_MAGIC) {
-    Status = EFI_UNSUPPORTED;
+  if (E2FS_MAGIC != Ext2Fs->Ext2FsMagic) {
+    Status = EFI_NOT_FOUND;
     goto DONE;
   }
 
-  if (Ext2Fs->Ext2FsRev > E2FS_REV1 ||
-      (Ext2Fs->Ext2FsRev == E2FS_REV1 &&
-       (Ext2Fs->Ext2FsFirstInode != EXT2_FIRSTINO ||
-        (Ext2Fs->Ext2FsInodeSize != 128 && Ext2Fs->Ext2FsInodeSize != 256) ||
-        Ext2Fs->Ext2FsFeaturesIncompat & ~EXT2F_INCOMPAT_SUPP))) {
-    Status = EFI_UNSUPPORTED;
+  //
+  // Check if the super block is valid, if true, copy it the Volume.
+  //
+  if ((Ext2Fs->Ext2FsRev > E2FS_REV1) ||
+      ((E2FS_REV1 == Ext2Fs->Ext2FsRev)  &&
+       ((EXT2_FIRSTINO != Ext2Fs->Ext2FsFirstInode) ||
+        ((128 != Ext2Fs->Ext2FsInodeSize) && (256 != Ext2Fs->Ext2FsInodeSize)) ||
+        (Ext2Fs->Ext2FsFeaturesIncompat & ~EXT2F_INCOMPAT_SUPP)))) {
+    Status = EFI_NOT_FOUND;
     goto DONE;
   }
 
-  E2FS_SBLOAD ((VOID *)Ext2Fs, (VOID *)&Volume->SuperBlock.Ext2Fs);
+  //
+  // Fill super block parameter.
+  //
+  FileSystem = &Volume->SuperBlock;
+  CopyMem ((VOID *)&FileSystem->Ext2Fs, (VOID *)Ext2Fs, sizeof (EXT2FS));
+  FileSystem = &Volume->SuperBlock;
+  FileSystem->Ext2FsNumCylinder       =
+    HOWMANY ((FileSystem->Ext2Fs.Ext2FsBlockCount - FileSystem->Ext2Fs.Ext2FsFirstDataBlock),
+             FileSystem->Ext2Fs.Ext2FsBlocksPerGroup);
+  FileSystem->Ext2FsFsbtobd           = (INT32)(FileSystem->Ext2Fs.Ext2FsLogBlockSize + 10) -
+                                        (INT32)HighBitSet32 (Volume->BlockIo->Media->BlockSize);
+  FileSystem->Ext2FsBlockSize         = MINBSIZE << FileSystem->Ext2Fs.Ext2FsLogBlockSize;
+  FileSystem->Ext2FsLogicalBlock      = LOG_MINBSIZE + FileSystem->Ext2Fs.Ext2FsLogBlockSize;
+  FileSystem->Ext2FsQuadBlockOffset   = FileSystem->Ext2FsBlockSize - 1;
+  FileSystem->Ext2FsBlockOffset       = (UINT32)~FileSystem->Ext2FsQuadBlockOffset;
+  FileSystem->Ext2FsGDSize            = 32; // sizeof (EXT2GD) 32 or 64.
+  if (FileSystem->Ext2Fs.Ext2FsFeaturesIncompat & EXT2F_INCOMPAT_64BIT) {
+    FileSystem->Ext2FsGDSize          = FileSystem->Ext2Fs.Ext2FsGDSize;
+  }
+  FileSystem->Ext2FsNumGrpDesBlock    =
+    HOWMANY (FileSystem->Ext2FsNumCylinder, FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize);
+  FileSystem->Ext2FsInodesPerBlock    = FileSystem->Ext2FsBlockSize / FileSystem->Ext2Fs.Ext2FsInodeSize;
+  FileSystem->Ext2FsInodesTablePerGrp = FileSystem->Ext2Fs.Ext2FsINodesPerGroup / FileSystem->Ext2FsInodesPerBlock;
+
+  //
+  // Get group descriptor.
+  //
+  FileSystem->Ext2FsGrpDes = AllocatePool (FileSystem->Ext2FsGDSize * FileSystem->Ext2FsNumCylinder);
+  if (NULL == FileSystem->Ext2FsGrpDes) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto DONE;
+  }
+  Status = ReadGDBlock (Volume);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "ReadGDBlock failed. - %r\n", Status));
+    goto DONE;
+  }
+
+  //
+  // Dump EXT2 parameter.
+  //
+  DumpSBlock (Volume);
+  DumpGroupDesBlock (Volume);
 
 DONE:
+
+  if (EFI_ERROR (Status)) {
+    if (NULL != FileSystem->Ext2FsGrpDes) {
+      FreePool (FileSystem->Ext2FsGrpDes);
+    }
+  }
+
+  if (NULL != Buffer) {
+    FreePool (Buffer);
+  }
 
   return Status;
 }
@@ -113,14 +177,19 @@ ReadGDBlock (
   IN  EXT2_VOLUME                   *Volume
   )
 {
-  FILE          *Fp;
+  EFI_STATUS    Status;
   UINT32        Gdpb;
   INT32         Index;
-  EFI_STATUS    Status;
+  UINT8         *Buffer;
   M_EXT2FS      *FileSystem;
 
-  Fp = (FILE *)&Volume->Root.FileSystemSpecificData;
-  FileSystem = (M_EXT2FS *)&Volume->SuperBlock;
+  Status = EFI_INVALID_PARAMETER;
+  FileSystem = &Volume->SuperBlock;
+  Buffer = AllocatePool (FileSystem->Ext2FsBlockSize);
+  if (NULL == Buffer) {
+    Status = EFI_INVALID_PARAMETER;
+    goto DONE;
+  }
   Gdpb = FileSystem->Ext2FsBlockSize / FileSystem->Ext2FsGDSize;
 
   for (Index = 0; Index < FileSystem->Ext2FsNumGrpDesBlock; Index++) {
@@ -128,18 +197,32 @@ ReadGDBlock (
               Volume->BlockIo,
               FSBTODB (FileSystem, FileSystem->Ext2Fs.Ext2FsFirstDataBlock + 1 /* superblock */ + Index),
               FileSystem->Ext2FsBlockSize,
-              Fp->Buffer
+              Buffer
               );
     if (EFI_ERROR (Status)) {
+      FreePool (Buffer);
       return Status;
     }
 
-    E2FS_CGLOAD ((EXT2GD *)Fp->Buffer,
+    E2FS_CGLOAD ((EXT2GD *)Buffer,
                  &FileSystem->Ext2FsGrpDes[Index * Gdpb],
                  (Index == (FileSystem->Ext2FsNumGrpDesBlock - 1)) ?
                     (FileSystem->Ext2FsNumCylinder - Gdpb * Index) * FileSystem->Ext2FsGDSize :
                     FileSystem->Ext2FsBlockSize
                 );
+
+    CopyMem (&FileSystem->Ext2FsGrpDes[Index * Gdpb],
+             (EXT2GD *)Buffer,
+             (Index == (FileSystem->Ext2FsNumGrpDesBlock - 1)) ?
+                  (FileSystem->Ext2FsNumCylinder - Gdpb * Index) * FileSystem->Ext2FsGDSize :
+                  FileSystem->Ext2FsBlockSize
+    );
+  }
+
+DONE:
+
+  if (NULL != Buffer) {
+    FreePool (Buffer);
   }
 
   return EFI_SUCCESS;

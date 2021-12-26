@@ -49,7 +49,198 @@ Ext2Open (
   IN  UINT64                        Attributes
   )
 {
-  return EFI_UNSUPPORTED;
+  EFI_STATUS    Status;
+  M_EXT2FS      *FileSystem;
+  OPEN_FILE     *File;
+  FILE          *Fp;
+  OPEN_FILE     *NewFile;
+  FILE          *NewFp;
+  CHAR8         Path[EXT2FS_MAXNAMLEN + 1];
+  CHAR8         *Cp;
+  CHAR8         *Ncp;
+  INT32         Component;
+  INODE32       INumber;
+  INODE32       ParentInumber;
+  INDPTR        Mult;
+  INT32         Length;
+  UINTN         LinkLength;
+  UINTN         Len;
+  INT32         Nlinks;
+  CHAR8         NameBuf[MAXPATHLEN + 1];
+  CHAR8         *Buf;
+
+  Status = EFI_UNSUPPORTED;
+  Nlinks = 0;
+
+  //
+  // Only valid for READ, Attributes is not used.
+  //
+  if (OpenMode != EFI_FILE_MODE_READ) {
+    return EFI_INVALID_PARAMETER;
+  }
+  if (NULL == FileName) {
+    return EFI_INVALID_PARAMETER;
+  }
+  //
+  // TODO: This is not right. EXT2FS_MAXNAMLEN is the lenght of file name,
+  //       not file path.
+  //
+  if (EXT2FS_MAXNAMLEN < StrLen (FileName)) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  ZeroMem (Path, EXT2FS_MAXNAMLEN + 1);
+  AsciiSPrint (Path, EXT2FS_MAXNAMLEN + 1, "%s", FileName);
+  Cp = Path;
+
+  NewFile = AllocatePool (sizeof (OPEN_FILE));
+  if (NULL == NewFile) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  File = OFILE_FROM_FHAND (FHand);
+  Fp = &File->FileSystemSpecificData;
+  FileSystem = File->FileSystemSpecificData.SuperBlockPtr;
+  NewFp = &NewFile->FileSystemSpecificData;
+  NewFp->SuperBlockPtr = FileSystem;
+  NewFp->Buffer = AllocatePool (File->FileSystemSpecificData.SuperBlockPtr->Ext2FsBlockSize);
+
+  //
+  // Calculate indirect block levels.
+  //
+  //
+  // We note that the number of indirect blocks is always
+  // a power of 2.  This lets us use shifts and masks instead
+  // of divide and remainder and avoinds pulling in the
+  // 64bit division routine into the boot code.
+  //
+  Mult = NINDIR (FileSystem);
+  for (Length = 0; Mult != 1; Length++) {
+    Mult >>= 1;
+  }
+  NewFp->NiShift = Length;
+
+  INumber = EXT2_ROOTINO;
+  while ('\0' != *Cp) {
+    //
+    // Remove extra separators (the root directory "/").
+    //
+    while ('/' == *Cp) {
+      Cp++;
+    }
+    if ('\0' == *Cp) {
+      break;
+    }
+
+    //
+    // Check that current node is a directory.
+    //
+    if ((Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT) != EXT2_IFDIR) {
+      Status = EFI_LOAD_ERROR;
+      goto DONE;
+    }
+
+    //
+    // Get next component of Path Name.
+    //
+    Ncp = Cp;
+    while (((Component = *Cp) != '\0') && ('/' != Component)) {
+      Cp++;
+    }
+
+    //
+    // Look up component in current directory.
+    // Save directory INumber in case we find a
+    // symbolic link.
+    //
+    ParentInumber = INumber;
+    Status = SearchDirectory (Ncp, (INT32)(Cp - Ncp), File, &INumber);
+    if (EFI_ERROR (Status)) {
+      goto DONE;
+    }
+
+    //
+    // Open next component.
+    //
+    Status = ReadInode (INumber, File);
+    if (EFI_ERROR (Status)) {
+      goto DONE;
+    }
+
+    //
+    // Check for symbolic link.
+    //
+    if ((Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT) == EXT2_IFLNK) {
+      LinkLength = Fp->DiskInode.Ext2DInodeSize;
+      Len        = AsciiStrLen (Cp);
+
+      if (((LinkLength + Len) > MAXPATHLEN) ||
+          ((++Nlinks) > MAXSYMLINKS)) {
+        Status = RETURN_LOAD_ERROR;
+        goto DONE;
+      }
+
+      CopyMem (&NameBuf[LinkLength], Cp, Len + 1);
+
+      if (LinkLength < EXT2_MAXSYMLINKLEN) {
+        CopyMem (NameBuf, Fp->DiskInode.Ext2DInodeBlocks, LinkLength);
+      } else {
+        //
+        // Read FILE for symbolic link.
+        //
+        INDPTR DiskBlock;
+
+        Buf = Fp->Buffer;
+        Status = BlockMap (File, (INDPTR)0, &DiskBlock);
+        if (EFI_ERROR (Status)) {
+          goto DONE;
+        }
+
+        Status = MediaReadBlocks (
+                    File->BlockIo,
+                    FSBTODB (FileSystem, DiskBlock),
+                    FileSystem->Ext2FsBlockSize,
+                    Buf
+                    );
+        if (EFI_ERROR (Status)) {
+          goto DONE;
+        }
+
+        CopyMem (NameBuf, Buf, LinkLength);
+      }
+
+      //
+      // If relative pathname, restart at parent directory.
+      // If absolute pathname, restart at root.
+      //
+      Cp = NameBuf;
+      if ('/' != *Cp) {
+        INumber = ParentInumber;
+      } else {
+        INumber = (INODE32)EXT2_ROOTINO;
+      }
+
+      Status = ReadInode (INumber, File);
+      if (EFI_ERROR (Status)) {
+        goto DONE;
+      }
+    }
+  }
+
+  //
+  // Found terminal component.
+  //
+  Status = EFI_SUCCESS;
+
+  NewFp->SeekPtr = 0; // Reset seek pointer.
+
+DONE:
+
+  if (EFI_ERROR (Status)) {
+    Ext2Close (&NewFile->Handle);
+  }
+
+  return Status;
 }
 
 /**
@@ -210,6 +401,18 @@ Ext2Close (
   IN  EFI_FILE_PROTOCOL             *FHand
   )
 {
+  OPEN_FILE     *File;
+
+  File = OFILE_FROM_FHAND (FHand);
+
+  if ((NULL != File) && (NULL != File->FileSystemSpecificData.Buffer)) {
+    FreePool (File->FileSystemSpecificData.Buffer);
+  }
+
+  if (NULL != File) {
+    FreePool (File);
+  }
+
   return EFI_UNSUPPORTED;
 }
 
