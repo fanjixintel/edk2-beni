@@ -82,6 +82,7 @@ Ext2OpenDevice (
             Buffer
             );
   if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "%a MediaReadBlocks failed. - %r\n", __FUNCTION__, Status));
     goto DONE;
   }
   SbOffset = (SBOFF < BlockSize) ? SBOFF : 0;
@@ -200,6 +201,7 @@ ReadGDBlock (
               Buffer
               );
     if (EFI_ERROR (Status)) {
+      DEBUG ((EFI_D_ERROR, "%a MediaReadBlocks failed. - %r\n", __FUNCTION__, Status));
       FreePool (Buffer);
       return Status;
     }

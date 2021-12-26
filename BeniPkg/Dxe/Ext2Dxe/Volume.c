@@ -180,23 +180,35 @@ Ext2OpenVolume (
   Fp            = NULL;
 
   Volume = VOLUME_FROM_VOL_INTERFACE (This);
-  Root = &Volume->Root;
+  Volume->Root = AllocateZeroPool (sizeof (OPEN_FILE));
+  if (NULL == Volume->Root) {
+    DEBUG ((EFI_D_ERROR, "%a %d Out of memory\n", __FUNCTION__, __LINE__));
+    Status = EFI_OUT_OF_RESOURCES;
+    goto DONE;
+  }
 
+  Root = Volume->Root;
   Root->Signature = EXT2_OFILE_SIGNATURE;
   CopyMem (&(Root->Handle), &gExt2FileInterface, sizeof (EFI_FILE_PROTOCOL));
   Root->BlockIo = Volume->BlockIo;
   Root->DiskIo  = Volume->DiskIo;
   Root->DiskIo2 = Volume->DiskIo2;
   Fp = &Root->FileSystemSpecificData;
-  Fp->SuperBlockPtr = &Volume->SuperBlock;;
-  Status = ReadInode (EXT2_ROOTINO, Root);
-  if (EFI_ERROR (Status)) {
-    goto DONE;
-  }
+  Fp->SuperBlockPtr = &Volume->SuperBlock;
   //
   // Alloc a block sized buffer used for all FileSystem transfers.
   //
   Fp->Buffer = AllocatePool (Fp->SuperBlockPtr->Ext2FsBlockSize);
+  if (NULL == Fp->Buffer) {
+    Status = EFI_OUT_OF_RESOURCES;
+    DEBUG ((EFI_D_ERROR, "%a %d Out of memory\n", __FUNCTION__, __LINE__));
+    goto DONE;
+  }
+  Status = ReadInode (EXT2_ROOTINO, Root);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "Read INode failed. - %r\n", Status));
+    goto DONE;
+  }
 
   *File = &Root->Handle;
 

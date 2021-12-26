@@ -92,18 +92,24 @@ Ext2Open (
   ZeroMem (Path, EXT2FS_MAXNAMLEN + 1);
   AsciiSPrint (Path, EXT2FS_MAXNAMLEN + 1, "%s", FileName);
   Cp = Path;
+  DEBUG ((DEBUG_ERROR, "Open file \"%a\"\n", Cp));
 
-  NewFile = AllocatePool (sizeof (OPEN_FILE));
+  NewFile = AllocateZeroPool (sizeof (OPEN_FILE));
   if (NULL == NewFile) {
+    DEBUG ((EFI_D_ERROR, "%a %d Out of memory\n", __FUNCTION__, __LINE__));
     return EFI_OUT_OF_RESOURCES;
   }
-
   File = OFILE_FROM_FHAND (FHand);
   Fp = &File->FileSystemSpecificData;
   FileSystem = File->FileSystemSpecificData.SuperBlockPtr;
-  NewFp = &NewFile->FileSystemSpecificData;
+
+  NewFile->Signature   = EXT2_OFILE_SIGNATURE;
+  NewFile->BlockIo     = File->BlockIo;
+  NewFile->DiskIo      = File->DiskIo;
+  NewFile->DiskIo2     = File->DiskIo2;
+  NewFp                = &NewFile->FileSystemSpecificData;
   NewFp->SuperBlockPtr = FileSystem;
-  NewFp->Buffer = AllocatePool (File->FileSystemSpecificData.SuperBlockPtr->Ext2FsBlockSize);
+  NewFp->Buffer        = AllocatePool (File->FileSystemSpecificData.SuperBlockPtr->Ext2FsBlockSize);
 
   //
   // Calculate indirect block levels.
@@ -233,6 +239,7 @@ Ext2Open (
   Status = EFI_SUCCESS;
 
   NewFp->SeekPtr = 0; // Reset seek pointer.
+  *NewHandle = &NewFile->Handle;
 
 DONE:
 
@@ -401,19 +408,16 @@ Ext2Close (
   IN  EFI_FILE_PROTOCOL             *FHand
   )
 {
-  OPEN_FILE     *File;
-
-  File = OFILE_FROM_FHAND (FHand);
+  OPEN_FILE *File = OFILE_FROM_FHAND (FHand);
 
   if ((NULL != File) && (NULL != File->FileSystemSpecificData.Buffer)) {
     FreePool (File->FileSystemSpecificData.Buffer);
   }
-
   if (NULL != File) {
     FreePool (File);
   }
 
-  return EFI_UNSUPPORTED;
+  return EFI_SUCCESS;
 }
 
 /**

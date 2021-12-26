@@ -115,6 +115,7 @@ ReadInode (
   Buf = Fp->Buffer;
   Status = MediaReadBlocks (File->BlockIo, InodeSector, FileSystem->Ext2FsBlockSize, Buf);
   if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "%a MediaReadBlocks failed. - %r\n", __FUNCTION__, Status));
     return Status;
   }
 
@@ -204,6 +205,7 @@ BlockMap (
                   Buf
                   );
         if (EFI_ERROR (Status)) {
+          DEBUG ((EFI_D_ERROR, "%a MediaReadBlocks failed. - %r\n", __FUNCTION__, Status));
           return Status;
         }
 
@@ -293,6 +295,7 @@ BlockMap (
                 Buf
                 );
       if (EFI_ERROR (Status)) {
+        DEBUG ((EFI_D_ERROR, "%a MediaReadBlocks failed. - %r\n", __FUNCTION__, Status));
         return Status;
       }
       IndBlockNum = Buf[FileBlock >> Level];
@@ -435,6 +438,7 @@ BufReadFile (
                 Fp->Buffer
                 );
       if (EFI_ERROR (Status)) {
+        DEBUG ((EFI_D_ERROR, "%a MediaReadBlocks failed. - %r\n", __FUNCTION__, Status));
         return Status;
       }
     }
