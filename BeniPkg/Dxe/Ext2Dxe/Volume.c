@@ -194,11 +194,11 @@ Ext2OpenVolume (
   Root->DiskIo  = Volume->DiskIo;
   Root->DiskIo2 = Volume->DiskIo2;
   Fp = &Root->FileStruct;
-  Fp->SuperBlockPtr = &Volume->SuperBlock;
+  Fp->FsPtr = &Volume->SuperBlock;
   //
   // Alloc a block sized buffer used for all FileSystem transfers.
   //
-  Fp->Buffer = AllocatePool (Fp->SuperBlockPtr->Ext2FsBlockSize);
+  Fp->Buffer = AllocatePool (Fp->FsPtr->Ext2FsBlockSize);
   if (NULL == Fp->Buffer) {
     Status = EFI_OUT_OF_RESOURCES;
     DEBUG ((EFI_D_ERROR, "%a %d Out of memory\n", __FUNCTION__, __LINE__));
@@ -206,7 +206,7 @@ Ext2OpenVolume (
   }
   Status = ReadInode (EXT2_ROOTINO, Root);
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "Read INode failed. - %r\n", Status));
+    DEBUG ((EFI_D_ERROR, "Read Inode failed. - %r\n", Status));
     goto DONE;
   }
 

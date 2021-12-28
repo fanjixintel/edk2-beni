@@ -101,15 +101,15 @@ Ext2Open (
   }
   File = OFILE_FROM_FHAND (FHand);
   Fp = &File->FileStruct;
-  FileSystem = File->FileStruct.SuperBlockPtr;
+  FileSystem = File->FileStruct.FsPtr;
 
   NewFile->Signature   = EXT2_OFILE_SIGNATURE;
   NewFile->BlockIo     = File->BlockIo;
   NewFile->DiskIo      = File->DiskIo;
   NewFile->DiskIo2     = File->DiskIo2;
   NewFp                = &NewFile->FileStruct;
-  NewFp->SuperBlockPtr = FileSystem;
-  NewFp->Buffer        = AllocatePool (File->FileStruct.SuperBlockPtr->Ext2FsBlockSize);
+  NewFp->FsPtr         = FileSystem;
+  NewFp->Buffer        = AllocatePool (File->FileStruct.FsPtr->Ext2FsBlockSize);
 
   //
   // Calculate indirect block levels.
