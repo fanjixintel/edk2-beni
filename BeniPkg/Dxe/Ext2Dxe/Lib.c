@@ -94,7 +94,7 @@ ReadInode (
   EXT2GD        *Ext2FsGrpDes;
   EXTFS_DINODE  *DInodePtr;
 
-  Fp = &File->FileSystemSpecificData;
+  Fp = &File->FileStruct;
   FileSystem = Fp->SuperBlockPtr;
 
   Ext2FsGrpDes = FileSystem->Ext2FsGrpDes;
@@ -165,7 +165,7 @@ BlockMap (
   EXT4_EXTENT             *Extent;
   EFI_STATUS              Status;
 
-  Fp = &File->FileSystemSpecificData;
+  Fp = &File->FileStruct;
   FileSystem = Fp->SuperBlockPtr;
   Buf = (VOID *)Fp->Buffer;
 
@@ -346,7 +346,7 @@ SearchDirectory (
   INT32         NameLen;
   EFI_STATUS    Status;
 
-  Fp = &File->FileSystemSpecificData;
+  Fp = &File->FileStruct;
 
   Fp->SeekPtr = 0;
   //
@@ -413,7 +413,7 @@ BufReadFile (
   UINT32        BlockSize;
   EFI_STATUS    Status;
 
-  Fp = &File->FileSystemSpecificData;
+  Fp = &File->FileStruct;
   FileSystem = Fp->SuperBlockPtr;
   DiskBlock  = 0;
 

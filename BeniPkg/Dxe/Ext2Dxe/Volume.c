@@ -193,7 +193,7 @@ Ext2OpenVolume (
   Root->BlockIo = Volume->BlockIo;
   Root->DiskIo  = Volume->DiskIo;
   Root->DiskIo2 = Volume->DiskIo2;
-  Fp = &Root->FileSystemSpecificData;
+  Fp = &Root->FileStruct;
   Fp->SuperBlockPtr = &Volume->SuperBlock;
   //
   // Alloc a block sized buffer used for all FileSystem transfers.

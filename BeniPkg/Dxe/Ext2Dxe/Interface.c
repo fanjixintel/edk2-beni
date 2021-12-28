@@ -100,16 +100,16 @@ Ext2Open (
     return EFI_OUT_OF_RESOURCES;
   }
   File = OFILE_FROM_FHAND (FHand);
-  Fp = &File->FileSystemSpecificData;
-  FileSystem = File->FileSystemSpecificData.SuperBlockPtr;
+  Fp = &File->FileStruct;
+  FileSystem = File->FileStruct.SuperBlockPtr;
 
   NewFile->Signature   = EXT2_OFILE_SIGNATURE;
   NewFile->BlockIo     = File->BlockIo;
   NewFile->DiskIo      = File->DiskIo;
   NewFile->DiskIo2     = File->DiskIo2;
-  NewFp                = &NewFile->FileSystemSpecificData;
+  NewFp                = &NewFile->FileStruct;
   NewFp->SuperBlockPtr = FileSystem;
-  NewFp->Buffer        = AllocatePool (File->FileSystemSpecificData.SuperBlockPtr->Ext2FsBlockSize);
+  NewFp->Buffer        = AllocatePool (File->FileStruct.SuperBlockPtr->Ext2FsBlockSize);
 
   //
   // Calculate indirect block levels.
@@ -410,8 +410,8 @@ Ext2Close (
 {
   OPEN_FILE *File = OFILE_FROM_FHAND (FHand);
 
-  if ((NULL != File) && (NULL != File->FileSystemSpecificData.Buffer)) {
-    FreePool (File->FileSystemSpecificData.Buffer);
+  if ((NULL != File) && (NULL != File->FileStruct.Buffer)) {
+    FreePool (File->FileStruct.Buffer);
   }
   if (NULL != File) {
     FreePool (File);
