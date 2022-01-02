@@ -31,6 +31,7 @@
 #include <Library/HiiLib.h>
 #include <Library/UefiHiiServicesLib.h>
 #include <Library/MemoryAllocationLib.h>
+#include <Library/BeniMemLib.h>
 
 #include <Protocol/HiiPackageList.h>
 #include <Protocol/ShellDynamicCommand.h>
@@ -41,6 +42,7 @@
 #include <Protocol/DiskIo2.h>
 
 #include <Guid/FileSystemInfo.h>
+#include <Guid/FileInfo.h>
 
 //
 // Used for shell display.
@@ -445,6 +447,20 @@ Ext2FlushEx (
 VOID
 EFIAPI
 ShowExt2FileSystem (
+  VOID
+  );
+
+/**
+  Show EXT2 file system.
+
+  @param  NA
+
+  @retval  NA
+
+**/
+VOID
+EFIAPI
+ShowExt2FileSystemEx (
   VOID
   );
 

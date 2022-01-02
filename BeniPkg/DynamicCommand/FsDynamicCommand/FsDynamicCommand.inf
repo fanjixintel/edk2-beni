@@ -34,6 +34,7 @@
 
 [Sources.common]
   Ext2.c
+  Ext2Ex.c
   Ext2Fs.c
   ExtLib.c
   Fs.c
@@ -44,17 +45,20 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   ShellPkg/ShellPkg.dec
+  BeniPkg/BeniPkg.dec
 
 [LibraryClasses]
   UefiDriverEntryPoint
   UefiLib
   DebugLib
+  PrintLib
   ShellLib
   UefiBootServicesTableLib
   HiiLib
   UefiHiiServicesLib
   MemoryAllocationLib
   BaseMemoryLib
+  BeniTimeLib
 
 [Protocols]
   gEfiShellDynamicCommandProtocolGuid                   ## CONSUMES

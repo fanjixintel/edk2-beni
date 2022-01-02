@@ -26,8 +26,9 @@
 #define VOLUME_SIGNATURE_FROM_VOL_INTERFACE(a) BASE_CR(a, FAT_VOLUME, VolumeInterface)
 
 STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
-  {L"ext", TypeFlag}, // Display EXT file system.
-  {NULL  , TypeMax}
+  {L"ext" , TypeFlag}, // Display EXT file system.
+  {L"ext2", TypeFlag}, // Display EXT file system using Ext2Dxe.
+  {NULL   , TypeMax}
   };
 
 /**
@@ -257,6 +258,9 @@ RunFs (
 
   if (ShellCommandLineGetFlag (CheckPackage, L"ext")) {
     ShowExt2FileSystem ();
+    goto DONE;
+  } else if (ShellCommandLineGetFlag (CheckPackage, L"ext2")) {
+    ShowExt2FileSystemEx ();
     goto DONE;
   }
 
