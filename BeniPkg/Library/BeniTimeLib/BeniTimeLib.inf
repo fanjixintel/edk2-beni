@@ -1,0 +1,39 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : BeniTimeLib.inf
+#  @Date        : 20220102
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is a library for time-related functinons.
+#
+#  @History:
+#    20220102: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  INF_VERSION                       = 0x00010005
+  BASE_NAME                         = BeniTimeLib
+  FILE_GUID                         = 498E1F17-7792-4701-B1AE-AC8B4FAC560F
+  MODULE_TYPE                       = BASE
+  VERSION_STRING                    = 1.1
+  LIBRARY_CLASS                     = BeniTimeLib|DXE_DRIVER UEFI_DRIVER UEFI_APPLICATION
+
+[Sources]
+  BeniTimeLib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  BeniPkg/BeniPkg.dec
+
+[LibraryClasses]
+  UefiLib
+  DebugLib

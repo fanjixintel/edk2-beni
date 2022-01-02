@@ -1,14 +1,14 @@
 /**
 *  @Package     : BeniPkg
-*  @FileName    : BeniDebugLib.h
-*  @Date        : 20211004
+*  @FileName    : BeniMemLib.h
+*  @Date        : 20220102
 *  @Author      : Jiangwei
 *  @Version     : 1.0
 *  @Description :
-*    This library is used for BENI-defined DEBUG functions.
+*    This library is used for memory-related functions.
 *
 *  @History:
-*    20211004: Initialize.
+*    20220102: Initialize.
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -19,15 +19,17 @@
 *  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
-#ifndef __BENI_DEBUG_LIB_H__
-#define __BENI_DEBUG_LIB_H__
+#ifndef __BENI_MEM_LIB_H__
+#define __BENI_MEM_LIB_H__
 
-#include <Library/DebugLib.h>
+#include <Library/MemoryAllocationLib.h>
 
-#define BENI_MODULE_START \
-  DEBUG ((EFI_D_ERROR, "[BENI]%a start...\n", __FUNCTION__));
+#define BENI_FREE_NON_NULL(Pointer)   \
+  do {                                \
+    if (NULL != (Pointer)) {          \
+      FreePool((Pointer));            \
+      (Pointer) = NULL;               \
+    }                                 \
+  } while(FALSE)
 
-#define BENI_MODULE_END \
-  DEBUG ((EFI_D_ERROR, "[BENI]%a end...\n", __FUNCTION__));
-
-#endif // __BENI_DEBUG_LIB_H__
+#endif // __BENI_MEM_LIB_H__
