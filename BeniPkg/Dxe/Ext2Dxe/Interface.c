@@ -127,7 +127,7 @@ Ext2Open (
   while ('\0' != *Cp) {
     //
     // Remove extra separators (the root directory "/").
-    // TODO: what if ".." and "." ?
+    // TODO: what if ".." and "." ? Command 'ls' can't be used because of this.
     //
     while ('/' == *Cp) {
       Cp++;
