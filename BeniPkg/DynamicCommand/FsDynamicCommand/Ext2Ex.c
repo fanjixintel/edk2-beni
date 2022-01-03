@@ -53,6 +53,7 @@ ShowExt2FileSystemEx (
   UINTN                             BufferSize;
   UINT8                             *Buffer;
   EFI_FILE_INFO                     *Info;
+  UINTN                             Position;
 
   Status      = EFI_UNSUPPORTED;
   Root        = NULL;
@@ -101,6 +102,11 @@ ShowExt2FileSystemEx (
     }
   }
 
+  if (Index >= FsCount) {
+    Print (L"EXT2 file system not found!\n");
+    goto DONE;
+  }
+
   Status = Root->Open (Root, &NewFile, TEST_FILE_NAME, EFI_FILE_MODE_READ, 0);
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "Open file failed. - %r\n", Status));
@@ -129,12 +135,37 @@ ShowExt2FileSystemEx (
   Info = (EFI_FILE_INFO *)Buffer;
   Print (L"  Size: %d Bytes\n", Info->Size);
   Print (L"  File name: %s\n", Info->FileName);
-  Print (L"  File size: %d Bytes\n", Info->Size);
+  Print (L"  File size: %d Bytes\n", Info->FileSize);
   Print (L"  File physical size: %d Bytes\n", Info->PhysicalSize);
   Print (L"  File Attribute: 0x%x\n", Info->Attribute);
   PrintEfiTime (&Info->CreateTime, TRUE);
   PrintEfiTime (&Info->LastAccessTime, TRUE);
   PrintEfiTime (&Info->ModificationTime, TRUE);
+
+  BufferSize = Info->FileSize;
+  BENI_FREE_NON_NULL (Buffer);
+
+  Buffer = AllocateZeroPool (BufferSize + 1);
+  if (NULL == Buffer) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto DONE;
+  }
+
+  Status = NewFile->GetPosition (NewFile, &Position);
+  if (!EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "Position: %d\n", Position));
+  }
+
+  Status = NewFile->Read (NewFile, &BufferSize, Buffer);
+  if (EFI_ERROR (Status)) {
+    goto DONE;
+  }
+  Print (L"  File content: [%a]\n", Buffer);
+
+  Status = NewFile->GetPosition (NewFile, &Position);
+  if (!EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "Position: %d\n", Position));
+  }
 
   NewFile->Close (NewFile);
 

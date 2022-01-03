@@ -180,23 +180,25 @@ Ext2OpenVolume (
   Fp            = NULL;
 
   Volume = VOLUME_FROM_VOL_INTERFACE (This);
-  Volume->Root = AllocateZeroPool (sizeof (OPEN_FILE));
-  if (NULL == Volume->Root) {
+  Root = AllocateZeroPool (sizeof (OPEN_FILE));
+  if (NULL == Root) {
     DEBUG ((EFI_D_ERROR, "%a %d Out of memory\n", __FUNCTION__, __LINE__));
     Status = EFI_OUT_OF_RESOURCES;
     goto DONE;
   }
 
-  Root = Volume->Root;
   Root->Signature = EXT2_OFILE_SIGNATURE;
   CopyMem (&(Root->Handle), &gExt2FileInterface, sizeof (EFI_FILE_PROTOCOL));
   Root->BlockIo = Volume->BlockIo;
   Root->DiskIo  = Volume->DiskIo;
   Root->DiskIo2 = Volume->DiskIo2;
+  Root->CurrentInode = EXT2_ROOTINO;
+  Root->ParentInode = EXT2_ROOTINO;
+  Root->FileName[0] = '/';
   Fp = &Root->FileStruct;
   Fp->FsPtr = &Volume->SuperBlock;
   //
-  // Alloc a block sized buffer used for all FileSystem transfers.
+  // Allocate a block sized buffer used for all FileSystem transfers.
   //
   Fp->Buffer = AllocatePool (Fp->FsPtr->Ext2FsBlockSize);
   if (NULL == Fp->Buffer) {

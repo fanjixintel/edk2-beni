@@ -55,7 +55,8 @@ Ext2Open (
   FILE          *Fp;
   OPEN_FILE     *NewFile;
   FILE          *NewFp;
-  CHAR8         Path[EXT2FS_MAXNAMLEN + 1];
+  CHAR8         *Path;
+  UINTN         PathNum;
   CHAR8         *Cp;
   CHAR8         *Ncp;
   INT32         Component;
@@ -73,7 +74,7 @@ Ext2Open (
   Nlinks = 0;
 
   //
-  // Only valid for READ, Attributes is not used.
+  // Read only.
   //
   if (OpenMode != EFI_FILE_MODE_READ) {
     return EFI_INVALID_PARAMETER;
@@ -81,44 +82,40 @@ Ext2Open (
   if (NULL == FileName) {
     return EFI_INVALID_PARAMETER;
   }
-  //
-  // TODO: This is not right. EXT2FS_MAXNAMLEN is the lenght of file name,
-  //       not file path.
-  //
-  if (EXT2FS_MAXNAMLEN < StrLen (FileName)) {
-    return EFI_INVALID_PARAMETER;
-  }
 
-  ZeroMem (Path, EXT2FS_MAXNAMLEN + 1);
-  AsciiSPrint (Path, EXT2FS_MAXNAMLEN + 1, "%s", FileName);
+  PathNum = StrLen (FileName);
+  Path = AllocateZeroPool (PathNum + 1);
+  if (NULL == Path) {
+    return EFI_OUT_OF_RESOURCES;
+  }
   Cp = Path;
-  DEBUG ((DEBUG_ERROR, "Open file \"%a\"\n", Cp));
+  AsciiSPrint (Path, EXT2FS_MAXNAMLEN + 1, "%s", FileName);
 
   NewFile = AllocateZeroPool (sizeof (OPEN_FILE));
   if (NULL == NewFile) {
     DEBUG ((EFI_D_ERROR, "%a %d Out of memory\n", __FUNCTION__, __LINE__));
     return EFI_OUT_OF_RESOURCES;
   }
+
   File = OFILE_FROM_FHAND (FHand);
   Fp = &File->FileStruct;
   FileSystem = File->FileStruct.FsPtr;
 
   NewFile->Signature   = EXT2_OFILE_SIGNATURE;
+  CopyMem (&(NewFile->Handle), &(File->Handle), sizeof (EFI_FILE_PROTOCOL));
   NewFile->BlockIo     = File->BlockIo;
   NewFile->DiskIo      = File->DiskIo;
   NewFile->DiskIo2     = File->DiskIo2;
+  NewFile->FileFlags   = 0;
   NewFp                = &NewFile->FileStruct;
-  NewFp->FsPtr         = FileSystem;
+  CopyMem (NewFp, Fp, sizeof (FILE));
+  //
+  // Some elements should be updated.
+  //
+  NewFp->SeekPtr       = 0;
   NewFp->Buffer        = AllocatePool (File->FileStruct.FsPtr->Ext2FsBlockSize);
-
   //
-  // Calculate indirect block levels.
-  //
-  //
-  // We note that the number of indirect blocks is always
-  // a power of 2.  This lets us use shifts and masks instead
-  // of divide and remainder and avoinds pulling in the
-  // 64bit division routine into the boot code.
+  // Calculate value for indirect address.
   //
   Mult = NINDIR (FileSystem);
   for (Length = 0; Mult != 1; Length++) {
@@ -126,10 +123,11 @@ Ext2Open (
   }
   NewFp->NiShift = Length;
 
-  INumber = EXT2_ROOTINO;
+  INumber = File->CurrentInode; // It is root Inode here.
   while ('\0' != *Cp) {
     //
     // Remove extra separators (the root directory "/").
+    // TODO: what if ".." and "." ?
     //
     while ('/' == *Cp) {
       Cp++;
@@ -139,15 +137,15 @@ Ext2Open (
     }
 
     //
-    // Check that current node is a directory.
+    // Check if the current node is a directory.
     //
-    if ((Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT) != EXT2_IFDIR) {
+    if (EXT2_IFDIR != (Fp->DiskInode.Ext2DInodeMode & EXT2_IFMT)) {
       Status = EFI_LOAD_ERROR;
       goto DONE;
     }
 
     //
-    // Get next component of Path Name.
+    // Get next component of path name.
     //
     Ncp = Cp;
     while (((Component = *Cp) != '\0') && ('/' != Component)) {
@@ -156,11 +154,9 @@ Ext2Open (
 
     //
     // Look up component in current directory.
-    // Save directory INumber in case we find a
-    // symbolic link.
     //
     ParentInumber = INumber;
-    Status = SearchDirectory (Ncp, (INT32)(Cp - Ncp), File, &INumber);
+    Status = SearchDirectory (Ncp, (INT32)(Cp - Ncp), NewFile, &INumber);
     if (EFI_ERROR (Status)) {
       goto DONE;
     }
@@ -168,10 +164,12 @@ Ext2Open (
     //
     // Open next component.
     //
-    Status = ReadInode (INumber, File);
+    Status = ReadInode (INumber, NewFile);
     if (EFI_ERROR (Status)) {
       goto DONE;
     }
+
+    // DumpInode (&NewFile->FileStruct.DiskInode);
 
     //
     // Check for symbolic link.
@@ -247,6 +245,8 @@ DONE:
     Ext2Close (&NewFile->Handle);
   }
 
+  BENI_FREE_NON_NULL (Path);
+
   return Status;
 }
 
@@ -300,7 +300,17 @@ Ext2GetPosition (
   OUT UINT64                        *Position
   )
 {
-  return EFI_UNSUPPORTED;
+  OPEN_FILE     *File;
+
+  if (NULL == FHand) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  File = OFILE_FROM_FHAND (FHand);
+
+  *Position = File->FileStruct.SeekPtr;
+
+  return EFI_SUCCESS;
 }
 
 /**
@@ -324,7 +334,43 @@ Ext2GetInfo (
   OUT    VOID                       *Buffer
   )
 {
-  return EFI_UNSUPPORTED;
+  EFI_STATUS              Status;
+  EFI_FILE_INFO           *Info;
+  OPEN_FILE              *File;
+  FILE                   *Fp;
+  UINTN                  Size;
+  UINTN                  NameSize;
+  UINTN                  ResultSize;
+
+  File        = OFILE_FROM_FHAND (FHand);
+
+  Fp          = &File->FileStruct;
+  Size        = SIZE_OF_EFI_FILE_INFO;
+  NameSize    = AsciiStrSize (File->FileName) * sizeof (CHAR16);
+  ResultSize  = Size + NameSize;
+  Status      = EFI_BUFFER_TOO_SMALL;
+
+  if (!CompareGuid (Type, &gEfiFileInfoGuid)) {
+    DEBUG ((EFI_D_ERROR, "Only support file info.\n"));
+    return EFI_UNSUPPORTED;
+  }
+
+  if (*BufferSize >= ResultSize) {
+    Info = (EFI_FILE_INFO *)Buffer;
+    Info->Size  = sizeof (EFI_FILE_INFO);
+    Info->FileSize = Fp->DiskInode.Ext2DInodeSize;
+    Info->PhysicalSize = Fp->DiskInode.Ext2DInodeBlockCount * Fp->FsPtr->Ext2FsBlockSize;
+    TimestampToEfiTime (&Fp->DiskInode.Ext2DInodeCreatTime, &Info->CreateTime);
+    TimestampToEfiTime (&Fp->DiskInode.Ext2DInodeAcessTime, &Info->LastAccessTime);
+    TimestampToEfiTime (&Fp->DiskInode.Ext2DInodeModificationTime, &Info->ModificationTime);
+    Info->Attribute = EFI_FILE_READ_ONLY;
+    UnicodeSPrint (&Info->FileName[0], NameSize, L"%a", File->FileName);
+    Status = EFI_SUCCESS;
+  }
+
+  *BufferSize = ResultSize;
+
+  return Status;
 }
 
 /**
@@ -408,11 +454,17 @@ Ext2Close (
   IN  EFI_FILE_PROTOCOL             *FHand
   )
 {
-  OPEN_FILE *File = OFILE_FROM_FHAND (FHand);
+  OPEN_FILE     *File;
 
+  if (NULL == FHand) {
+    return EFI_SUCCESS;
+  }
+
+  File = OFILE_FROM_FHAND (FHand);
   if ((NULL != File) && (NULL != File->FileStruct.Buffer)) {
     FreePool (File->FileStruct.Buffer);
   }
+
   if (NULL != File) {
     FreePool (File);
   }
@@ -456,7 +508,17 @@ Ext2SetPosition (
   IN  UINT64                        Position
   )
 {
-  return EFI_UNSUPPORTED;
+  OPEN_FILE     *File;
+
+  if (NULL == FHand) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  File = OFILE_FROM_FHAND (FHand);
+
+  File->FileStruct.SeekPtr = (OFFSET)Position;
+
+  return EFI_SUCCESS;
 }
 
 /**
@@ -480,7 +542,54 @@ Ext2Read (
   OUT    VOID                       *Buffer
   )
 {
-  return EFI_UNSUPPORTED;
+  EFI_STATUS    Status;
+  OPEN_FILE     *File;
+  FILE          *Fp;
+  CHAR8         *Address;
+  CHAR8         *Buf;
+  UINT32        BufSize;
+  UINT32        Csize;
+  UINTN         Size;
+
+  File    = OFILE_FROM_FHAND (FHand);
+  Fp      = &File->FileStruct;
+  Size    = *BufferSize;
+  Status  = EFI_SUCCESS;
+  Address = (CHAR8 *)Buffer;
+
+  while (Size != 0) {
+    //
+    // The SeekPtr should be 0 when first read, but it could be set by Ext2SetPosition().
+    //
+    if (Fp->SeekPtr >= (OFFSET)Fp->DiskInode.Ext2DInodeSize) {
+      //
+      // We have read all contents, just break.
+      //
+      break;
+    }
+    //
+    // The read content depends on the Fp->SeekPtr.
+    //
+    Status = ReadFileInPortion (File, &Buf, &BufSize);
+    if (EFI_ERROR (Status)) {
+      break;
+    }
+
+    Csize = (UINT32)Size;
+    if (Csize > BufSize) {
+      Csize = BufSize;
+    }
+
+    CopyMem (Address, Buf, Csize);
+
+    Fp->SeekPtr += Csize;
+    Address += Csize;
+    Size -= Csize;
+  }
+
+  *BufferSize = Address - (CHAR8 *)Buffer;
+
+  return Status;
 }
 
 /**

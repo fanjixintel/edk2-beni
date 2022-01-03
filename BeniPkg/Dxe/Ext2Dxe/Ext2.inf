@@ -56,6 +56,10 @@
   DebugLib
   DevicePathLib
   PrintLib
+  BeniTimeLib
+
+[Guids]
+  gEfiFileInfoGuid
 
 [Protocols]
   gEfiDiskIoProtocolGuid                                ## TO_START
