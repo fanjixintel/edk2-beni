@@ -116,7 +116,7 @@ FsCommandInitialize (
 }
 
 /**
-  Tftp driver unload handler.
+  Fs command unload handler.
 
   @param[in]  ImageHandle           The image handle of the process.
 

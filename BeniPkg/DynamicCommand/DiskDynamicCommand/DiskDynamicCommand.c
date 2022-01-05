@@ -116,7 +116,7 @@ DiskCommandInitialize (
 }
 
 /**
-  Tftp driver unload handler.
+  Disk command unload handler.
 
   @param[in]  ImageHandle           The image handle of the process.
 
