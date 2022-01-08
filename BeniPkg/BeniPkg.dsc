@@ -976,6 +976,10 @@
     <PcdsFixedAtBuild>
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }
+  BeniPkg/DynamicCommand/SetupDynamicCommand/SetupDynamicCommand.inf {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
 !endif
   ShellPkg/Application/Shell/Shell.inf {
     <LibraryClasses>
@@ -1104,6 +1108,8 @@
   BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
   BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
   BeniPkg/Dxe/Ext2Dxe/Ext2.inf
+  MdeModulePkg/Universal/DriverSampleDxe/DriverSampleDxe.inf
+  MdeModulePkg/Universal/HiiResourcesSampleDxe/HiiResourcesSampleDxe.inf
   #
   # Add new applications here.
   #

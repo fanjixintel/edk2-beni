@@ -19,8 +19,8 @@
 *  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
-#ifndef __BENI_SETUP_DXE_HII_GUID_H__
-#define __BENI_SETUP_DXE_HII_GUID_H__
+#ifndef __BENI_SETUP_DXE_HII_H__
+#define __BENI_SETUP_DXE_HII_H__
 
 #include <Uefi.h>
 
@@ -52,4 +52,4 @@ extern EFI_GUID gBeniSetupFormSetGuid;
 extern EFI_GUID gBeniSetupInventoryGuid;
 extern EFI_GUID gBeniIfrRefreshIdOpGuid;
 
-#endif // __BENI_SETUP_DXE_HII_GUID_H__
+#endif // __BENI_SETUP_DXE_HII_H__

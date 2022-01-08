@@ -22,5 +22,23 @@
 			"DEBUG ((EFI_D_ERROR, \"[BENI]$1\\n\"));"
 		],
 		"description": "Log output to serial console"
-	}
+	},
+	"Out of memeory": {
+		"scope": "c",
+		"prefix": "oom",
+		"body": [
+			"DEBUG ((EFI_D_ERROR, \"%a %d Out of memory\\n\", __FUNCTION__, __LINE__));"
+		],
+		"description": "Log out of memeory"
+	},
+	"Comment": {
+		"scope": "c",
+		"prefix": "cmt",
+		"body": [
+			"//",
+			"// $1",
+			"//"
+		],
+		"description": "Comment"
+	},
 }

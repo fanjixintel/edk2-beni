@@ -19,8 +19,8 @@
 *  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
-#ifndef __BENI_FV_DATA_GUID_H__
-#define __BENI_FV_DATA_GUID_H__
+#ifndef __BENI_FV_DATA_H__
+#define __BENI_FV_DATA_H__
 
 #include <Uefi.h>
 
@@ -34,4 +34,4 @@
 
 extern EFI_GUID gBeniFvDataGuid;
 
-#endif // __BENI_FV_DATA_GUID_H__
+#endif // __BENI_FV_DATA_H__

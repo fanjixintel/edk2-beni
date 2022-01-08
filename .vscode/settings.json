@@ -41,7 +41,22 @@
     "xiosbase": "c",
     "xlocale": "c",
     "xutility": "c",
-    "host.h": "c"
+    "host.h": "c",
+    "filesystemvolumelabelinfo.h": "c",
+    "winhost.h": "c",
+    "benimemlib.h": "c",
+    "diskio2.h": "c",
+    "benitimelib.h": "c",
+    "charconv": "c",
+    "chrono": "c",
+    "driverconfiguration.h": "c",
+    "hiistring.h": "c",
+    "hiiformmapmethodguid.h": "c",
+    "hiiplatformsetupformset.h": "c",
+    "benisetupdxehii.h": "c",
+    "zeroguid.h": "c",
+    "bootlogo.h": "c",
+    "setup.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,

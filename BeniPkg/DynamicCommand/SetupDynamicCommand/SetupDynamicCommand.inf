@@ -1,0 +1,64 @@
+##
+#  @Package     : BeniPKg
+#  @FileName    : SetupDynamicCommand.inf
+#  @Date        : 20220105
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This command is used for setup test.
+#
+#  @History:
+#    20220105: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+
+[Defines]
+  INF_VERSION                       = 0x00010006
+  BASE_NAME                         = SetupDynamicCommand
+  FILE_GUID                         = 772033F1-59D8-42C9-B6CB-7E5AB5EC203E
+  MODULE_TYPE                       = DXE_DRIVER
+  VERSION_STRING                    = 1.0
+  ENTRY_POINT                       = SetupCommandInitialize
+  UNLOAD_IMAGE                      = SetupUnload
+#
+#  This flag specifies whether HII resource section is generated into PE image.
+#
+  UEFI_HII_RESOURCE_SECTION         = TRUE
+
+[Sources.common]
+  SetupDynamicCommand.c
+  Setup.h
+  Setup.c
+  Setup.uni
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ShellPkg/ShellPkg.dec
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiLib
+  DebugLib
+  ShellLib
+  UefiBootServicesTableLib
+  HiiLib
+  UefiHiiServicesLib
+  MemoryAllocationLib
+  BaseMemoryLib
+
+[Guids]
+
+[Protocols]
+  gEfiShellDynamicCommandProtocolGuid                   ## CONSUMES
+  gEfiHiiPackageListProtocolGuid                        ## CONSUMES
+
+[DEPEX]
+  TRUE

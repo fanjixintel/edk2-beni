@@ -333,6 +333,7 @@ INF  OvmfPkg/LinuxInitrdDynamicShellCommand/LinuxInitrdDynamicShellCommand.inf
 #
 INF  BeniPkg/DynamicCommand/FsDynamicCommand/FsDynamicCommand.inf
 INF  BeniPkg/DynamicCommand/DiskDynamicCommand/DiskDynamicCommand.inf
+INF  BeniPkg/DynamicCommand/SetupDynamicCommand/SetupDynamicCommand.inf
 !endif
 INF  ShellPkg/Application/Shell/Shell.inf
 
@@ -426,6 +427,8 @@ INF BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
 INF BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
 INF BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
 INF BeniPkg/Dxe/Ext2Dxe/Ext2.inf
+INF MdeModulePkg/Universal/DriverSampleDxe/DriverSampleDxe.inf
+INF MdeModulePkg/Universal/HiiResourcesSampleDxe/HiiResourcesSampleDxe.inf
 #
 # Applications in FV.
 #

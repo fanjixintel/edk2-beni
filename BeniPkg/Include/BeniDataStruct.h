@@ -19,8 +19,8 @@
 *  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
-#ifndef __BENI_NV_DATA_STRUCT_H__
-#define __BENI_NV_DATA_STRUCT_H__
+#ifndef __BENI_DATA_STRUCT_H__
+#define __BENI_DATA_STRUCT_H__
 
 #include <Guid/HiiPlatformSetupFormset.h>
 #include <Guid/HiiFormMapMethodGuid.h>
@@ -77,4 +77,4 @@ typedef struct {
 
 #pragma pack()
 
-#endif // __BENI_NV_DATA_STRUCT_H__
+#endif // __BENI_DATA_STRUCT_H__

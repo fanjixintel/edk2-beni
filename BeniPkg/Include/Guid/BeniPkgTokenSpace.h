@@ -19,8 +19,8 @@
 *  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
-#ifndef __BENI_PKG_TOKEN_SPACE_GUID_H__
-#define __BENI_PKG_TOKEN_SPACE_GUID_H__
+#ifndef __BENI_PKG_TOKEN_SPACE_H__
+#define __BENI_PKG_TOKEN_SPACE_H__
 
 #include <Uefi.h>
 
@@ -34,4 +34,4 @@
 
 extern EFI_GUID gBeniPkgTokenSpaceGuid;
 
-#endif // __BENI_PKG_TOKEN_SPACE_GUID_H__
+#endif // __BENI_PKG_TOKEN_SPACE_H__
