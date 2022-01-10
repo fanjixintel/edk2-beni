@@ -56,7 +56,8 @@
     "benisetupdxehii.h": "c",
     "zeroguid.h": "c",
     "bootlogo.h": "c",
-    "setup.h": "c"
+    "setup.h": "c",
+    "hiiimage.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,
