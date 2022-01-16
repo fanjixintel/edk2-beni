@@ -73,7 +73,7 @@ ProtocolServerEntry (
 
   Protocol = AllocatePool (sizeof (BENI_HELLO_WORLD_PROTOCOL));
   if (NULL == Protocol) {
-    DEBUG ((EFI_D_ERROR, "[BENI]Out of resource\n"));
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
     return EFI_OUT_OF_RESOURCES;
   }
 

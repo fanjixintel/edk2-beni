@@ -24,9 +24,9 @@
 
 #include <Uefi.h>
 
-#define  BENI_DATA_NAME        L"BeniData"
-#define  BENI_DATA_MAGIC       0xA55A5AA5
-#define  BENI_DATA_SIZE        128
+#define BENI_DATA_NAME              L"BeniData"
+#define BENI_DATA_MAGIC             0xA55A5AA5
+#define BENI_DATA_SIZE              128
 
 //
 // {DB56E93F-C5EF-4888-8006-F64DBCBBF755}

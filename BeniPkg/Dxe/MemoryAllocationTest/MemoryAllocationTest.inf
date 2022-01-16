@@ -1,14 +1,14 @@
 ##
-#  @Package     : BeniPkg
-#  @FileName    : PcdTestDriver.inf
-#  @Date        : 20211004
+#  @Package     : BeniPKg
+#  @FileName    : MemoryAllocationTest.inf
+#  @Date        : 20190108
 #  @Author      : Jiangwei
 #  @Version     : 1.0
 #  @Description :
-#    This driver is used to do some tests about PCDs.
+#    This driver is used to test memory allocation functions.
 #
 #  @History:
-#    20211004: Initialize.
+#    20190108: Initialize.
 #
 #  This program and the accompanying materials
 #  are licensed and made available under the terms and conditions of the BSD License
@@ -21,11 +21,11 @@
 
 [Defines]
   INF_VERSION                       = 0x00010005
-  BASE_NAME                         = PcdTestDriver
-  FILE_GUID                         = 1525915D-291C-415C-841A-F757B032A6D0
+  BASE_NAME                         = MemoryAllocationTestDxe
+  FILE_GUID                         = 304B6460-BC92-48B7-8F54-46C09B48AF86
   MODULE_TYPE                       = UEFI_DRIVER
   VERSION_STRING                    = 1.0
-  ENTRY_POINT                       = PcdTestDriverEntry
+  ENTRY_POINT                       = MemoryAllocationTestEntry
 
 #
 # The following information is for reference only and not required by the build tools.
@@ -33,26 +33,17 @@
 #  VALID_ARCHITECTURES              = IA32 X64 IPF EBC
 #
 
-[Sources.common]
-  PcdTestDriver.c
+[Sources]
+  MemoryAllocationTest.c
 
 [Packages]
   MdePkg/MdePkg.dec
-  BeniPkg/BeniPkg.dec
 
 [LibraryClasses]
   UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  MemoryAllocationLib
   DebugLib
-  PcdLib
-
-[Pcd]
-  gBeniPkgTokenSpaceGuid.PcdTestVar1                    ## CONSUMES
-  gBeniPkgTokenSpaceGuid.PcdTestVar2                    ## CONSUMES
-  gBeniPkgTokenSpaceGuid.PcdTestVar3                    ## CONSUMES
-  gBeniPkgTokenSpaceGuid.PcdTestVar4                    ## CONSUMES
-  gBeniPkgTokenSpaceGuid.PcdTestFeatureVar              ## CONSUMES
-  gBeniPkgTokenSpaceGuid.PcdTestVersion                 ## CONSUMES
-  gBeniPkgTokenSpaceGuid.PcdPatchableVar                ## CONSUMES
 
 [Depex]
   TRUE

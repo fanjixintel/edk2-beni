@@ -427,6 +427,10 @@ INF BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
 INF BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
 INF BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
 INF BeniPkg/Dxe/Ext2Dxe/Ext2.inf
+INF BeniPkg/Dxe/GlobalDataInstall/GlobalDataInstall.inf
+INF BeniPkg/Dxe/NullDxeDriverOne/NullDxeDriverOne.inf
+INF BeniPkg/Dxe/NullDxeDriverTwo/NullDxeDriverTwo.inf
+INF BeniPkg/Dxe/MemoryAllocationTest/MemoryAllocationTest.inf
 INF MdeModulePkg/Universal/DriverSampleDxe/DriverSampleDxe.inf
 INF MdeModulePkg/Universal/HiiResourcesSampleDxe/HiiResourcesSampleDxe.inf
 #

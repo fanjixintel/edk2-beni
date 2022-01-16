@@ -3,7 +3,7 @@
 :: @FileName    : BuildEmulator.bat
 :: @Date        : 20220110
 :: @Author      : Jiangwei
-:: @Version     : 0.1
+:: @Version     : 1.0
 :: @Description :
 ::   This is used to build binary on Windows.
 ::

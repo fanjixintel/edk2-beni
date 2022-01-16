@@ -377,7 +377,7 @@ RamDiskDriverEntry (
   //
   RamDiskDev = AllocateZeroPool (sizeof (RAM_DISK_DAV));
   if (NULL == RamDiskDev) {
-    DEBUG ((EFI_D_ERROR, "[BENI]Out of resource %d\n", __LINE__));
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
     return EFI_OUT_OF_RESOURCES;
   }
 
@@ -401,7 +401,7 @@ RamDiskDriverEntry (
                   &RamDiskDev->StartingAddr
                   );
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "[BENI]Out of resource %d\n", __LINE__));
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
     FreePool (RamDiskDev);
     return Status;
   }
@@ -411,7 +411,7 @@ RamDiskDriverEntry (
                       &gRamDiskDeviceNodeTemplate
                       );
   if (NULL == RamDiskDevNode) {
-    DEBUG ((EFI_D_ERROR, "[BENI]Out of resource %d\n", __LINE__));
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
     return EFI_OUT_OF_RESOURCES;
   }
   WriteUnaligned64 (

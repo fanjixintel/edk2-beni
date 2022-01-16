@@ -275,6 +275,7 @@
   # Add new library here.
   #
   BeniTimeLib|BeniPkg/Library/BeniTimeLib/BeniTimeLib.inf
+  BeniGlobalDataTestLib|BeniPkg/Library/BeniGlobalDataTestLib/BeniGlobalDataTestLib.inf
 
 [LibraryClasses.common]
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
@@ -1108,6 +1109,10 @@
   BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
   BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
   BeniPkg/Dxe/Ext2Dxe/Ext2.inf
+  BeniPkg/Dxe/GlobalDataInstall/GlobalDataInstall.inf
+  BeniPkg/Dxe/MemoryAllocationTest/MemoryAllocationTest.inf
+  BeniPkg/Dxe/NullDxeDriverOne/NullDxeDriverOne.inf
+  BeniPkg/Dxe/NullDxeDriverTwo/NullDxeDriverTwo.inf
   MdeModulePkg/Universal/DriverSampleDxe/DriverSampleDxe.inf
   MdeModulePkg/Universal/HiiResourcesSampleDxe/HiiResourcesSampleDxe.inf
   #

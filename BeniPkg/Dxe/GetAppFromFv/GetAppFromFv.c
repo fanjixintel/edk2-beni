@@ -186,7 +186,7 @@ GetAppFromFvDriverBindingStart (
       continue;
     }
 
-    DEBUG ((EFI_D_ERROR, "[BENI]%s found.\n", mApps[Index].AppName));
+    DEBUG ((EFI_D_ERROR, "[BENI]%s found\n", mApps[Index].AppName));
 
     Status = Root->Open (
                 Root,
@@ -206,7 +206,7 @@ GetAppFromFvDriverBindingStart (
                 Data
                 );
       if (!EFI_ERROR (Status)) {
-        DEBUG ((EFI_D_ERROR, "[BENI]%s written.\n", mApps[Index].AppName));
+        DEBUG ((EFI_D_ERROR, "[BENI]%s written\n", mApps[Index].AppName));
       }
       NewFile->Flush (NewFile);
       NewFile->Close (NewFile);

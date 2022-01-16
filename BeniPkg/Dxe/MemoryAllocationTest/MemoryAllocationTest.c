@@ -1,14 +1,14 @@
 /**
 *  @Package     : BeniPkg
-*  @FileName    : HelloWorldDxe.c
-*  @Date        : 20211004
+*  @FileName    : MemoryAllocationTest.c
+*  @Date        : 20190108
 *  @Author      : Jiangwei
 *  @Version     : 1.0
 *  @Description :
-*    This is the first UEFI module to say Hello World.
+*    This driver is used to test memory allocation functions.
 *
 *  @History:
-*    20211004: Initialize.
+*    20190108: Initialize.
 *
 *  This program and the accompanying materials
 *  are licensed and made available under the terms and conditions of the BSD License
@@ -22,13 +22,20 @@
 #include <Uefi.h>
 
 #include <Library/UefiDriverEntryPoint.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/MemoryAllocationLib.h>
 #include <Library/DebugLib.h>
-#include <Library/BeniDebugLib.h>
+
+typedef struct _LARGE_STRUCT_ {
+  UINTN    Elem1;
+  UINT8    Elem2[512];
+  UINTN    Elem3;
+} LARGE_STRUCT;
 
 /**
   Main entry of the driver.
 
-  @param[in]  ImageHandle           Image handle of this driver.
+  @param[in]  ImageHandle           Image handle this driver.
   @param[in]  SystemTable           Pointer to the System Table.
 
   @retval  EFI_SUCCESS              Driver executed successfully.
@@ -37,14 +44,27 @@
 **/
 EFI_STATUS
 EFIAPI
-HelloWorldDxeEntry (
+MemoryAllocationTestEntry (
   IN  EFI_HANDLE                    ImageHandle,
   IN  EFI_SYSTEM_TABLE              *SystemTable
   )
 {
-  BENI_MODULE_START
-  DEBUG ((EFI_D_ERROR, "[BENI]Hello World\n"));
-  BENI_MODULE_END
+  UINTN    Count;
+  VOID     *Ptr;
+
+  Count = 1;
+  while (TRUE) {
+    Ptr = AllocatePool (Count);
+    if (NULL != Ptr) {
+      FreePool (Ptr);
+      Ptr = NULL;
+    } else {
+      break;
+    }
+    Count = Count << 1;
+  }
+
+  DEBUG ((EFI_D_ERROR, "[BENI]Memory allocated: 0x%x (bytes)\n", Count));
 
   return EFI_SUCCESS;
 }
