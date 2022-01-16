@@ -27,7 +27,7 @@
 		"scope": "c",
 		"prefix": "oom",
 		"body": [
-			"DEBUG ((EFI_D_ERROR, \"%a %d Out of memory\\n\", __FUNCTION__, __LINE__));"
+			"DEBUG ((EFI_D_ERROR, \"[BENI]%a %d Out of memory\\n\", __FUNCTION__, __LINE__));"
 		],
 		"description": "Log out of memeory"
 	},

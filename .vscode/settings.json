@@ -57,7 +57,11 @@
     "zeroguid.h": "c",
     "bootlogo.h": "c",
     "setup.h": "c",
-    "hiiimage.h": "c"
+    "hiiimage.h": "c",
+    "benidata.h": "c",
+    "benidataprotocol.h": "c",
+    "beniglobaldatatestlib.h": "c",
+    "uefiruntimeservicestablelib.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,
