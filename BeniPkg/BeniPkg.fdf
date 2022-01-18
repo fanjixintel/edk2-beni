@@ -421,12 +421,12 @@ INF  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf
 INF BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
 INF BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
 INF BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
-# INF BeniPkg/Dxe/Ramdisk/Ramdisk.inf
-# INF BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
+INF BeniPkg/Dxe/Ramdisk/Ramdisk.inf
+INF BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
 INF BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
 INF BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
 INF BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
-INF BeniPkg/Dxe/Ext2Dxe/Ext2.inf
+# INF BeniPkg/Dxe/Ext2Dxe/Ext2.inf
 INF BeniPkg/Dxe/GlobalDataInstall/GlobalDataInstall.inf
 INF BeniPkg/Dxe/NullDxeDriverOne/NullDxeDriverOne.inf
 INF BeniPkg/Dxe/NullDxeDriverTwo/NullDxeDriverTwo.inf
@@ -441,6 +441,9 @@ FILE FREEFORM = DF674789-4265-4056-9DD0-5123BB5A81F5 {
 }
 FILE FREEFORM = 8F989B9A-3E27-4352-8A16-43DA1DBA7A85 {
   SECTION RAW = $(OUTPUT_DIRECTORY)/$(COMPILE_DIR)/X64/BeniPkg/App/AppDevPath/AppDevPath/OUTPUT/appdp.efi
+}
+FILE FREEFORM = F103E554-2509-4935-B779-33F571249762 {
+  SECTION RAW = $(OUTPUT_DIRECTORY)/$(COMPILE_DIR)/X64/BeniPkg/App/MemTest/MemTest/OUTPUT/memtest.efi
 }
 
 ################################################################################

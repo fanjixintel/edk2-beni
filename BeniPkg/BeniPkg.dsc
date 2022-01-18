@@ -1120,3 +1120,12 @@
   #
   BeniPkg/App/HelloWorldApp/HelloWorldApp.inf
   BeniPkg/App/AppDevPath/AppDevPath.inf
+  BeniPkg/App/MemTest/MemTest.inf {
+    <LibraryClasses>
+      MemTestRangesLib|BeniPkg/Library/RangesLib/RangesLib.inf
+      MemTestSupportLib|BeniPkg/Library/SupportLib/SupportLib.inf
+      MemTestUiLib|BeniPkg/Library/PlainUiLib/UiLib.inf
+      NULL|BeniPkg/Library/MemTestLib/Patterns/Patterns.inf
+      NULL|BeniPkg/Library/MemTestLib/BitShift/BitShift.inf
+      NULL|BeniPkg/Library/MemTestLib/Address/Address.inf
+  }
