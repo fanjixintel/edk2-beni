@@ -37,7 +37,7 @@
 
 [Packages]
   MdePkg/MdePkg.dec
-  MemTestPkg/MemTestPkg.dec
+  BeniPkg/BeniPkg.dec
 
 [LibraryClasses]
   MemTestSupportLib
