@@ -17,6 +17,7 @@
 **/
 
 #include <Uefi.h>
+
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
 #include <Library/MemoryAllocationLib.h>
@@ -24,17 +25,18 @@
 #include <Library/UefiLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/MemTestRangesLib.h>
-
+#include <Library/MemTestSupportLib.h>
 
 EFI_MEMORY_DESCRIPTOR       *mMemoryMap = NULL;
-UINTN                       mMemoryMapCount;
-UINTN                       mPagesAllocated;
-
+UINTN                       mMemoryMapCount = 0;
+UINTN                       mPagesAllocated = 0;
 
 /**
-  Returns the total size of all test memory ranges
+  Returns the total size of all test memory ranges.
 
-  @return  The total size of all test memory ranges
+  @param  NA
+
+  @return  UINT64                   The total size of all test memory ranges
 
 **/
 UINT64
@@ -45,27 +47,26 @@ MtRangesGetTotalSize (
   return MultU64x32 (mPagesAllocated, EFI_PAGE_SIZE);
 }
 
-
 /**
-  Initializes the memory test ranges
+  Gets the next test memory range.
 
-  @param[in,out] Key     To retrieve the first range, set Key to 0 before calling.
-                         To retrieve the next range, pass in the previous Key.
-  @param[out]    Start   Start of the next memory range
-  @param[out]    Length  Length of the next memory range
+  @param[in,out] Key                To retrieve the first range, set Key to 0 before calling.
+                                    To retrieve the next range, pass in the previous Key.
+  @param[out]    Start              Start of the next memory range.
+  @param[out]    Length             Length of the next memory range.
 
-  @retval  EFI_NOT_FOUND  Indicates all ranges have been returned
-  @retval  EFI_SUCCESS    The next memory range was returned
+  @retval  EFI_SUCCESS              The next memory range was returned.
+  @retval  EFI_NOT_FOUND            Indicates all ranges have been returned.
 
 **/
 EFI_STATUS
 MtRangesGetNextRange (
-  IN OUT UINTN                 *Key,
-  OUT    EFI_PHYSICAL_ADDRESS  *Start,
-  OUT    UINT64                *Length
+  IN OUT UINTN                      *Key,
+  OUT    EFI_PHYSICAL_ADDRESS       *Start,
+  OUT    UINT64                     *Length
   )
 {
-  if (*Key < 0 || *Key >= mMemoryMapCount) {
+  if ((*Key < 0) || (*Key >= mMemoryMapCount)) {
     return EFI_NOT_FOUND;
   }
 
@@ -76,75 +77,78 @@ MtRangesGetNextRange (
   return EFI_SUCCESS;
 }
 
-
 /**
-  Lock memory range
+  Lock memory range.
 
-  @param[in]    Start   Start of the memory range
-  @param[in]    Length  Length of the memory range
+  @param[in]  Start                 Start of the memory range.
+  @param[in]  Length                Length of the memory range.
 
-  @retval  EFI_ACCESS_DENIED  The range could not be locked
-  @retval  EFI_SUCCESS        The range was locked
+  @retval  EFI_SUCCESS              The range was locked.
+  @retval  EFI_ACCESS_DENIED        The range could not be locked.
 
 **/
 EFI_STATUS
 EFIAPI
 MtRangesLockRange (
-  IN    EFI_PHYSICAL_ADDRESS  Start,
-  IN    UINT64                Length
+  IN  EFI_PHYSICAL_ADDRESS          Start,
+  IN  UINT64                        Length
   )
 {
-  EFI_STATUS     Status;
-
-  Status = gBS->AllocatePages (
-                  AllocateAddress,
-                  EfiBootServicesData,
-                  EFI_SIZE_TO_PAGES (Length),
-                  &Start
-                  );
-  if (EFI_ERROR (Status)) {
-    return EFI_OUT_OF_RESOURCES;
-  }
-
-  return EFI_SUCCESS;
+  return gBS->AllocatePages (
+              AllocateAddress,
+              EfiBootServicesData,
+              EFI_SIZE_TO_PAGES (Length),
+              &Start
+              );
 }
 
-
 /**
-  Unlocks a memory range
+  Unlocks a memory range.
 
-  @param[in]    Start   Start of the memory range
-  @param[in]    Length  Length of the memory range
+  @param[in]  Start                 Start of the memory range.
+  @param[in]  Length                Length of the memory range.
+
+  @retval  EFI_SUCCESS              The range was unlocked.
+  @retval  EFI_INVALID_PARAMETER    The range could not be unlocked.
 
 **/
 VOID
 EFIAPI
 MtRangesUnlockRange (
-  IN    EFI_PHYSICAL_ADDRESS  Start,
-  IN    UINT64                Length
+  IN  EFI_PHYSICAL_ADDRESS          Start,
+  IN  UINT64                        Length
   )
 {
   gBS->FreePages (Start, EFI_SIZE_TO_PAGES (Length));
 }
 
+/**
+  Collect memory ranges.
 
+  @param  NA
+
+  @retval  EFI_SUCCESS              Operation succeeded.
+  @retval  Others                   Operation failed.
+
+**/
 EFI_STATUS
 ReadMemoryRanges (
+  VOID
   )
 {
-  EFI_STATUS                  Status;
-  UINTN                       NumberOfEntries;
-  UINTN                       Loop;
-  UINTN                       Size;
-  EFI_MEMORY_DESCRIPTOR       *MemoryMap;
-  EFI_MEMORY_DESCRIPTOR       *MapEntry;
-  UINTN                       MapKey;
-  UINTN                       DescSize;
-  UINT32                      DescVersion;
-  UINT64                      Available;
-  EFI_PHYSICAL_ADDRESS        PagesAddress;
-  UINT64                      NumberOfPages;
-  UINT64                      SizeInBytes;
+  EFI_STATUS               Status;
+  UINTN                    NumberOfEntries;
+  UINTN                    Loop;
+  UINTN                    Size;
+  EFI_MEMORY_DESCRIPTOR    *MemoryMap;
+  EFI_MEMORY_DESCRIPTOR    *MapEntry;
+  UINTN                    MapKey;
+  UINTN                    DescSize;
+  UINT32                   DescVersion;
+  UINT64                   Available;
+  EFI_PHYSICAL_ADDRESS     PagesAddress;
+  UINT64                   NumberOfPages;
+  UINT64                   SizeInBytes;
 
   Size = 0;
   Status = gBS->GetMemoryMap (&Size, NULL, NULL, NULL, NULL);
@@ -213,11 +217,11 @@ ReadMemoryRanges (
   }
 
   if (mMemoryMapCount > 0) {
-    Print (L"Memory Test Ranges:\n");
+    MtUiPrint (L"Memory Test Ranges:\n");
   }
   for (Loop = 0; Loop < mMemoryMapCount; Loop++) {
     SizeInBytes = MultU64x32 (mMemoryMap[Loop].NumberOfPages, EFI_PAGE_SIZE);
-    Print (
+    MtUiPrint (
       L"0x%012lx - 0x%012lx (0x%012lx)\n",
       mMemoryMap[Loop].PhysicalStart,
       mMemoryMap[Loop].PhysicalStart + SizeInBytes - 1,
@@ -226,49 +230,58 @@ ReadMemoryRanges (
   }
   if (mPagesAllocated > 0) {
     SizeInBytes = MultU64x32 (mPagesAllocated, EFI_PAGE_SIZE);
-    Print (L"Total: 0x%lx (", SizeInBytes);
+    MtUiPrint (L"Total: 0x%lx (", SizeInBytes);
     if (SizeInBytes >= SIZE_4GB) {
-      Print (
+      MtUiPrint (
         L"%ldGB",
         DivU64x64Remainder (SizeInBytes, SIZE_1GB, NULL)
         );
     } else if (SizeInBytes >= SIZE_2MB) {
-      Print (L"%ldMB", DivU64x32 (SizeInBytes, SIZE_1MB));
+      MtUiPrint (L"%ldMB", DivU64x32 (SizeInBytes, SIZE_1MB));
     } else if (SizeInBytes >= SIZE_2KB) {
-      Print (L"%ldKB", DivU64x32 (SizeInBytes, SIZE_1KB));
+      MtUiPrint (L"%ldKB", DivU64x32 (SizeInBytes, SIZE_1KB));
     }
-    Print (L")\n");
+    MtUiPrint (L")\n");
   }
 
   return EFI_SUCCESS;
 }
 
-
 /**
-  Initializes the memory test ranges
+  Initializes the memory test ranges.
+
+  @param  NA
+
+  @retval  EFI_SUCCESS              Construction complete.
+  @retval  Ohters                   Construction failed.
 
 **/
 EFI_STATUS
 MtRangesConstructor (
+  VOID
   )
 {
   return ReadMemoryRanges ();
 }
 
-
 /**
-  Decontructs the memory test ranges data structures
+  Decontructs the memory test ranges data structures.
+
+  @param  NA
+
+  @retval  EFI_SUCCESS              Deconstruction complete.
+  @retval  Ohters                   Deconstruction failed.
 
 **/
 EFI_STATUS
 MtRangesDeconstructor (
+  VOID
   )
 {
   if (mMemoryMap != NULL) {
     FreePool (mMemoryMap);
     mMemoryMap = NULL;
   }
+
   return EFI_SUCCESS;
 }
-
-

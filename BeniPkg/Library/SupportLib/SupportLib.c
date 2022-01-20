@@ -18,28 +18,35 @@
 
 #include "SupportLib.h"
 
+STATIC MEM_TEST_INSTANCE *mTests    = NULL;
+STATIC UINTN mTestCount             = 0;
+STATIC UINTN mMaxTestCount          = 0;
+STATIC BOOLEAN mAbortTesting        = FALSE;
 
-STATIC MEM_TEST_INSTANCE *mTests = NULL;
-STATIC UINTN mTestCount = 0;
-STATIC UINTN mMaxTestCount = 0;
-STATIC BOOLEAN mAbortTesting = FALSE;
+/**
+  Run memory range test.
 
+  @param[in]  Context               Test data.
 
+  @retval  EFI_SUCCESS              Operation complete.
+  @retval  Others                   Operation failed.
+
+**/
 STATIC
 EFI_STATUS
 EFIAPI
 RunMemoryRangeTest (
-  IN VOID                     *Context
+  IN  VOID                          *Context
   )
 {
-  EFI_STATUS            Status;
-  UINTN                 Key;
-  MEM_RANGE_TEST_DATA   *Test;
-  EFI_PHYSICAL_ADDRESS  Start;
-  UINT64                Length;
-  UINT64                LengthTested;
-  UINT64                SubRangeLength;
-  UINTN                 PassNumber;
+  EFI_STATUS              Status;
+  UINTN                   Key;
+  MEM_RANGE_TEST_DATA     *Test;
+  EFI_PHYSICAL_ADDRESS    Start;
+  UINT64                  Length;
+  UINT64                  LengthTested;
+  UINT64                  SubRangeLength;
+  UINTN                   PassNumber;
 
   Test = (MEM_RANGE_TEST_DATA*) Context;
 
@@ -86,18 +93,29 @@ RunMemoryRangeTest (
   }
 }
 
+/**
+  Install memory range test method.
 
+  @param[in]  Name                  The name of memory range test.
+  @param[in]  TestRangeFunction     Memory test process.
+  @param[in]  NumberOfPasses        Number of pass.
+  @param[in]  Context               Test data.
+
+  @retval  EFI_SUCCESS              Operation complete.
+  @retval  Others                   Operation failed.
+
+**/
 EFI_STATUS
 EFIAPI
 MtSupportInstallMemoryRangeTest (
-  IN CHAR16             *Name,
-  IN TEST_MEM_RANGE     TestRangeFunction,
-  IN UINTN              NumberOfPasses,
-  IN VOID               *Context
+  IN  CHAR16                        *Name,
+  IN  TEST_MEM_RANGE                TestRangeFunction,
+  IN  UINTN                         NumberOfPasses,
+  IN  VOID                          *Context
   )
 {
-  EFI_STATUS           Status;
-  MEM_RANGE_TEST_DATA  *NewInstance;
+  EFI_STATUS              Status;
+  MEM_RANGE_TEST_DATA     *NewInstance;
 
   NewInstance = (MEM_RANGE_TEST_DATA*) AllocatePool (sizeof (*NewInstance));
   if (NewInstance == NULL) {
@@ -121,22 +139,31 @@ MtSupportInstallMemoryRangeTest (
   return Status;
 }
 
+/**
+  Install memory test method.
 
+  @param[in]  Name                  The name of memory range test.
+  @param[in]  TestRangeFunction     Memory test process.
+  @param[in]  Context               Test data.
+
+  @retval  EFI_SUCCESS              Operation complete.
+  @retval  Others                   Operation failed.
+
+**/
 EFI_STATUS
 EFIAPI
 MtSupportInstallMemoryTest (
-  IN CHAR16                *Name,
-  IN RUN_MEM_TEST          MemTestFunction,
-  IN VOID                  *Context
+  IN  CHAR16                        *Name,
+  IN  RUN_MEM_TEST                  MemTestFunction,
+  IN  VOID                          *Context
   )
 {
-  MEM_TEST_INSTANCE  *NewTests;
-  UINTN              NewMaxTests;
+  MEM_TEST_INSTANCE       *NewTests;
+  UINTN                   NewMaxTests;
 
   if (mTestCount >= mMaxTestCount) {
     NewMaxTests = mMaxTestCount + 32;
-    NewTests =
-      (MEM_TEST_INSTANCE*) AllocatePool (
+    NewTests = (MEM_TEST_INSTANCE*) AllocatePool (
                              sizeof (MEM_TEST_INSTANCE) *
                              NewMaxTests
                              );
@@ -161,10 +188,19 @@ MtSupportInstallMemoryTest (
   return EFI_SUCCESS;
 }
 
+/***
+  Run all memor test.
 
+  @param  NA
+
+  @retval  EFI_SUCCESS              Memory test done.
+  @retval  Other                    Error happened.
+
+***/
 EFI_STATUS
 EFIAPI
 MtSupportRunAllTests (
+  VOID
   )
 {
   EFI_STATUS  Status;
@@ -187,7 +223,15 @@ MtSupportRunAllTests (
   return ReturnStatus;
 }
 
+/***
+  Executes a WBINVD instruction.
 
+  @param  NA
+
+  @retval  EFI_SUCCESS              Memory test done.
+  @retval  Other                    Error happened.
+
+***/
 VOID
 EFIAPI
 MtWbinvd (
@@ -197,7 +241,14 @@ MtWbinvd (
   AsmWbinvd ();
 }
 
+/***
+  Abort memory test.
 
+  @param  NA
+
+  @retval  NA
+
+***/
 VOID
 EFIAPI
 MtSupportAbortTesting (
@@ -207,11 +258,13 @@ MtSupportAbortTesting (
   mAbortTesting = TRUE;
 }
 
-
 /**
   Memory Test Constructor.
 
-  @return  EFI_STATUS
+  @param  NA
+
+  @retval  EFI_SUCCESS              Always return EFI_SUCCESS.
+
 **/
 EFI_STATUS
 EFIAPI
@@ -220,5 +273,3 @@ MemTestSupportLibConstructor (
 {
   return EFI_SUCCESS;
 }
-
-

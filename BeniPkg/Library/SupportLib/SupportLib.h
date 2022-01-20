@@ -16,22 +16,21 @@
 
 **/
 
-#ifndef _SUPPORT_LIB_H_INCLUDED_
-#define _SUPPORT_LIB_H_INCLUDED_
+#ifndef __SUPPORT_LIB_H__
+#define __SUPPORT_LIB_H__
 
 #include <Library/MemTestSupportLib.h>
 
 typedef struct {
-  TEST_MEM_RANGE           RangeTest;
-  UINTN                    PassCount;
-  VOID                     *Context;
+  TEST_MEM_RANGE          RangeTest;
+  UINTN                   PassCount;
+  VOID                    *Context;
 } MEM_RANGE_TEST_DATA;
 
 typedef struct {
-  CHAR16                *Name;
-  RUN_MEM_TEST          RunMemTest;
-  VOID                  *Context;
+  CHAR16                  *Name;
+  RUN_MEM_TEST            RunMemTest;
+  VOID                    *Context;
 } MEM_TEST_INSTANCE;
 
-#endif
-
+#endif // __SUPPORT_LIB_H__

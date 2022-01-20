@@ -1,4 +1,24 @@
 /**
+*  @Package     : BeniPkg
+*  @FileName    : BitShift.h
+*  @Date        : 20220121
+*  @Author      : Jiangwei
+*  @Version     : 1.0
+*  @Description :
+*    This is for memory test.
+*
+*  @History:
+*    20220121: Initialize.
+*
+*  This program and the accompanying materials
+*  are licensed and made available under the terms and conditions of the BSD License
+*  which accompanies this distribution. The full text of the license may be found at
+*  http://opensource.org/licenses/bsd-license.php
+*
+*  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+**/
+/**
 
   Bit Shift Memory Test - Provides a memory test that produces walking bits
   with inversions...
@@ -18,8 +38,8 @@
 
 **/
 
-#ifndef _MEM_TEST_BIT_SHIFT_H_INCLUDED_
-#define _MEM_TEST_BIT_SHIFT_H_INCLUDED_
+#ifndef __BIT_SHIFT_H__
+#define __BIT_SHIFT_H__
 
 #include <Library/MemTestSupportLib.h>
 
@@ -39,15 +59,26 @@ typedef struct {
 
 #define BIT(a) (((UINT64) 1) << (a))
 
+/**
+  Memory range test method.
+
+  @param[in]  Start                 Start address to test.
+  @param[in]  Length                Memory test length.
+  @param[in]  PassNumber            Number of pass.
+  @param[in]  Context               Test data.
+
+  @retval  EFI_SUCCESS              Operation complete.
+  @retval  Others                   Operation failed.
+
+**/
 STATIC
 EFI_STATUS
 EFIAPI
 RunBitShiftMemTest (
-  IN EFI_PHYSICAL_ADDRESS     Start,
-  IN UINT64                   Length,
-  IN UINTN                    PassNumber,
-  IN VOID                     *Context
+  IN  EFI_PHYSICAL_ADDRESS          Start,
+  IN  UINT64                        Length,
+  IN  UINTN                         PassNumber,
+  IN  VOID                          *Context
   );
 
-#endif
-
+#endif // __BIT_SHIFT_H__

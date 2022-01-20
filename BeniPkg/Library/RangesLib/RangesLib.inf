@@ -1,3 +1,23 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : RangesLib.inf
+#  @Date        : 20220121
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is for memory test.
+#
+#  @History:
+#    20220121: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
 #/** @file
 #  Memory range library for Mem Test application
 #
@@ -17,17 +37,17 @@
 #**/
 
 [Defines]
-  INF_VERSION                    = 0x00010005
-  BASE_NAME                      = MemTestRangesLib
-  FILE_GUID                      = 9172fe8b-9a36-40f8-bba5-5e57a44390bd
-  MODULE_TYPE                    = BASE
-  VERSION_STRING                 = 1.0
-  LIBRARY_CLASS                  = MemTestRangesLib|DXE_DRIVER UEFI_APPLICATION UEFI_DRIVER
+  INF_VERSION                       = 0x00010005
+  BASE_NAME                         = MemTestRangesLib
+  FILE_GUID                         = 9172fe8b-9a36-40f8-bba5-5e57a44390bd
+  MODULE_TYPE                       = BASE
+  VERSION_STRING                    = 1.0
+  LIBRARY_CLASS                     = MemTestRangesLib|DXE_DRIVER UEFI_APPLICATION UEFI_DRIVER
 
 #
 # The following information is for reference only and not required by the build tools.
 #
-#  VALID_ARCHITECTURES           = IA32 X64 IPF EBC
+#  VALID_ARCHITECTURES              = IA32 X64 IPF EBC
 #
 
 [Sources.common]
