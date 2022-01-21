@@ -132,7 +132,7 @@ AddressInit (
   )
 {
   MtSupportInstallMemoryRangeTest (
-    L"Address Decode Test:",
+    L"Address Decode Test",
     RunAddressMemTest,
     1,
     NULL
