@@ -126,7 +126,7 @@ MtSupportInstallMemoryTest (
   IN  VOID                          *Context
   );
 
-/***
+/**
   Executes a WBINVD instruction.
 
   @param  NA
@@ -134,21 +134,21 @@ MtSupportInstallMemoryTest (
   @retval  EFI_SUCCESS              Memory test done.
   @retval  Other                    Error happened.
 
-***/
+**/
 VOID
 EFIAPI
 MtWbinvd (
   VOID
   );
 
-/***
+/**
   Abort memory test.
 
   @param  NA
 
   @retval  NA
 
-***/
+**/
 VOID
 EFIAPI
 MtSupportAbortTesting (

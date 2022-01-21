@@ -24,13 +24,13 @@
 #include  <Library/UefiLib.h>
 #include  <Library/ShellCEntryLib.h>
 
-/***
+/**
   The main entry of the application.
 
   @retval  0                        The application exited normally.
   @retval  Other                    An error occurred.
 
-***/
+**/
 INTN
 EFIAPI
 ShellAppMain (

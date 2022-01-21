@@ -83,35 +83,35 @@ RunAddressMemTest (
   // Perform address fill
   //
   for (Index = 0; Index < TestLength; Index++) {
-      if ((((UINT32)Index) % 0x100000) == 0) {
-          DEBUG ((DEBUG_INFO, "Writing 0x%016lx\n", TestLocation));
-      }
-      *((UINT64*)(UINTN)TestLocation) = TestLocation;
-      TestLocation += sizeof(TestLocation);
+    if ((((UINT32)Index) % 0x100000) == 0) {
+      DEBUG ((DEBUG_INFO, "Writing 0x%016lx\n", TestLocation));
+    }
+    *((UINT64*)(UINTN)TestLocation) = TestLocation;
+    TestLocation += sizeof(TestLocation);
   }
 
   //
-  // Force the cache to be flushed
+  // Force the cache to be flushed.
   //
   MtWbinvd ();
 
   //
-  // Reset values for verification
+  // Reset values for verification.
   //
   TestLength = Length / sizeof(TestLocation);
   TestLocation = Start;
 
   //
-  // Perform address verification
+  // Perform address verification.
   //
   for (Index = 0; Index < TestLength; Index++) {
-      if ((((UINT32)Index) % 0x100000) == 0) {
-          DEBUG ((DEBUG_INFO, "Validating 0x%016lx\n", TestLocation));
-      }
-      if (*((UINT64*)(UINTN)TestLocation) != TestLocation) {
-          MtUiPrint (L"  Failed At 0x%016lx\n", TestLocation);
-      }
-      TestLocation += sizeof(TestLocation);
+    if ((((UINT32)Index) % 0x100000) == 0) {
+      DEBUG ((DEBUG_INFO, "Validating 0x%016lx\n", TestLocation));
+    }
+    if (*((UINT64*)(UINTN)TestLocation) != TestLocation) {
+      MtUiPrint (L"  Failed At 0x%016lx\n", TestLocation);
+    }
+    TestLocation += sizeof(TestLocation);
   }
 
   return EFI_SUCCESS;
@@ -128,6 +128,7 @@ RunAddressMemTest (
 EFI_STATUS
 EFIAPI
 AddressInit (
+  VOID
   )
 {
   MtSupportInstallMemoryRangeTest (

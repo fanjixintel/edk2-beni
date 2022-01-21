@@ -39,10 +39,10 @@
 #include "Patterns.h"
 
 STATIC PATTERN_TEST_DATA mPatterns[] = {
-  PATTERN_MEM_TEST8  (L"0's",       0x0),
-  PATTERN_MEM_TEST8  (L"1's",       0xff),
-  PATTERN_MEM_TEST8  (L"5A",        0x5a),
-  PATTERN_MEM_TEST8  (L"A5",        0xa5),
+  PATTERN_MEM_TEST8  (L"0's",       0x00      ),
+  PATTERN_MEM_TEST8  (L"1's",       0xFF      ),
+  PATTERN_MEM_TEST8  (L"5A",        0x5A      ),
+  PATTERN_MEM_TEST8  (L"A5",        0xA5      ),
   PATTERN_MEM_TEST32 (L"dead beef", 0xdeadbeef),
 };
 
@@ -72,13 +72,12 @@ RunPatternMemTest (
   UINT64   *Check;
   UINT64   *End;
 
-  Pattern = *(UINT64*) Context;
-
+  Pattern = *(UINT64 *) Context;
   SetMem64 ((VOID*)(UINTN)Start, Length, Pattern);
 
   MtWbinvd ();
 
-  End = (UINT64*)(UINTN) (Start + Length);
+  End = (UINT64 *)(UINTN) (Start + Length);
   for (Check = (UINT64*)(UINTN)Start; Check < End; Check++) {
     if (*Check != Pattern) {
       MtUiPrint (L"Failed at %p\n", Check);

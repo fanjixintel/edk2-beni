@@ -45,6 +45,7 @@ RunMemoryRangeTest (
   EFI_PHYSICAL_ADDRESS    Start;
   UINT64                  Length;
   UINT64                  LengthTested;
+  UINT64                  LengthTestedAll;
   UINT64                  SubRangeLength;
   UINTN                   PassNumber;
 
@@ -54,6 +55,7 @@ RunMemoryRangeTest (
   MtUiUpdateProgress (0);
 
   Key = 0;
+  LengthTestedAll = 0;
   Status = EFI_SUCCESS;
   while (TRUE) {
     Status = MtRangesGetNextRange (
@@ -84,7 +86,8 @@ RunMemoryRangeTest (
 
       Start += SubRangeLength;
       LengthTested += SubRangeLength;
-      MtUiUpdateProgress (LengthTested);
+      LengthTestedAll += SubRangeLength;
+      MtUiUpdateProgress (LengthTestedAll);
 
       if (mAbortTesting) {
         return EFI_ABORTED;
@@ -117,14 +120,15 @@ MtSupportInstallMemoryRangeTest (
   EFI_STATUS              Status;
   MEM_RANGE_TEST_DATA     *NewInstance;
 
-  NewInstance = (MEM_RANGE_TEST_DATA*) AllocatePool (sizeof (*NewInstance));
-  if (NewInstance == NULL) {
+  NewInstance = (MEM_RANGE_TEST_DATA *) AllocatePool (sizeof (MEM_RANGE_TEST_DATA));
+  if (NULL == NewInstance) {
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
     return EFI_OUT_OF_RESOURCES;
   }
 
   NewInstance->RangeTest = TestRangeFunction;
   NewInstance->PassCount = NumberOfPasses;
-  NewInstance->Context = Context;
+  NewInstance->Context   = Context;
 
   Status = MtSupportInstallMemoryTest (
              Name,
@@ -161,17 +165,22 @@ MtSupportInstallMemoryTest (
   MEM_TEST_INSTANCE       *NewTests;
   UINTN                   NewMaxTests;
 
+  //
+  // If no space for new test, reallocate space for all tests and
+  // copy the old tests to new-allocated spcace.
+  //
   if (mTestCount >= mMaxTestCount) {
     NewMaxTests = mMaxTestCount + 32;
     NewTests = (MEM_TEST_INSTANCE*) AllocatePool (
                              sizeof (MEM_TEST_INSTANCE) *
                              NewMaxTests
                              );
-    if (NewTests == NULL) {
+    if (NULL == NewTests) {
+      DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
       return EFI_OUT_OF_RESOURCES;
     }
 
-    if (mTests != NULL && mMaxTestCount != 0) {
+    if ((mTests != NULL) && (mMaxTestCount != 0)) {
       CopyMem (NewTests, mTests, sizeof (MEM_TEST_INSTANCE) * mMaxTestCount);
       FreePool (mTests);
     }
@@ -188,15 +197,17 @@ MtSupportInstallMemoryTest (
   return EFI_SUCCESS;
 }
 
-/***
-  Run all memor test.
+/**
+  Run all memory test.
+  TODO: Only use BSP for memory test now, we in fact can use BSP and All
+  APs to do the memory tests.
 
   @param  NA
 
   @retval  EFI_SUCCESS              Memory test done.
   @retval  Other                    Error happened.
 
-***/
+**/
 EFI_STATUS
 EFIAPI
 MtSupportRunAllTests (
@@ -209,7 +220,7 @@ MtSupportRunAllTests (
 
   ReturnStatus = EFI_SUCCESS;
   for (Loop = 0; Loop < mTestCount; Loop++) {
-    MtUiSetTestName (mTests[Loop].Name);
+    MtUiPrintTestName (mTests[Loop].Name);
     Status = mTests[Loop].RunMemTest (mTests[Loop].Context);
     if (mAbortTesting) {
       MtUiPrint (L"Testing was aborted...\n");
@@ -223,7 +234,7 @@ MtSupportRunAllTests (
   return ReturnStatus;
 }
 
-/***
+/**
   Executes a WBINVD instruction.
 
   @param  NA
@@ -231,7 +242,7 @@ MtSupportRunAllTests (
   @retval  EFI_SUCCESS              Memory test done.
   @retval  Other                    Error happened.
 
-***/
+**/
 VOID
 EFIAPI
 MtWbinvd (
@@ -241,14 +252,14 @@ MtWbinvd (
   AsmWbinvd ();
 }
 
-/***
+/**
   Abort memory test.
 
   @param  NA
 
   @retval  NA
 
-***/
+**/
 VOID
 EFIAPI
 MtSupportAbortTesting (

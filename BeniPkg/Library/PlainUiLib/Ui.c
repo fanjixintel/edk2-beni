@@ -38,7 +38,7 @@ STATIC UINTN  mLastPercent     = 0;
 #define MAX_MESSAGE_LENGTH  0x100
 
 /**
-  Sets the name of test.
+  Print the name of test.
 
   @param[in]  TestName              The name of the test.
 
@@ -47,7 +47,7 @@ STATIC UINTN  mLastPercent     = 0;
 **/
 VOID
 EFIAPI
-MtUiSetTestName (
+MtUiPrintTestName (
   IN  CHAR16                        *TestName
   )
 {
@@ -133,7 +133,7 @@ MtUiUpdateProgress (
 {
   UINTN    Percent;
 
-  if (Progress >= mProgressTotal) {
+  if (Progress > mProgressTotal) {
     return;
   }
 
@@ -142,14 +142,13 @@ MtUiUpdateProgress (
               mProgressTotal,
               NULL
               );
-  if ((Percent / 5) > (mLastPercent / 5)) {
-    MtUiPrint (L"%d%%\n", Percent);
+  if (Percent > mLastPercent) {
+    MtUiPrint (L"\b\b\b\b%3d%%", Percent);
     if (gBS->CheckEvent (gST->ConIn->WaitForKey) == EFI_SUCCESS) {
       MtSupportAbortTesting ();
     }
+    mLastPercent = Percent;
   }
-
-  mLastPercent = Percent;
 
   return;
 }

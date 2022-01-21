@@ -45,15 +45,15 @@
 #include <Library/MemTestUiLib.h>
 #include <Library/MemTestRangesLib.h>
 
-/***
-  Run all memor test.
+/**
+  Run all memory test.
 
   @param  NA
 
   @retval  EFI_SUCCESS              Memory test done.
   @retval  Other                    Error happened.
 
-***/
+**/
 EFI_STATUS
 EFIAPI
 MtSupportRunAllTests (

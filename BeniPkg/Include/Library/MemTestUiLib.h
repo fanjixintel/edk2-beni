@@ -44,7 +44,7 @@
 #include <Library/UefiLib.h>
 
 /**
-  Sets the name of test.
+  Print the name of test.
 
   @param[in]  TestName              The name of the test.
 
@@ -53,7 +53,7 @@
 **/
 VOID
 EFIAPI
-MtUiSetTestName (
+MtUiPrintTestName (
   IN  CHAR16                        *TestName
   );
 
