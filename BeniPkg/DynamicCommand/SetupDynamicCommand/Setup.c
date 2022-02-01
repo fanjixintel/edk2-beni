@@ -22,8 +22,11 @@
 #include "Setup.h"
 
 STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
-  {NULL ,       TypeMax  }
+  {L"-p", TypeFlag}, // Display page.
+  {NULL , TypeMax }
   };
+
+EFI_GUID mFrontPageGuid = PAGE_FORMSET_GUID;
 
 /**
   Retrieve HII package list from ImageHandle and publish to HII database.
@@ -71,6 +74,41 @@ InitializeHiiPackage (
   }
 
   return HiiHandle;
+}
+
+/**
+  Display page.
+
+  @param  NA
+
+  @return  NA
+
+**/
+VOID
+DisplayPage (
+  VOID
+  )
+{
+  EFI_STATUS                   Status;
+  EFI_BROWSER_ACTION_REQUEST   ActionRequest;
+
+  Status        = EFI_UNSUPPORTED;
+  ActionRequest = EFI_BROWSER_ACTION_REQUEST_NONE;
+
+  ShellPrintHiiEx (-1, -1, NULL, STRING_TOKEN (STR_PAGE_TEXT_1), mSetupHiiHandle);
+
+  Status = gFormBrowser2->SendForm (
+                            gFormBrowser2,
+                            &mSetupHiiHandle,
+                            1,
+                            &mFrontPageGuid,
+                            0,
+                            NULL,
+                            &ActionRequest
+                            );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "[BENI]SendForm failed. - %r\n", Status));
+  }
 }
 
 /**
@@ -130,6 +168,18 @@ RunSetup (
     ShellPrintHiiEx (
       -1, -1, NULL, STRING_TOKEN (STR_GEN_TOO_MANY), mSetupHiiHandle, L"setup"
       );
+    goto DONE;
+  }
+
+  Status = gBS->LocateProtocol (&gEfiFormBrowser2ProtocolGuid, NULL, (VOID **) &gFormBrowser2);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "[BENI]Locate EfiFormBrowser2Protocol failed. -%r\n", Status));
+    goto DONE;
+  }
+
+  if (ShellCommandLineGetFlag (CheckPackage, L"-p")) {
+    DisplayPage ();
+    ShellStatus = SHELL_SUCCESS;
     goto DONE;
   }
 

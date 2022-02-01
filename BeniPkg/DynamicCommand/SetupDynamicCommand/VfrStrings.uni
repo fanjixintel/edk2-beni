@@ -1,0 +1,29 @@
+// /**
+//  @Package     : BeniPkg
+//  @FileName    : VfrStrings.uni
+//  @Date        : 20220201
+//  @Author      : Jiangwei
+//  @Version     : 1.0
+//  @Description :
+//    This command is used for setup test.
+//
+//  @History:
+//    20220201: Initialize.
+//
+//  This program and the accompanying materials
+//  are licensed and made available under the terms and conditions of the BSD License
+//  which accompanies this distribution. The full text of the license may be found at
+//  http://opensource.org/licenses/bsd-license.php
+//
+//  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+// **/
+
+/=#
+
+#langdef en-US "english"
+
+#string STR_PAGE_TITLE              #language en-US "This is a test page"
+#string STR_EMPTY_STRING            #language en-US ""
+#string STR_PAGE_TEXT_1             #language en-US "Page text 1"
+#string STR_PAGE_TEXT_2             #language en-US "Page text 2"

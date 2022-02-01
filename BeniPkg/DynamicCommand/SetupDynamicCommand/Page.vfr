@@ -1,0 +1,41 @@
+// /**
+//  @Package     : BeniPkg
+//  @FileName    : Page.vfr
+//  @Date        : 20220201
+//  @Author      : Jiangwei
+//  @Version     : 1.0
+//  @Description :
+//    This command is used for setup test.
+//
+//  @History:
+//    20220201: Initialize.
+//
+//  This program and the accompanying materials
+//  are licensed and made available under the terms and conditions of the BSD License
+//  which accompanies this distribution. The full text of the license may be found at
+//  http://opensource.org/licenses/bsd-license.php
+//
+//  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+// **/
+
+// {76B732B8-B777-4ECF-A84E-7A8CA2484555}
+#define FORMSET_GUID        { 0x76b732b8, 0xb777, 0x4ecf, 0xa8, 0x4e, 0x7a, 0x8c, 0xa2, 0x48, 0x45, 0x55 }
+#define FRONT_PAGE_FORM_ID  0x1000
+
+formset
+  guid      = FORMSET_GUID,
+  title     = STRING_TOKEN(STR_PAGE_TITLE),
+  help      = STRING_TOKEN(STR_EMPTY_STRING),
+  classguid = FORMSET_GUID,
+
+  form
+    formid  = FRONT_PAGE_FORM_ID,
+    title   = STRING_TOKEN(STR_PAGE_TITLE);
+
+    subtitle text = STRING_TOKEN(STR_PAGE_TEXT_1);
+    subtitle text = STRING_TOKEN(STR_PAGE_TEXT_2);
+
+  endform;
+
+endformset;

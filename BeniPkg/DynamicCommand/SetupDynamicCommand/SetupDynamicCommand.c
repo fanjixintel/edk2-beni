@@ -21,7 +21,8 @@
 
 #include "Setup.h"
 
-EFI_HII_HANDLE  mSetupHiiHandle = NULL;
+EFI_HII_HANDLE              mSetupHiiHandle = NULL;
+EFI_FORM_BROWSER2_PROTOCOL  *gFormBrowser2 = NULL;
 
 /**
   This is the shell command handler function pointer callback type. This

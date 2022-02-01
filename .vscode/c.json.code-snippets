@@ -41,4 +41,12 @@
 		],
 		"description": "Comment"
 	},
+	"EFI_ERROR": {
+		"scope": "c",
+		"prefix": "efistatus",
+		"body": [
+			"if (EFI_ERROR (Status)) {"
+		],
+		"description": "EFI ERROR"
+	},
 }

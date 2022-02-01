@@ -61,7 +61,18 @@
     "benidata.h": "c",
     "benidataprotocol.h": "c",
     "beniglobaldatatestlib.h": "c",
-    "uefiruntimeservicestablelib.h": "c"
+    "uefiruntimeservicestablelib.h": "c",
+    "memtestsupportlib.h": "c",
+    "supportlib.h": "c",
+    "address.h": "c",
+    "memtestuilib.h": "c",
+    "memtestrangeslib.h": "c",
+    "frontpagecustomizedui.h": "c",
+    "frontpage.h": "c",
+    "string.h": "c",
+    "ui.h": "c",
+    "statuscodedatatypeid.h": "c",
+    "hiiconfigaccess.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,

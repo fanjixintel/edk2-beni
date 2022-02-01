@@ -34,7 +34,16 @@
 #include <Library/BaseMemoryLib.h>
 
 #include <Protocol/HiiPackageList.h>
+#include <Protocol/HiiConfigAccess.h>
 #include <Protocol/ShellDynamicCommand.h>
+
+//
+// Same with the one in Page.vfr.
+//
+#define PAGE_FORMSET_GUID \
+  { \
+    0x76b732b8, 0xb777, 0x4ecf, {0xa8, 0x4e, 0x7a, 0x8c, 0xa2, 0x48, 0x45, 0x55} \
+  }
 
 /**
   Retrieve HII package list from ImageHandle and publish to HII database.
@@ -71,5 +80,6 @@ RunSetup (
 // Used for shell display.
 //
 extern EFI_HII_HANDLE mSetupHiiHandle;
+extern EFI_FORM_BROWSER2_PROTOCOL *gFormBrowser2;
 
 #endif // __SETUP_H__
