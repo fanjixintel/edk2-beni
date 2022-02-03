@@ -72,7 +72,15 @@
     "string.h": "c",
     "ui.h": "c",
     "statuscodedatatypeid.h": "c",
-    "hiiconfigaccess.h": "c"
+    "hiiconfigaccess.h": "c",
+    "architecturalmsr.h": "c",
+    "dtplatformformset.h": "c",
+    "wincertificate.h": "c",
+    "platdrioverridehii.h": "c",
+    "vlanconfighii.h": "c",
+    "securebootconfighii.h": "c",
+    "ip4config2hii.h": "c",
+    "benisetuphii.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,
@@ -90,4 +98,8 @@
     ".gitignore": true,
     ".mailmap": true,
   },
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/**"
+  ],
+  "C_Cpp.errorSquiggles": "Disabled",
 }
