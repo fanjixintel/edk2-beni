@@ -25,7 +25,7 @@
 #include <Guid/HiiPlatformSetupFormset.h>
 #include <Guid/HiiFormMapMethodGuid.h>
 #include <Guid/ZeroGuid.h>
-#include <Guid/BeniSetupDxeHii.h>
+#include <Guid/BeniSetupHii.h>
 
 #define CONFIGURATION_VARSTORE_ID   0x1234
 

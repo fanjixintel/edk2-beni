@@ -37,13 +37,13 @@
   # // Include/Guid/BeniPkgTokenSpace.h
   # // {6BB4BEC8-23D8-40AF-8F24-99E7AC8601FD}
   gBeniPkgTokenSpaceGuid            = { 0x6bb4bec8, 0x23d8, 0x40af, { 0x8f, 0x24, 0x99, 0xe7, 0xac, 0x86, 0x01, 0xfd } }
-  # // Include/Guid/BeniSetupDxeHii.h
+  # // Include/Guid/BeniSetupHii.h
   # // D8F904A6-5531-47B6-A35B-B38393053701}
   gBeniSetupFormSetGuid             = { 0xd8f904a6, 0x5531, 0x47b6, { 0xa3, 0x5b, 0xb3, 0x83, 0x93, 0x05, 0x37, 0x01 } }
-  # // Include/Guid/BeniSetupDxeHii.h
+  # // Include/Guid/BeniSetupHii.h
   # // {F9E3E0E5-2FB5-4981-B4E4-4FFF253409BC}
   gBeniSetupInventoryGuid           = { 0xf9e3e0e5, 0x2fb5, 0x4981, { 0xb4, 0xe4, 0x4f, 0xff, 0x25, 0x34, 0x09, 0xbc } }
-  # // Include/Guid/BeniSetupDxeHii.h
+  # // Include/Guid/BeniSetupHii.h
   # // {CAA52086-F67C-4252-A54A-CBF1FBCC10DC}
   gBeniIfrRefreshIdOpGuid           = { 0xcaa52086, 0xf67c, 0x4252, { 0xa5, 0x4a, 0xcb, 0xf1, 0xfb, 0xcc, 0x10, 0xdc } }
   # // Include/Guid/BeniFvData.h

@@ -1,6 +1,6 @@
 /**
 *  @Package     : BeniPkg
-*  @FileName    : BeniSetupDxeHii.h
+*  @FileName    : BeniSetupHii.h
 *  @Date        : 20211004
 *  @Author      : Jiangwei
 *  @Version     : 1.0
