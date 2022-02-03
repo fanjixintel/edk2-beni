@@ -20,13 +20,11 @@
 **/
 
 #include "Setup.h"
+#include "SetupData.h"
 
 STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
-  {L"-p", TypeFlag}, // Display page.
   {NULL , TypeMax }
   };
-
-EFI_GUID mFrontPageGuid = PAGE_FORMSET_GUID;
 
 /**
   Retrieve HII package list from ImageHandle and publish to HII database.
@@ -77,6 +75,61 @@ InitializeHiiPackage (
 }
 
 /**
+  Prepare data for display.
+
+  @param  NA
+
+  @return  EFI_SUCCESS              Operation succeeded.
+  @return  Others                   Operation succeeded.
+
+**/
+EFI_STATUS
+PrepareData (
+  VOID
+  )
+{
+  EFI_STATUS         Status;
+  BENI_SETUP_DATA    *Data;
+  UINTN              DataSize;
+
+  Status    = EFI_UNSUPPORTED;
+  Data      = NULL;
+  DataSize  = sizeof (BENI_SETUP_DATA);
+
+  Data = AllocateZeroPool (DataSize);
+  if (NULL == Data) {
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  Status = gRT->GetVariable (
+                  BENI_SETUP_DATA_VAR_NAME,
+                  &gBeniSetupFormSetGuid,
+                  NULL,
+                  &DataSize,
+                  Data
+                  );
+  if (EFI_ERROR (Status)) {
+    if (EFI_NOT_FOUND == Status) {
+      DEBUG ((EFI_D_ERROR, "[BENI]Initialize Setup data\n"));
+      Data->Data1 = 1;
+      Data->Data2 = 1;
+      DataSize    = sizeof (BENI_SETUP_DATA);
+      Status = gRT->SetVariable (
+                    BENI_SETUP_DATA_VAR_NAME,
+                    &gBeniSetupFormSetGuid,
+                    EFI_VARIABLE_BOOTSERVICE_ACCESS,
+                    DataSize,
+                    Data
+                    );
+      DEBUG ((EFI_D_ERROR, "[BENI]Status: - %r\n", Status));
+    }
+  }
+
+  return Status;
+}
+
+/**
   Display page.
 
   @param  NA
@@ -95,13 +148,11 @@ DisplayPage (
   Status        = EFI_UNSUPPORTED;
   ActionRequest = EFI_BROWSER_ACTION_REQUEST_NONE;
 
-  ShellPrintHiiEx (-1, -1, NULL, STRING_TOKEN (STR_PAGE_TEXT_1), mSetupHiiHandle);
-
   Status = gFormBrowser2->SendForm (
                             gFormBrowser2,
                             &mSetupHiiHandle,
                             1,
-                            &mFrontPageGuid,
+                            &gBeniSetupFormSetGuid,
                             0,
                             NULL,
                             &ActionRequest
@@ -177,13 +228,10 @@ RunSetup (
     goto DONE;
   }
 
-  if (ShellCommandLineGetFlag (CheckPackage, L"-p")) {
+  Status = PrepareData ();
+  if (!EFI_ERROR (Status)) {
     DisplayPage ();
-    ShellStatus = SHELL_SUCCESS;
-    goto DONE;
   }
-
-  ShellPrintHiiEx (-1, -1, NULL, STRING_TOKEN (BENI_NO_OPERATIONS), mSetupHiiHandle);
 
 DONE:
 

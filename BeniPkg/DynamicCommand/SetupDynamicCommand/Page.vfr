@@ -19,22 +19,39 @@
 //  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 // **/
 
-// {76B732B8-B777-4ECF-A84E-7A8CA2484555}
-#define FORMSET_GUID        { 0x76b732b8, 0xb777, 0x4ecf, 0xa8, 0x4e, 0x7a, 0x8c, 0xa2, 0x48, 0x45, 0x55 }
-#define FRONT_PAGE_FORM_ID  0x1000
+#include "SetupData.h"
 
 formset
-  guid      = FORMSET_GUID,
-  title     = STRING_TOKEN(STR_PAGE_TITLE),
+  guid      = BENI_SETUP_FORMSET_GUID,
+  title     = STRING_TOKEN(STR_PAGE_TITLE_FORMSET),
   help      = STRING_TOKEN(STR_EMPTY_STRING),
-  classguid = FORMSET_GUID,
+  classguid = BENI_SETUP_FORMSET_GUID,
+
+  efivarstore BENI_SETUP_DATA,
+    attribute = 0x2, // EFI_VARIABLE_BOOTSERVICE_ACCESS
+    name  = BeniSetupData,
+    guid  = BENI_SETUP_FORMSET_GUID;
 
   form
     formid  = FRONT_PAGE_FORM_ID,
-    title   = STRING_TOKEN(STR_PAGE_TITLE);
+    title   = STRING_TOKEN(STR_PAGE_TITLE_FORM);
 
-    subtitle text = STRING_TOKEN(STR_PAGE_TEXT_1);
-    subtitle text = STRING_TOKEN(STR_PAGE_TEXT_2);
+    subtitle text = STRING_TOKEN(STR_PAGE_STATIC_TEXT);
+
+    oneof varid = BeniSetupData.Data1,
+      prompt      = STRING_TOKEN(STR_SELECT_DATA_1_PROMPT),
+      help        = STRING_TOKEN(STR_SELECT_DATA_1_HELP),
+      flags       = NUMERIC_SIZE_1 | INTERACTIVE | RESET_REQUIRED,
+      option text = STRING_TOKEN(STR_SELECT_DATA_0), value = 0, flags = DEFAULT;
+      option text = STRING_TOKEN(STR_SELECT_DATA_1), value = 1, flags = 0;
+    endoneof;
+    oneof varid = BeniSetupData.Data2,
+      prompt      = STRING_TOKEN(STR_SELECT_DATA_2_PROMPT),
+      help        = STRING_TOKEN(STR_SELECT_DATA_2_HELP),
+      flags       = NUMERIC_SIZE_1 | INTERACTIVE | RESET_REQUIRED,
+      option text = STRING_TOKEN(STR_SELECT_DATA_0), value = 0, flags = DEFAULT;
+      option text = STRING_TOKEN(STR_SELECT_DATA_1), value = 1, flags = 0;
+    endoneof;
 
   endform;
 

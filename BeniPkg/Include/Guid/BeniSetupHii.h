@@ -22,7 +22,10 @@
 #ifndef __BENI_SETUP_DXE_HII_H__
 #define __BENI_SETUP_DXE_HII_H__
 
-#include <Uefi.h>
+//
+// Compile error when included in vfr file.
+//
+// #include <Uefi.h>
 
 //
 // {D8F904A6-5531-47B6-A35B-B38393053701}

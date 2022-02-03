@@ -23,7 +23,15 @@
 
 #langdef en-US "english"
 
-#string STR_PAGE_TITLE              #language en-US "This is a test page"
+#string STR_PAGE_TITLE_FORMSET      #language en-US "This is a title in form set"
+#string STR_PAGE_TITLE_FORM         #language en-US "This is a title in form"
 #string STR_EMPTY_STRING            #language en-US ""
-#string STR_PAGE_TEXT_1             #language en-US "Page text 1"
-#string STR_PAGE_TEXT_2             #language en-US "Page text 2"
+#string STR_PAGE_STATIC_TEXT        #language en-US "This is a static text"
+
+#string STR_SELECT_DATA_0           #language en-US "Zero"
+#string STR_SELECT_DATA_1           #language en-US "One"
+
+#string STR_SELECT_DATA_1_PROMPT    #language en-US "This is prompt for data 1"
+#string STR_SELECT_DATA_1_HELP      #language en-US "This is helper for data 1"
+#string STR_SELECT_DATA_2_PROMPT    #language en-US "This is prompt for data 2"
+#string STR_SELECT_DATA_2_HELP      #language en-US "This is helper for data 2"

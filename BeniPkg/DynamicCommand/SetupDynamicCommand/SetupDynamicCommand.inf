@@ -44,6 +44,7 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   ShellPkg/ShellPkg.dec
+  BeniPkg/BeniPkg.dec
 
 [LibraryClasses]
   UefiDriverEntryPoint
@@ -51,12 +52,14 @@
   DebugLib
   ShellLib
   UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
   HiiLib
   UefiHiiServicesLib
   MemoryAllocationLib
   BaseMemoryLib
 
 [Guids]
+  gBeniSetupFormSetGuid
 
 [Protocols]
   gEfiShellDynamicCommandProtocolGuid                   ## CONSUMES

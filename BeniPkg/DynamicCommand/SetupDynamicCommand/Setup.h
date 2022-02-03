@@ -28,6 +28,7 @@
 #include <Library/DebugLib.h>
 #include <Library/ShellLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/HiiLib.h>
 #include <Library/UefiHiiServicesLib.h>
 #include <Library/MemoryAllocationLib.h>
