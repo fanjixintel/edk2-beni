@@ -587,14 +587,12 @@ UefiMain (
         ConInHandle   = NULL;
       }
 
-      // beni-jiangwei-20211219-DoNotLaunchStartupScript-start>>
-      // if (!EFI_ERROR(Status) && PcdGet8(PcdShellSupportLevel) >= 1) {
-      //   //
-      //   // process the startup script or launch the called app.
-      //   //
-      //   Status = DoStartupScript(ShellInfoObject.ImageDevPath, ShellInfoObject.FileDevPath);
-      // }
-      // beni-jiangwei-20211219-DoNotLaunchStartupScript-end<<
+      if (!EFI_ERROR(Status) && PcdGet8(PcdShellSupportLevel) >= 1) {
+        //
+        // process the startup script or launch the called app.
+        //
+        Status = DoStartupScript(ShellInfoObject.ImageDevPath, ShellInfoObject.FileDevPath);
+      }
 
       if (!ShellInfoObject.ShellInitSettings.BitUnion.Bits.Exit && !ShellCommandGetExit() && (PcdGet8(PcdShellSupportLevel) >= 3 || PcdGetBool(PcdShellForceConsole)) && !EFI_ERROR(Status) && !ShellInfoObject.ShellInitSettings.BitUnion.Bits.NoConsoleIn) {
         //
@@ -925,7 +923,12 @@ ProcessCommandLine(
   ShellInfoObject.ShellInitSettings.BitUnion.Bits.Delay        = FALSE;
   ShellInfoObject.ShellInitSettings.BitUnion.Bits.Exit         = FALSE;
   ShellInfoObject.ShellInitSettings.BitUnion.Bits.NoNest       = FALSE;
-  ShellInfoObject.ShellInitSettings.Delay = 5;
+  // beni-20220204-ModifyDelayTime-start>>
+  //
+  // There should be better to modify this. Well, never mind.
+  //
+  ShellInfoObject.ShellInitSettings.Delay = 1;
+  // beni-20220204-ModifyDelayTime-end<<
 
   //
   // Start LoopVar at 0 to parse only optional arguments at Argv[0]

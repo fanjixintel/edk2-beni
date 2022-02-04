@@ -2235,6 +2235,8 @@ BmEnumerateBootOptions (
     FreePool (Handles);
   }
 
+// beni-20220204-PxeBootControl-start>>
+#ifdef BENI_PXE_BOOT
   //
   // Parse load file protocol
   //
@@ -2278,6 +2280,8 @@ BmEnumerateBootOptions (
   if (HandleCount != 0) {
     FreePool (Handles);
   }
+#endif
+// beni-20220204-PxeBootControl-end<<
 
   BmMakeBootOptionDescriptionUnique (BootOptions, *BootOptionCount);
   return BootOptions;

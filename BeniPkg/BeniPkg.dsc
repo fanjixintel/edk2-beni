@@ -73,6 +73,11 @@
 #
 !include BeniPkg/BeniPkgDefines.dsc.inc
 
+  DEFINE BENI_MACROS = /DBENI_DEFINED
+!if $(BENI_PXE_BOOT) == TRUE
+  DEFINE BENI_MACROS = $(BENI_MACROS) /DBENI_PXE_BOOT
+!endif
+
   #
   # Device drivers
   #
@@ -116,7 +121,7 @@
   #
   # Disable deprecated APIs.
   #
-  MSFT:*_*_*_CC_FLAGS = /D DISABLE_NEW_DEPRECATED_INTERFACES
+  MSFT:*_*_*_CC_FLAGS = /D DISABLE_NEW_DEPRECATED_INTERFACES $(BENI_MACROS)
   INTEL:*_*_*_CC_FLAGS = /D DISABLE_NEW_DEPRECATED_INTERFACES
   GCC:*_*_*_CC_FLAGS = -D DISABLE_NEW_DEPRECATED_INTERFACES
 
@@ -1103,12 +1108,15 @@
   BeniPkg/Dxe/HelloWorldDxe/HelloWorldDxe.inf
   BeniPkg/Dxe/ProtocolServer/ProtocolServer.inf
   BeniPkg/Dxe/ProtocolConsumer/ProtocolConsumer.inf
-  BeniPkg/Dxe/Ramdisk/Ramdisk.inf
   BeniPkg/Dxe/GetAppFromFv/GetAppFromFv.inf
   BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
   BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
   BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
+!if $(BENI_EXT2_SUPPORT) == TRUE
   BeniPkg/Dxe/Ext2Dxe/Ext2.inf
+!else
+  BeniPkg/Dxe/Ramdisk/Ramdisk.inf
+!endif
   BeniPkg/Dxe/GlobalDataInstall/GlobalDataInstall.inf
   BeniPkg/Dxe/MemoryAllocationTest/MemoryAllocationTest.inf
   BeniPkg/Dxe/NullDxeDriverOne/NullDxeDriverOne.inf

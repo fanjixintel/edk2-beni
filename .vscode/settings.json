@@ -80,7 +80,12 @@
     "vlanconfighii.h": "c",
     "securebootconfighii.h": "c",
     "ip4config2hii.h": "c",
-    "benisetuphii.h": "c"
+    "benisetuphii.h": "c",
+    "devicepathlib.h": "c",
+    "hiiresourcesamplehii.h": "c",
+    "uefidriverentrypoint.h": "c",
+    "setupdata.h": "c",
+    "driversample.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,

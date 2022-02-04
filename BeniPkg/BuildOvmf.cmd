@@ -31,8 +31,10 @@ set PYTHON_COMMAND=py -3
 ::
 @echo. > BeniPkgDefines.dsc.inc
 @echo DEFINE DEBUG_ON_SERIAL_PORT    = TRUE         >> BeniPkgDefines.dsc.inc
-@echo DEFINE NETWORK_ENABLE          = FALSE        >> BeniPkgDefines.dsc.inc
+@echo DEFINE NETWORK_ENABLE          = TRUE         >> BeniPkgDefines.dsc.inc
 @echo DEFINE COMPILE_DIR             = DEBUG_VS2019 >> BeniPkgDefines.dsc.inc
+@echo DEFINE BENI_EXT2_SUPPORT       = FALSE        >> BeniPkgDefines.dsc.inc
+@echo DEFINE BENI_PXE_BOOT           = FALSE        >> BeniPkgDefines.dsc.inc
 
 set PKG_DIR=%CD%
 cd ..
