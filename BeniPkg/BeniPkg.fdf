@@ -437,7 +437,7 @@ INF BeniPkg/Dxe/MemoryAllocationTest/MemoryAllocationTest.inf
 INF MdeModulePkg/Universal/DriverSampleDxe/DriverSampleDxe.inf
 INF MdeModulePkg/Universal/HiiResourcesSampleDxe/HiiResourcesSampleDxe.inf
 #
-# Applications in FV.
+# Applications and scripts in FV.
 #
 FILE FREEFORM = DF674789-4265-4056-9DD0-5123BB5A81F5 {
   SECTION RAW = $(OUTPUT_DIRECTORY)/$(COMPILE_DIR)/X64/BeniPkg/App/HelloWorldApp/HelloWorldApp/OUTPUT/helloworld.efi
@@ -447,6 +447,9 @@ FILE FREEFORM = 8F989B9A-3E27-4352-8A16-43DA1DBA7A85 {
 }
 FILE FREEFORM = F103E554-2509-4935-B779-33F571249762 {
   SECTION RAW = $(OUTPUT_DIRECTORY)/$(COMPILE_DIR)/X64/BeniPkg/App/MemTest/MemTest/OUTPUT/memtest.efi
+}
+FILE FREEFORM = 5DCC1F61-FCF9-4158-9A98-DD41E2983954 {
+  SECTION RAW = BeniPkg/Script/startup.nsh
 }
 
 ################################################################################
