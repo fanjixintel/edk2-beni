@@ -57,6 +57,7 @@
   UefiHiiServicesLib
   MemoryAllocationLib
   BaseMemoryLib
+  DevicePathLib
 
 [Guids]
   gBeniSetupFormSetGuid

@@ -33,31 +33,13 @@
 #include <Library/UefiHiiServicesLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/BaseMemoryLib.h>
+#include <Library/DevicePathLib.h>
+
+#include <Guid/BeniSetupHii.h>
 
 #include <Protocol/HiiPackageList.h>
 #include <Protocol/HiiConfigAccess.h>
 #include <Protocol/ShellDynamicCommand.h>
-
-//
-// Same with the one in Page.vfr.
-//
-#define PAGE_FORMSET_GUID \
-  { \
-    0x76b732b8, 0xb777, 0x4ecf, {0xa8, 0x4e, 0x7a, 0x8c, 0xa2, 0x48, 0x45, 0x55} \
-  }
-
-/**
-  Retrieve HII package list from ImageHandle and publish to HII database.
-
-  @param[in]  ImageHandle           The image handle of the process.
-
-  @return  EFI_HII_HANDLE           The HII handle.
-
-**/
-EFI_HII_HANDLE
-InitializeHiiPackage (
-  IN  EFI_HANDLE                    ImageHandle
-  );
 
 /**
   Function for 'setup' command.
@@ -80,7 +62,8 @@ RunSetup (
 //
 // Used for shell display.
 //
-extern EFI_HII_HANDLE mSetupHiiHandle;
-extern EFI_FORM_BROWSER2_PROTOCOL *gFormBrowser2;
+extern EFI_HII_HANDLE               mSetupHiiHandle;
+extern EFI_FORM_BROWSER2_PROTOCOL   *gFormBrowser2;
+extern EFI_HANDLE                   mDriverHandle;
 
 #endif // __SETUP_H__

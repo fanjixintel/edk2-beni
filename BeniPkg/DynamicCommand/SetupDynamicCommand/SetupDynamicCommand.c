@@ -22,7 +22,40 @@
 #include "Setup.h"
 
 EFI_HII_HANDLE              mSetupHiiHandle = NULL;
-EFI_FORM_BROWSER2_PROTOCOL  *gFormBrowser2 = NULL;
+EFI_FORM_BROWSER2_PROTOCOL  *gFormBrowser2  = NULL;
+EFI_HANDLE                  mDriverHandle   = NULL;
+
+#pragma pack(1)
+//
+// HII specific Vendor Device Path definition.
+//
+typedef struct {
+  VENDOR_DEVICE_PATH           VendorDevicePath;
+  EFI_DEVICE_PATH_PROTOCOL     End;
+} HII_VENDOR_DEVICE_PATH;
+#pragma pack()
+
+HII_VENDOR_DEVICE_PATH  mHiiVendorDevicePath = {
+  {
+    {
+      HARDWARE_DEVICE_PATH,
+      HW_VENDOR_DP,
+      {
+        (UINT8) (sizeof (VENDOR_DEVICE_PATH)),
+        (UINT8) ((sizeof (VENDOR_DEVICE_PATH)) >> 8)
+      }
+    },
+    BENI_SETUP_FORMSET_GUID
+  },
+  {
+    END_DEVICE_PATH_TYPE,
+    END_ENTIRE_DEVICE_PATH_SUBTYPE,
+    {
+      (UINT8) (END_DEVICE_PATH_LENGTH),
+      (UINT8) ((END_DEVICE_PATH_LENGTH) >> 8)
+    }
+  }
+};
 
 /**
   This is the shell command handler function pointer callback type. This
@@ -99,13 +132,53 @@ SetupCommandInitialize (
   IN  EFI_SYSTEM_TABLE              *SystemTable
   )
 {
-  EFI_STATUS    Status;
+  EFI_STATUS                        Status;
+  EFI_HII_PACKAGE_LIST_HEADER       *PackageList;
 
-  mSetupHiiHandle = InitializeHiiPackage (ImageHandle);
-  if (mSetupHiiHandle == NULL) {
-    return EFI_ABORTED;
+  //
+  // Retrieve HII package list from ImageHandle.
+  //
+  Status = gBS->OpenProtocol (
+                  ImageHandle,
+                  &gEfiHiiPackageListProtocolGuid,
+                  (VOID **)&PackageList,
+                  ImageHandle,
+                  NULL,
+                  EFI_OPEN_PROTOCOL_GET_PROTOCOL
+                  );
+  if (EFI_ERROR (Status)) {
+    return Status;
   }
 
+  //
+  // Publish sample formset.
+  //
+  Status = gBS->InstallMultipleProtocolInterfaces (
+                  &mDriverHandle,
+                  &gEfiDevicePathProtocolGuid,
+                  &mHiiVendorDevicePath,
+                  NULL
+                  );
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  //
+  // Publish HII package list to HII Database.
+  //
+  Status = gHiiDatabase->NewPackageList (
+                           gHiiDatabase,
+                           PackageList,
+                           NULL,
+                           &mSetupHiiHandle
+                           );
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  //
+  // Install shell command.
+  //
   Status = gBS->InstallProtocolInterface (
                   &ImageHandle,
                   &gEfiShellDynamicCommandProtocolGuid,
@@ -142,7 +215,20 @@ SetupUnload (
     return Status;
   }
 
-  HiiRemovePackages (mSetupHiiHandle);
+  if (mDriverHandle != NULL) {
+    gBS->UninstallMultipleProtocolInterfaces (
+          mDriverHandle,
+          &gEfiDevicePathProtocolGuid,
+          &mHiiVendorDevicePath,
+          NULL
+          );
+    mDriverHandle = NULL;
+  }
+
+  if (NULL != mSetupHiiHandle) {
+    HiiRemovePackages (mSetupHiiHandle);
+    mSetupHiiHandle = NULL;
+  }
 
   return EFI_SUCCESS;
 }

@@ -27,54 +27,6 @@ STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
   };
 
 /**
-  Retrieve HII package list from ImageHandle and publish to HII database.
-
-  @param[in]  ImageHandle           The image handle of the process.
-
-  @return  EFI_HII_HANDLE           The HII handle.
-
-**/
-EFI_HII_HANDLE
-InitializeHiiPackage (
-  IN  EFI_HANDLE                    ImageHandle
-  )
-{
-  EFI_STATUS                        Status;
-  EFI_HII_PACKAGE_LIST_HEADER       *PackageList;
-  EFI_HII_HANDLE                    HiiHandle;
-
-  //
-  // Retrieve HII package list from ImageHandle.
-  //
-  Status = gBS->OpenProtocol (
-                  ImageHandle,
-                  &gEfiHiiPackageListProtocolGuid,
-                  (VOID **)&PackageList,
-                  ImageHandle,
-                  NULL,
-                  EFI_OPEN_PROTOCOL_GET_PROTOCOL
-                  );
-  if (EFI_ERROR (Status)) {
-    return NULL;
-  }
-
-  //
-  // Publish HII package list to HII Database.
-  //
-  Status = gHiiDatabase->NewPackageList (
-                           gHiiDatabase,
-                           PackageList,
-                           NULL,
-                           &HiiHandle
-                           );
-  if (EFI_ERROR (Status)) {
-    return NULL;
-  }
-
-  return HiiHandle;
-}
-
-/**
   Prepare data for display.
 
   @param  NA
