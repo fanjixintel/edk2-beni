@@ -21,19 +21,7 @@
 
 #include "Setup.h"
 
-EFI_HII_HANDLE              mSetupHiiHandle = NULL;
-EFI_FORM_BROWSER2_PROTOCOL  *gFormBrowser2  = NULL;
-EFI_HANDLE                  mDriverHandle   = NULL;
-
-#pragma pack(1)
-//
-// HII specific Vendor Device Path definition.
-//
-typedef struct {
-  VENDOR_DEVICE_PATH           VendorDevicePath;
-  EFI_DEVICE_PATH_PROTOCOL     End;
-} HII_VENDOR_DEVICE_PATH;
-#pragma pack()
+BENI_SETUP_PRIVATE_DATA      *mPrivateData = NULL;
 
 HII_VENDOR_DEVICE_PATH  mHiiVendorDevicePath = {
   {
@@ -104,7 +92,7 @@ SetupCommandGetHelp (
   IN  CONST CHAR8                             *Language
   )
 {
-  return HiiGetString (mSetupHiiHandle, STRING_TOKEN (STR_GET_HELP_SETUP), Language);
+  return HiiGetString (mPrivateData->SetupHiiHandle, STRING_TOKEN (STR_GET_HELP_SETUP), Language);
 }
 
 EFI_SHELL_DYNAMIC_COMMAND_PROTOCOL mSetupDynamicCommand = {
@@ -135,6 +123,8 @@ SetupCommandInitialize (
   EFI_STATUS                        Status;
   EFI_HII_PACKAGE_LIST_HEADER       *PackageList;
 
+  BENI_MODULE_START
+
   //
   // Retrieve HII package list from ImageHandle.
   //
@@ -147,33 +137,61 @@ SetupCommandInitialize (
                   EFI_OPEN_PROTOCOL_GET_PROTOCOL
                   );
   if (EFI_ERROR (Status)) {
-    return Status;
+    DEBUG ((EFI_D_ERROR, "[BENI]Open EfiHiiPackageListProtocol failed. - %r\n", Status));
+    goto DONE;
+  }
+
+  mPrivateData = AllocateZeroPool (sizeof (BENI_SETUP_PRIVATE_DATA));
+  if (NULL == mPrivateData) {
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d Out of memory\n", __FUNCTION__, __LINE__));
+    Status =  EFI_OUT_OF_RESOURCES;
+    goto DONE;
+  }
+
+  mPrivateData->Signature = BENI_SETUP_PRIVATE_SIGNATURE;
+
+  mPrivateData->ConfigAccess.ExtractConfig  = ExtractConfig;
+  mPrivateData->ConfigAccess.RouteConfig    = RouteConfig;
+  mPrivateData->ConfigAccess.Callback       = DriverCallback;
+
+  Status = gBS->LocateProtocol (
+                  &gEfiFormBrowser2ProtocolGuid,
+                  NULL,
+                  (VOID **) &mPrivateData->FormBrowser2
+                  );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "[BENI]Locate EfiFormBrowser2Protocol failed. -%r\n", Status));
+    goto DONE;
   }
 
   //
   // Publish sample formset.
   //
   Status = gBS->InstallMultipleProtocolInterfaces (
-                  &mDriverHandle,
+                  &mPrivateData->DriverHandle,
                   &gEfiDevicePathProtocolGuid,
                   &mHiiVendorDevicePath,
+                  &gEfiHiiConfigAccessProtocolGuid,
+                  &mPrivateData->ConfigAccess,
                   NULL
                   );
   if (EFI_ERROR (Status)) {
-    return Status;
+    DEBUG ((EFI_D_ERROR, "[BENI]InstallMultipleProtocolInterfaces failed. - %r\n", Status));
+    goto DONE;
   }
 
   //
   // Publish HII package list to HII Database.
   //
   Status = gHiiDatabase->NewPackageList (
-                           gHiiDatabase,
-                           PackageList,
-                           NULL,
-                           &mSetupHiiHandle
-                           );
+                          gHiiDatabase,
+                          PackageList,
+                          mPrivateData->DriverHandle,
+                          &mPrivateData->SetupHiiHandle
+                          );
   if (EFI_ERROR (Status)) {
-    return Status;
+    DEBUG ((EFI_D_ERROR, "[BENI]Publish HII package list failed. - %r\n", Status));
+    goto DONE;
   }
 
   //
@@ -185,6 +203,14 @@ SetupCommandInitialize (
                   EFI_NATIVE_INTERFACE,
                   &mSetupDynamicCommand
                   );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "[BENI]Install shell command failed. - %r\n", Status));
+    goto DONE;
+  }
+
+DONE:
+
+  BENI_MODULE_END
 
   return Status;
 }
@@ -206,6 +232,8 @@ SetupUnload (
 {
   EFI_STATUS    Status;
 
+  BENI_MODULE_START
+
   Status = gBS->UninstallProtocolInterface (
                   ImageHandle,
                   &gEfiShellDynamicCommandProtocolGuid,
@@ -215,20 +243,29 @@ SetupUnload (
     return Status;
   }
 
-  if (mDriverHandle != NULL) {
+  if (NULL != mPrivateData->DriverHandle) {
     gBS->UninstallMultipleProtocolInterfaces (
-          mDriverHandle,
+          mPrivateData->DriverHandle,
           &gEfiDevicePathProtocolGuid,
           &mHiiVendorDevicePath,
+          &gEfiHiiConfigAccessProtocolGuid,
+          &mPrivateData->ConfigAccess,
           NULL
           );
-    mDriverHandle = NULL;
+    mPrivateData->DriverHandle = NULL;
   }
 
-  if (NULL != mSetupHiiHandle) {
-    HiiRemovePackages (mSetupHiiHandle);
-    mSetupHiiHandle = NULL;
+  if (NULL != mPrivateData->SetupHiiHandle) {
+    HiiRemovePackages (mPrivateData->SetupHiiHandle);
+    mPrivateData->SetupHiiHandle = NULL;
   }
+
+  if (NULL != mPrivateData) {
+    FreePool (mPrivateData);
+    mPrivateData = NULL;
+  }
+
+  BENI_MODULE_END
 
   return EFI_SUCCESS;
 }

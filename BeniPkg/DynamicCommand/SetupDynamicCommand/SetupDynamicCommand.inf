@@ -65,6 +65,8 @@
 [Protocols]
   gEfiShellDynamicCommandProtocolGuid                   ## CONSUMES
   gEfiHiiPackageListProtocolGuid                        ## CONSUMES
+  gEfiDevicePathProtocolGuid                            ## PRODUCES
+  gEfiHiiConfigAccessProtocolGuid                       ## PRODUCES
 
 [DEPEX]
   TRUE
