@@ -34,6 +34,7 @@
 #include <Library/MemoryAllocationLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/DevicePathLib.h>
+#include <Library/PrintLib.h>
 #include <Library/BeniDebugLib.h>
 
 #include <Guid/BeniSetupHii.h>

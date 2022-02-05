@@ -24,9 +24,13 @@
 #langdef en-US "english"
 
 #string STR_PAGE_TITLE_FORMSET      #language en-US "This is a title in form set"
+
 #string STR_PAGE_TITLE_FORM         #language en-US "This is a title in form"
+#string STR_PAGE_TITLE_FORM_2       #language en-US "The next form"
+
 #string STR_EMPTY_STRING            #language en-US ""
 #string STR_PAGE_STATIC_TEXT        #language en-US "This is a static text"
+#string STR_PAGE_NETX_PAGE          #language en-US "Welcome to next page"
 
 #string STR_SELECT_DATA_0           #language en-US "Zero"
 #string STR_SELECT_DATA_1           #language en-US "One"
@@ -35,3 +39,18 @@
 #string STR_SELECT_DATA_1_HELP      #language en-US "This is helper for data 1"
 #string STR_SELECT_DATA_2_PROMPT    #language en-US "This is prompt for data 2"
 #string STR_SELECT_DATA_2_HELP      #language en-US "This is helper for data 2"
+
+#string STR_STRING_DESC_PROMPT      #language en-US "This is a string prompt"
+#string STR_STRING_HELPER           #language en-US "This is a string helper"
+
+#string STR_NUMERIC_ID_PROMPT       #language en-US "This is a number prompt"
+#string STR_NUMERIC_ID_HELPER       #language en-US "This is a number helper"
+
+#string STR_TEXT_PROMPT             #language en-US "This is an operation text"
+#string STR_TEXT_HELPER             #language en-US "This is an operation text helper"
+
+#string STR_CHECKBOXK_PROMPT        #language en-US "This is a checkbox"
+#string STR_CHECKBOXK_HELPER        #language en-US "This is a checkbox helper"
+
+#string STR_GOTO_PROMPT             #language en-US "This is goto prompt"
+#string STR_GOTO_HELPER             #language en-US "This is goto helper"

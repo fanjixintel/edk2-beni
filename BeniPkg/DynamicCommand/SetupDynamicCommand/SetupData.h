@@ -29,12 +29,18 @@
 //
 #define BENI_SETUP_DATA_VAR_NAME    L"BeniSetupData"
 
-#define FRONT_PAGE_FORM_ID          0x1000
+#define PAGE_FORM_ID                0x1000
+#define PAGE_DESCRIPTION_ID         0x1001
+#define PAGE_TEXT_ID                0x1002
+#define PAGE_FORM_ID_2              0x1003
 
 typedef struct {
   UINT8    Data1;
   UINT8    Data2;
-  UINT8    Rsvd1[2];
+  BOOLEAN  Disabled;
+  UINT8    Rsvd1;
+  UINT16   DriverDescriptionData[32];
+  UINT64   Id;
 } BENI_SETUP_DATA;
 
 #endif // __SETUP_DATA_H__

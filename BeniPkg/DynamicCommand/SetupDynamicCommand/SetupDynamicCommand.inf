@@ -58,6 +58,7 @@
   MemoryAllocationLib
   BaseMemoryLib
   DevicePathLib
+  PrintLib
 
 [Guids]
   gBeniSetupFormSetGuid

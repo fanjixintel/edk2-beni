@@ -33,7 +33,7 @@ formset
     guid  = BENI_SETUP_FORMSET_GUID;
 
   form
-    formid  = FRONT_PAGE_FORM_ID,
+    formid  = PAGE_FORM_ID,
     title   = STRING_TOKEN(STR_PAGE_TITLE_FORM);
 
     subtitle text = STRING_TOKEN(STR_PAGE_STATIC_TEXT);
@@ -52,6 +52,49 @@ formset
       option text = STRING_TOKEN(STR_SELECT_DATA_0), value = 0, flags = DEFAULT;
       option text = STRING_TOKEN(STR_SELECT_DATA_1), value = 1, flags = 0;
     endoneof;
+
+    string varid = BeniSetupData.DriverDescriptionData,
+      questionid = PAGE_DESCRIPTION_ID,
+      prompt     = STRING_TOKEN(STR_STRING_DESC_PROMPT),
+      help       = STRING_TOKEN(STR_STRING_HELPER),
+      flags      = INTERACTIVE,
+      minsize    = 6,
+      maxsize    = 30,
+    endstring;
+
+    numeric varid   = BeniSetupData.Id,
+            prompt  = STRING_TOKEN(STR_NUMERIC_ID_PROMPT),
+            help    = STRING_TOKEN(STR_NUMERIC_ID_HELPER),
+            flags   = INTERACTIVE,
+            minimum = 0,
+            maximum = 1024,
+    endnumeric;
+
+    grayoutif ideqval BeniSetupData.Disabled == 1;
+      text
+        help   = STRING_TOKEN(STR_TEXT_PROMPT),
+        text   = STRING_TOKEN(STR_TEXT_HELPER),
+        flags  = INTERACTIVE,
+        key    = PAGE_TEXT_ID;
+    endif;
+
+    checkbox varid   = BeniSetupData.Disabled,
+             prompt   = STRING_TOKEN(STR_CHECKBOXK_PROMPT),
+             help     = STRING_TOKEN(STR_CHECKBOXK_HELPER),
+             flags    = CHECKBOX_DEFAULT,
+    endcheckbox;
+
+    goto PAGE_FORM_ID_2,
+      prompt  = STRING_TOKEN(STR_GOTO_PROMPT),
+      help    = STRING_TOKEN(STR_GOTO_HELPER);
+
+  endform;
+
+  form
+    formid  = PAGE_FORM_ID_2,
+    title   = STRING_TOKEN(STR_PAGE_TITLE_FORM_2);
+
+    subtitle text = STRING_TOKEN(STR_PAGE_NETX_PAGE);
 
   endform;
 

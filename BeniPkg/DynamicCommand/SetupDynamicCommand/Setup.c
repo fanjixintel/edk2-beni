@@ -131,6 +131,25 @@ DriverCallback (
   )
 {
   BENI_MODULE_START
+
+  if (Action == EFI_BROWSER_ACTION_CHANGING) {
+    switch (QuestionId) {
+      case PAGE_TEXT_ID:
+        DEBUG ((DEBUG_ERROR, "%a %d PAGE_TEXT_ID\n", __FUNCTION__, __LINE__));
+        break;
+      default:
+        break;
+    }
+  } else if (Action == EFI_BROWSER_ACTION_CHANGED) {
+    switch (QuestionId) {
+      case PAGE_TEXT_ID:
+        DEBUG ((DEBUG_ERROR, "%a %d PAGE_TEXT_ID\n", __FUNCTION__, __LINE__));
+        break;
+      default:
+        break;
+    }
+  }
+
   BENI_MODULE_END
   return EFI_SUCCESS;
 }
@@ -175,7 +194,13 @@ PrepareData (
       DEBUG ((EFI_D_ERROR, "[BENI]Initialize Setup data\n"));
       Data->Data1 = 1;
       Data->Data2 = 1;
-      DataSize    = sizeof (BENI_SETUP_DATA);
+      UnicodeSPrint (
+        Data->DriverDescriptionData,
+        sizeof (Data->DriverDescriptionData),
+        L"Hello World"
+        );
+      Data->Id = 1;
+      DataSize = sizeof (BENI_SETUP_DATA);
       Status = gRT->SetVariable (
                     BENI_SETUP_DATA_VAR_NAME,
                     &gBeniSetupFormSetGuid,
