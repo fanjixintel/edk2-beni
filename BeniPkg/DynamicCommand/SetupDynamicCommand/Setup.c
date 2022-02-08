@@ -62,6 +62,12 @@ ExtractConfig (
   )
 {
   BENI_MODULE_START
+
+  if ((NULL == Progress) || (NULL == Results)) {
+    return EFI_INVALID_PARAMETER;
+  }
+  *Progress = Request;
+
   BENI_MODULE_END
   return EFI_SUCCESS;
 }
@@ -93,6 +99,12 @@ RouteConfig (
   )
 {
   BENI_MODULE_START
+
+  if ((NULL == Configuration) || (NULL == Progress)) {
+    return EFI_INVALID_PARAMETER;
+  }
+  *Progress = Configuration;
+
   BENI_MODULE_END
   return EFI_SUCCESS;
 }
@@ -246,6 +258,83 @@ DisplayPage (
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "[BENI]SendForm failed. - %r\n", Status));
   }
+}
+
+/**
+  Customize menus in the page.
+
+  @param[in]  HiiHandle             The HII Handle of the form to update.
+  @param[in]  StartOpCodeHandle     The context used to insert opcode.
+
+  @retval  NA
+
+**/
+VOID
+CustomizePage (
+  IN  EFI_HII_HANDLE                HiiHandle,
+  IN  VOID                          *StartOpCodeHandle
+  )
+{
+  //
+  // Add OpCode here.
+  //
+  HiiCreateSubTitleOpCode (StartOpCodeHandle, STRING_TOKEN (STR_TEXT_IN_CODE), 0, 0, 0);
+}
+
+/**
+  Update components.
+
+  @param  NA
+
+  @retval  NA
+
+**/
+VOID
+UpdatePageForm (
+  VOID
+  )
+{
+  VOID                        *StartOpCodeHandle;
+  VOID                        *EndOpCodeHandle;
+  EFI_IFR_GUID_LABEL          *StartGuidLabel;
+  EFI_IFR_GUID_LABEL          *EndGuidLabel;
+
+  //
+  // Allocate space for creation of UpdateData Buffer
+  //
+  StartOpCodeHandle = HiiAllocateOpCodeHandle ();
+  ASSERT (StartOpCodeHandle != NULL);
+
+  EndOpCodeHandle = HiiAllocateOpCodeHandle ();
+  ASSERT (EndOpCodeHandle != NULL);
+
+  //
+  // Create Hii Extend Label OpCode as the start opcode
+  //
+  StartGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (StartOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
+  StartGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+  StartGuidLabel->Number       = LABEL_START;
+  //
+  // Create Hii Extend Label OpCode as the end opcode
+  //
+  EndGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (EndOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
+  EndGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+  EndGuidLabel->Number       = LABEL_END;
+
+  CustomizePage (
+    mPrivateData->SetupHiiHandle,
+    StartOpCodeHandle
+    );
+
+  HiiUpdateForm (
+    mPrivateData->SetupHiiHandle,
+    &gBeniSetupFormSetGuid,
+    PAGE_FORM_ID_2,
+    StartOpCodeHandle,
+    EndOpCodeHandle
+    );
+
+  return;
 }
 
 /**

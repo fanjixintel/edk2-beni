@@ -54,3 +54,5 @@
 
 #string STR_GOTO_PROMPT             #language en-US "This is goto prompt"
 #string STR_GOTO_HELPER             #language en-US "This is goto helper"
+
+#string STR_TEXT_IN_CODE            #language en-US "This is from code"

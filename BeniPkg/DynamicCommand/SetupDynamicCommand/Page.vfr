@@ -95,6 +95,10 @@ formset
     title   = STRING_TOKEN(STR_PAGE_TITLE_FORM_2);
 
     subtitle text = STRING_TOKEN(STR_PAGE_NETX_PAGE);
+    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
+
+    label LABEL_START;
+    label LABEL_END;
 
   endform;
 

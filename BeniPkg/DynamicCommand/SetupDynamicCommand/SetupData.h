@@ -33,6 +33,8 @@
 #define PAGE_DESCRIPTION_ID         0x1001
 #define PAGE_TEXT_ID                0x1002
 #define PAGE_FORM_ID_2              0x1003
+#define LABEL_START                 0x1004
+#define LABEL_END                   0x1005
 
 typedef struct {
   UINT8    Data1;

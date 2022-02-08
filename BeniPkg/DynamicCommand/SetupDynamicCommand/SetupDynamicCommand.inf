@@ -59,8 +59,10 @@
   BaseMemoryLib
   DevicePathLib
   PrintLib
+  HiiLib
 
 [Guids]
+  gEfiIfrTianoGuid                                      ## CONSUMES ## GUID (Extended IFR Guid Opcode)
   gBeniSetupFormSetGuid
 
 [Protocols]

@@ -195,6 +195,11 @@ SetupCommandInitialize (
   }
 
   //
+  // Update components in page 2.
+  //
+  UpdatePageForm ();
+
+  //
   // Install shell command.
   //
   Status = gBS->InstallProtocolInterface (

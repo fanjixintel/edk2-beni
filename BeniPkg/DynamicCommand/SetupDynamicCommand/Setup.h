@@ -35,8 +35,10 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/DevicePathLib.h>
 #include <Library/PrintLib.h>
+#include <Library/HiiLib.h>
 #include <Library/BeniDebugLib.h>
 
+#include <Guid/MdeModuleHii.h>
 #include <Guid/BeniSetupHii.h>
 
 #include <Protocol/HiiPackageList.h>
@@ -74,6 +76,19 @@ typedef struct {
 #define BENI_SETUP_PRIVATE_FROM_THIS(a)  CR(a, BENI_SETUP_PRIVATE_DATA, ConfigAccess, BENI_SETUP_PRIVATE_SIGNATURE)
 
 /**
+  Update components.
+
+  @param  NA
+
+  @retval  NA
+
+**/
+VOID
+UpdatePageForm (
+  VOID
+  );
+
+/**
   Function for 'setup' command.
 
   @param[in]  ImageHandle           The image handle.
@@ -90,7 +105,6 @@ RunSetup (
   IN  EFI_HANDLE                    ImageHandle,
   IN  EFI_SYSTEM_TABLE              *SystemTable
   );
-
 
 /**
   This function allows a caller to extract the current configuration for one
