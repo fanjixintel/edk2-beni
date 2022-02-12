@@ -23,7 +23,6 @@
 @echo off
 
 set TOOLS=VS2019
-set ARCH=X64
 set PYTHON_COMMAND=py -3
 
 ::
@@ -40,7 +39,7 @@ set PKG_DIR=%CD%
 cd ..
 
 call edksetup.bat
-call build -p BeniPkg/BeniPkg.dsc -a %ARCH% -t %TOOLS%
+call build -p BeniPkg/BeniPkg.dsc -a X64 -a IA32 -t %TOOLS%
 
 echo ====================================================
 echo.
@@ -55,7 +54,8 @@ echo.
 
 if not %errorlevel%==0 goto ERROR
 echo BIOS was built successfully!
-copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF.fd BeniPkg\
+copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_CODE.fd BeniPkg\
+copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_VARS.fd BeniPkg\
 goto DONE
 
 :ERROR

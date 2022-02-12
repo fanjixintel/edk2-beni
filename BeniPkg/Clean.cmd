@@ -39,7 +39,7 @@ cd %PKG_DIR%
 
 :: Delete BIOS binary;
 if exist log.txt  del /Q log.txt
-if exist OVMF.fd  del /Q OVMF.fd
+if exist OVMF*.fd  del /Q OVMF*.fd
 
 echo on
 @exit /b
