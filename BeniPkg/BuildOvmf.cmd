@@ -54,8 +54,9 @@ echo.
 
 if not %errorlevel%==0 goto ERROR
 echo BIOS was built successfully!
-copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_CODE.fd BeniPkg\
-copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_VARS.fd BeniPkg\
+@REM copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_CODE.fd BeniPkg\
+@REM copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_VARS.fd BeniPkg\
+copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF.fd BeniPkg\
 goto DONE
 
 :ERROR
