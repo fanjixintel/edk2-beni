@@ -914,7 +914,7 @@ ShowDiskInfo (
 
   Handles     = NULL;
   Count       = 0;
-  Status        = EFI_NOT_FOUND;
+  Status      = EFI_NOT_FOUND;
 
   Status = gBS->LocateHandleBuffer (
                 ByProtocol,

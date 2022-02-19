@@ -988,6 +988,10 @@
     <PcdsFixedAtBuild>
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }
+  BeniPkg/DynamicCommand/VarDynamicCommand/VarDynamicCommand.inf {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
 !endif
   ShellPkg/Application/Shell/Shell.inf {
     <LibraryClasses>
