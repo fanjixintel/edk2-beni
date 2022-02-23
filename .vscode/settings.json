@@ -85,7 +85,12 @@
     "hiiresourcesamplehii.h": "c",
     "uefidriverentrypoint.h": "c",
     "setupdata.h": "c",
-    "driversample.h": "c"
+    "driversample.h": "c",
+    "smbios.h": "c",
+    "mdemodulehii.h": "c",
+    "benifvdata.h": "c",
+    "firmwarevolumeblock.h": "c",
+    "var.h": "c"
   },
   "files.exclude": {
     "**/*.a": true,

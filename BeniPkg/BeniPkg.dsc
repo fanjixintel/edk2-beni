@@ -51,14 +51,19 @@
   # Defines for default states.  These can be changed on the command line.
   # -D FLAG=VALUE
   #
-  DEFINE SECURE_BOOT_ENABLE      = FALSE
+  DEFINE SECURE_BOOT_ENABLE      = TRUE
   DEFINE SMM_REQUIRE             = FALSE
   DEFINE SOURCE_DEBUG_ENABLE     = FALSE
   DEFINE TPM_ENABLE              = FALSE
   DEFINE TPM_CONFIG_ENABLE       = FALSE
 
   #
-  # Network definition
+  # Redfish support.
+  #
+  DEFINE REDFISH_ENABLE          = TRUE
+
+  #
+  # Network definition.
   #
   DEFINE NETWORK_TLS_ENABLE             = FALSE
   DEFINE NETWORK_IP6_ENABLE             = FALSE
@@ -249,6 +254,10 @@
   VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLib.inf
   VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
 
+!if $(REDFISH_ENABLE) == TRUE
+  RedfishPlatformHostInterfaceLib|EmulatorPkg/Library/RedfishPlatformHostInterfaceLib/RedfishPlatformHostInterfaceLib.inf
+  RedfishPlatformCredentialLib|EmulatorPkg/Library/RedfishPlatformCredentialLib/RedfishPlatformCredentialLib.inf
+!endif
 
   #
   # Network libraries
@@ -594,6 +603,18 @@
 
 !if $(SOURCE_DEBUG_ENABLE) == TRUE
   gEfiSourceLevelDebugPkgTokenSpaceGuid.PcdDebugLoadImageMethod|0x2
+!endif
+
+!if $(REDFISH_ENABLE) == TRUE
+  gEfiRedfishPkgTokenSpaceGuid.PcdRedfishRestExServiceDevicePath.DevicePathMatchMode|DEVICE_PATH_MATCH_MAC_NODE
+  gEfiRedfishPkgTokenSpaceGuid.PcdRedfishRestExServiceDevicePath.DevicePathNum|1
+  #
+  # Below is the MAC address of network adapter on EDK2 Emulator platform.
+  # You can use ifconfig under EFI shell to get the MAC address of network adapter on EDK2 Emulator platform.
+  #
+  gEfiRedfishPkgTokenSpaceGuid.PcdRedfishRestExServiceDevicePath.DevicePath|{DEVICE_PATH("MAC(000000000000,0x1)")}
+  gEfiRedfishPkgTokenSpaceGuid.PcdRedfishRestExServiceAccessModeInBand|False
+  gEfiRedfishPkgTokenSpaceGuid.PcdRedfishDiscoverAccessModeInBand|False
 !endif
 
 [PcdsFixedAtBuild.IA32]
@@ -1144,3 +1165,8 @@
       NULL|BeniPkg/Library/MemTestLib/BitShift/BitShift.inf
       NULL|BeniPkg/Library/MemTestLib/Address/Address.inf
   }
+
+!if $(REDFISH_ENABLE) == TRUE
+  EmulatorPkg/Application/RedfishPlatformConfig/RedfishPlatformConfig.inf
+!endif
+!include BeniPkg/BeniRedfish.dsc.inc

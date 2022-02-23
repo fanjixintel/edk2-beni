@@ -337,7 +337,12 @@ INF MdeModulePkg/Logo/LogoDxe.inf
   }
 !endif
 !include NetworkPkg/Network.fdf.inc
-  INF  OvmfPkg/VirtioNetDxe/VirtioNet.inf
+INF  OvmfPkg/VirtioNetDxe/VirtioNet.inf
+
+#
+# EFI Redfish drivers
+#
+!include BeniPkg/BeniRedfish.fdf.inc
 
 #
 # Usb Support
