@@ -1,2 +1,3 @@
 echo Network configuring...
 ifconfig -s eth0 static 192.168.50.128 255.255.255.0 192.168.50.1
+RedfishPlatformConfig.efi -s 192.168.50.128 255.255.255.0 192.168.50.101 255.255.255.0 5000
