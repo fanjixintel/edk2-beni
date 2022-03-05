@@ -49,4 +49,12 @@
 		],
 		"description": "EFI ERROR"
 	},
+	"EFI_DEBUG": {
+		"scope": "c",
+		"prefix": "efidebug",
+		"body": [
+			"DEBUG ((EFI_D_ERROR, \"[BENI]%a %d\\n\", __FUNCTION__, __LINE__));"
+		],
+		"description": "EFI_DEBUG"
+	},
 }
