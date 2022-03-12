@@ -35,11 +35,30 @@ STATIC CONST SHELL_PARAM_ITEM ParamList[] = {
 **/
 STATIC
 VOID
-Test (
+TestAsm (
   VOID
   )
 {
   AsmNop ();
+  // AsmLoopInfi ();
+}
+
+/**
+  Test function.
+
+  @param  NA
+
+  @return  NA
+
+**/
+STATIC
+VOID
+Test (
+  VOID
+  )
+{
+  TestAsm ();
+
   return;
 }
 

@@ -32,3 +32,15 @@ global ASM_PFX(AsmNop)
 ASM_PFX(AsmNop):
   nop
   ret
+
+;------------------------------------------------------------------------------
+; VOID
+; EFIAPI
+; AsmLoopInfi (
+;   VOID
+;   );
+;------------------------------------------------------------------------------
+global ASM_PFX(AsmLoopInfi)
+ASM_PFX(AsmLoopInfi):
+  jmp $
+  ret

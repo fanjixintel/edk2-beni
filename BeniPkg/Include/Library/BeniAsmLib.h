@@ -36,4 +36,18 @@ AsmNop (
   VOID
   );
 
+/**
+  while(1).
+
+  @param  NA
+
+  @retval  NA
+
+**/
+VOID
+EFIAPI
+AsmLoopInfi (
+  VOID
+  );
+
 #endif // __BENI_ASSEMBLY_H__
