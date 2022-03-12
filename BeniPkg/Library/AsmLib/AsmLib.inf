@@ -1,0 +1,58 @@
+##
+#  @Package     : BeniPkg
+#  @FileName    : AsmLib.inf
+#  @Date        : 20220313
+#  @Author      : Jiangwei
+#  @Version     : 1.0
+#  @Description :
+#    This is assembly code for test.
+#
+#  @History:
+#    20220313: Initialize.
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+##
+#/** @file
+#  Memory test support library
+#
+#  Copyright (c) 2006 - 2009, Intel Corporation
+#  Copyright (c) 2009, Jordan Justen
+#  All rights reserved.
+#
+#  This program and the accompanying materials are licensed and made
+#  available under the terms and conditions of the BSD License which
+#  accompanies this distribution.  The full text of the license may
+#  be found at http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS"
+#  BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER
+#  EXPRESS OR IMPLIED.
+#
+#**/
+
+[Defines]
+  INF_VERSION                       = 0x00010005
+  BASE_NAME                         = AsmLib
+  FILE_GUID                         = 2A3061AF-740E-4B62-B900-FC24AF9B072E
+  MODULE_TYPE                       = BASE
+  VERSION_STRING                    = 1.0
+  LIBRARY_CLASS                     = AsmLib
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES              = IA32 X64 IPF EBC
+#
+
+[Sources.X64]
+  X64/AsmLib.nasm
+
+[Packages]
+  MdePkg/MdePkg.dec
+  BeniPkg/BeniPkg.dec

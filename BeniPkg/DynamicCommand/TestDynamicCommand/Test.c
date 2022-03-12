@@ -39,6 +39,7 @@ Test (
   VOID
   )
 {
+  AsmNop ();
   return;
 }
 

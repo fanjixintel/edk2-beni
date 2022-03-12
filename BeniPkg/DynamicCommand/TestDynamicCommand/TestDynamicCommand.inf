@@ -54,6 +54,7 @@
   UefiHiiServicesLib
   MemoryAllocationLib
   BaseMemoryLib
+  AsmLib
 
 [Guids]
 

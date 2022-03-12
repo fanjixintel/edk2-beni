@@ -32,6 +32,7 @@
 #include <Library/UefiHiiServicesLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/BaseMemoryLib.h>
+#include <Library/BeniAsmLib.h>
 
 #include <Protocol/HiiPackageList.h>
 #include <Protocol/ShellDynamicCommand.h>
