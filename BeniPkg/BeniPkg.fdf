@@ -323,6 +323,7 @@ INF  BeniPkg/DynamicCommand/FsDynamicCommand/FsDynamicCommand.inf
 INF  BeniPkg/DynamicCommand/DiskDynamicCommand/DiskDynamicCommand.inf
 INF  BeniPkg/DynamicCommand/SetupDynamicCommand/SetupDynamicCommand.inf
 INF  BeniPkg/DynamicCommand/VarDynamicCommand/VarDynamicCommand.inf
+INF  BeniPkg/DynamicCommand/TestDynamicCommand/TestDynamicCommand.inf
 !endif
 INF  ShellPkg/Application/Shell/Shell.inf
 

@@ -289,6 +289,7 @@
   #
   # Add new library here.
   #
+  AsmLib|BeniPkg/Library/AsmLib/AsmLib.inf
   BeniTimeLib|BeniPkg/Library/BeniTimeLib/BeniTimeLib.inf
   BeniGlobalDataTestLib|BeniPkg/Library/BeniGlobalDataTestLib/BeniGlobalDataTestLib.inf
 
@@ -1011,6 +1012,10 @@
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }
   BeniPkg/DynamicCommand/VarDynamicCommand/VarDynamicCommand.inf {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
+  BeniPkg/DynamicCommand/TestDynamicCommand/TestDynamicCommand.inf {
     <PcdsFixedAtBuild>
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }
