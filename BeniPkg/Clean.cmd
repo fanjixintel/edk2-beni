@@ -9,6 +9,7 @@
 ::
 ::  @History:
 ::    20211002: Initialize.
+::    20220313: Delete BuildFsp too.
 ::
 ::  This program and the accompanying materials
 ::  are licensed and made available under the terms and conditions of the BSD License
@@ -25,6 +26,7 @@ cd ..
 
 :: Delete directory Build;
 if exist Build rd /S /Q Build
+if exist BuildFsp rd /S /Q BuildFsp
 
 :: Delete files and directories in Conf;
 pushd Conf
