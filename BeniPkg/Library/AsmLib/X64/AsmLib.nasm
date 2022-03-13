@@ -44,3 +44,17 @@ global ASM_PFX(AsmLoopInfi)
 ASM_PFX(AsmLoopInfi):
   jmp $
   ret
+
+;------------------------------------------------------------------------------
+; VOID
+; EFIAPI
+; AsmSerialIo (
+;   UINT8                             Char
+;   );
+;------------------------------------------------------------------------------
+global ASM_PFX(AsmSerialIo)
+ASM_PFX(AsmSerialIo):
+  mov dx, 03f8h
+  mov ax, cx
+  out dx, ax
+  ret

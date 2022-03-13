@@ -50,4 +50,18 @@ AsmLoopInfi (
   VOID
   );
 
+/**
+  Output one character.
+
+  @param[in]  Char                  The character to be outputted.
+
+  @retval  NA
+
+**/
+VOID
+EFIAPI
+AsmSerialIo (
+  UINT8                             Char
+  );
+
 #endif // __BENI_ASSEMBLY_H__

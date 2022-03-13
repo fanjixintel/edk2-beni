@@ -41,6 +41,14 @@ TestAsm (
 {
   AsmNop ();
   // AsmLoopInfi ();
+  AsmSerialIo ('A');
+  AsmSerialIo ('A');
+  AsmSerialIo ('A');
+  AsmSerialIo ('A');
+  AsmSerialIo ('A');
+  AsmSerialIo ('A');
+  AsmSerialIo ('A');
+  AsmSerialIo ('A');
 }
 
 /**
