@@ -22,7 +22,7 @@
 @echo off
 
 set PYTHON_COMMAND=py -3
-set TOOLS=VS2019
+set TOOLS=VS2015
 set ARCH=X64
 
 set PKG_DIR=%CD%

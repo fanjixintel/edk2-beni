@@ -6,7 +6,7 @@
 :: @Version     : 1.0
 :: @Description :
 ::   This is used to build payload for SlimBootloader.
-::   VS2019 is needed in order to build successfully.
+::   VS2015 is needed in order to build successfully.
 ::
 :: @History:
 ::   20211205: Initialize.
@@ -26,7 +26,7 @@ set PKG_DIR=%CD%
 cd ..
 
 call edksetup.bat
-call build -a IA32 -a X64 -p UefiPayloadPkg\UefiPayloadPkg.dsc -b DEBUG -t VS2019 -D BOOTLOADER=SBL
+call build -a IA32 -a X64 -p UefiPayloadPkg\UefiPayloadPkg.dsc -b DEBUG -t VS2015 -D BOOTLOADER=SBL
 if %errorlevel%==0 (
   echo Build result: SUCCESS!
 ) else (
