@@ -54,7 +54,15 @@ ASM_PFX(AsmLoopInfi):
 ;------------------------------------------------------------------------------
 global ASM_PFX(AsmSerialIo)
 ASM_PFX(AsmSerialIo):
+
+  mov dx, 03f3h
+  mov eax, 0
+loop:
+  in  al, dx
+  bt  eax, 5
+  jnc loop      ; Wait until ready
+
   mov dx, 03f8h
-  mov ax, cx
-  out dx, ax
+  mov ax, cx    ; cx is the input parameter
+  out dx, ax    ; Output the character
   ret
