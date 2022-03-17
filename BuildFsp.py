@@ -273,14 +273,14 @@ def Prebuild(target, toolchain):
     cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py HEADER %s/%s.dsc Build/%s/%s_%s/FV %s/Include/BootLoaderPlatformData.h' % (
           workspace, pkgname, pkgname, pkgname, target, toolchain, pkgname)
     ret = subprocess.call(cmd.split(' '))
-    if ret:
+    if not (ret == 0 or ret == 256): # jiangwei-20220318-ModifyScript
         Fatal('Failed to generate UPD header file !')
 
     print('Generate BSF File ...')
     cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py GENBSF %s/%s.dsc Build/%s/%s_%s/FV %s/QemuFsp.bsf' % (
           workspace, pkgname, pkgname, pkgname, target, toolchain, fvdir)
     ret = subprocess.call(cmd.split(' '))
-    if ret:
+    if not (ret == 0 or ret == 256): # jiangwei-20220318-ModifyScript
         Fatal('Failed to generate UPD BSF file !')
 
     for fliename in ['FspUpd.h', 'FsptUpd.h', 'FspmUpd.h', 'FspsUpd.h']:
@@ -356,7 +356,10 @@ def PostBuild (target, toolchain):
             Fatal('Failed to do PostBuild QEMU FSP!')
 
     copy_list = [
-        ('QEMUFSP.fd',  'QEMU_FSP_%s.fd' % target),
+        # jiangwei-20220318-ModifyScript-start>>
+        # ('QEMUFSP.fd',  'QEMU_FSP_%s.fd' % target),
+        ('QEMUFSP.fd',  'FspRel.bin'),
+        # jiangwei-20220318-ModifyScript-end<<
         ('QemuFsp.bsf', 'QEMU_FSP.bsf'),
         ('FspUpd.h',    'FspUpd.h'),
         ('FsptUpd.h',   'FsptUpd.h'),
