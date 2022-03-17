@@ -27,6 +27,7 @@ cd ..
 :: Delete directory Build;
 if exist Build rd /S /Q Build
 if exist BuildFsp rd /S /Q BuildFsp
+if exist *.log del /Q *.log
 
 :: Delete files and directories in Conf;
 pushd Conf
