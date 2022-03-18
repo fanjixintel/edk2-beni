@@ -218,10 +218,12 @@ MemoryDiscoveredPpiNotifyCallback (
   if (HobListPtr != NULL) {
     *HobListPtr = (VOID *)GetHobList ();
   }
+  DEBUG ((EFI_D_ERROR, "[BENI]%a %d\n", __FUNCTION__, __LINE__));
   //
   // Give control back after MemoryInitApi
   //
   FspMemoryInitDone (HobListPtr);
+  DEBUG ((EFI_D_ERROR, "[BENI]%a %d\n", __FUNCTION__, __LINE__));
 
   if (GetFspApiCallingIndex() == TempRamExitApiIndex) {
     //
@@ -289,11 +291,13 @@ MemoryDiscoveredPpiNotifyCallback (
     //
     // Give control back after TempRamExitApi
     //
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d\n", __FUNCTION__, __LINE__));
     FspTempRamExitDone ();
+    DEBUG ((EFI_D_ERROR, "[BENI]%a %d\n", __FUNCTION__, __LINE__));
   }
-
+  DEBUG ((EFI_D_ERROR, "[BENI]%a %d\n", __FUNCTION__, __LINE__));
   ReportAndInstallNewFv ();
-
+  DEBUG ((EFI_D_ERROR, "[BENI]%a %d\n", __FUNCTION__, __LINE__));
   return EFI_SUCCESS;
 }
 
