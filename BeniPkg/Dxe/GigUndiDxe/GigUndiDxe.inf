@@ -168,7 +168,9 @@
   MdeModulePkg/MdeModulePkg.dec
 
 [LibraryClasses.common]
-  StdLibC
+# // jiangwei8-20220319-Modify4Compile-start>>
+#  StdLibC
+# // jiangwei8-20220319-Modify4Compile-end<<
   BaseLib
   MemoryAllocationLib
   UefiBootServicesTableLib

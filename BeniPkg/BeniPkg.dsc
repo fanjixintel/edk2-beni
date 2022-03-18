@@ -1145,6 +1145,7 @@
   BeniPkg/Dxe/PcdTestDriver/PcdTestDriver.inf
   BeniPkg/Dxe/DxeDriverInBds/DxeDriverInBds.inf
   BeniPkg/Dxe/EventTestDxe/EventTestDxe.inf
+  BeniPkg/Dxe/GigUndiDxe/GigUndiDxe.inf
 !if $(BENI_EXT2_SUPPORT) == TRUE
   BeniPkg/Dxe/Ext2Dxe/Ext2.inf
 !else
