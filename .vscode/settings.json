@@ -1,6 +1,11 @@
 {
   "files.associations": {
     "*.h": "c",
+    "system_error": "c",
+    "type_traits": "c",
+    "xfunctional": "c",
+    "xstddef": "c",
+    "xtr1common": "c"
   },
   "files.exclude": {
     "**/*.a": true,
