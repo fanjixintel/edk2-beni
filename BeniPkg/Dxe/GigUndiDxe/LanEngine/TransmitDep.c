@@ -171,41 +171,41 @@ TransmitEnableQueue (
   IN DRIVER_DATA *AdapterInfo
   )
 {
-  // UINT32    TempReg;
-  // UINTN     i;
+  UINT32    TempReg;
+  UINTN     i;
 
-// #ifndef NO_82580_SUPPORT
-//   switch (AdapterInfo->Hw.mac.type) {
-//   case e1000_82580:
-//   case e1000_i350:
-//   case e1000_i354:
-//   case e1000_i210:
-//   case e1000_i211:
+#ifndef NO_82580_SUPPORT
+  switch (AdapterInfo->Hw.mac.type) {
+  case e1000_82580:
+  case e1000_i350:
+  case e1000_i354:
+  case e1000_i210:
+  case e1000_i211:
 
-// #define E1000_TXDCTL_ENABLE_TIMEOUT   1000
+#define E1000_TXDCTL_ENABLE_TIMEOUT   1000
 
-//     E1000SetRegBits (AdapterInfo, E1000_TXDCTL (0), E1000_TXDCTL_QUEUE_ENABLE);
+    E1000SetRegBits (AdapterInfo, E1000_TXDCTL (0), E1000_TXDCTL_QUEUE_ENABLE);
 
-//     for (i = 0; i < E1000_TXDCTL_ENABLE_TIMEOUT; i++) {
-//       TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_TXDCTL (0));
-//       if ((TempReg & E1000_TXDCTL_QUEUE_ENABLE) != 0) {
-//         DEBUGPRINT (E1000, ("TX queue enabled, after attempt i = %d\n", i));
-//         break;
-//       }
+    for (i = 0; i < E1000_TXDCTL_ENABLE_TIMEOUT; i++) {
+      TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_TXDCTL (0));
+      if ((TempReg & E1000_TXDCTL_QUEUE_ENABLE) != 0) {
+        DEBUGPRINT (E1000, ("TX queue enabled, after attempt i = %d\n", i));
+        break;
+      }
 
-//       DelayInMicroseconds (AdapterInfo, 1);
-//     }
+      DelayInMicroseconds (AdapterInfo, 1);
+    }
 
-//     if (i >= E1000_TXDCTL_ENABLE_TIMEOUT) {
-//       DEBUGPRINT (CRITICAL, ("Enable TX queue failed!\n"));
-//     }
+    if (i >= E1000_TXDCTL_ENABLE_TIMEOUT) {
+      DEBUGPRINT (CRITICAL, ("Enable TX queue failed!\n"));
+    }
 
-//     break;
+    break;
 
-//   default:
-//     break;
-//   }
-// #endif /* !NO_82580_SUPPORT */
+  default:
+    break;
+  }
+#endif /* !NO_82580_SUPPORT */
 
   E1000SetRegBits (AdapterInfo, E1000_TCTL, E1000_TCTL_EN | E1000_TCTL_PSP);
   E1000PciFlush (&AdapterInfo->Hw);
@@ -226,37 +226,37 @@ TransmitDisableQueue (
   IN DRIVER_DATA *AdapterInfo
   )
 {
-//   UINTN     i;
-//   UINT32    TxdCtl;
+  UINTN     i;
+  UINT32    TxdCtl;
 
 
-//   switch (AdapterInfo->Hw.mac.type) {
-// #ifndef NO_82575_SUPPORT
-//   case e1000_82575:
-//   case e1000_82576:
-// #endif /* NO_82575_SUPPORT */
-// #ifndef NO_82580_SUPPORT
-//   case e1000_82580:
-// #endif /* NO_82580_SUPPORT */
-//   case e1000_i350:
-//   case e1000_i354:
-//   case e1000_i210:
-//   case e1000_i211:
+  switch (AdapterInfo->Hw.mac.type) {
+#ifndef NO_82575_SUPPORT
+  case e1000_82575:
+  case e1000_82576:
+#endif /* NO_82575_SUPPORT */
+#ifndef NO_82580_SUPPORT
+  case e1000_82580:
+#endif /* NO_82580_SUPPORT */
+  case e1000_i350:
+  case e1000_i354:
+  case e1000_i210:
+  case e1000_i211:
 
-// #define MAX_QUEUE_DISABLE_TIME  200
+#define MAX_QUEUE_DISABLE_TIME  200
 
-//     E1000ClearRegBits (AdapterInfo, E1000_TXDCTL (0), E1000_TXDCTL_QUEUE_ENABLE);
-//     i = 0;
-//     do {
-//       gBS->Stall (1);
-//       TxdCtl = E1000_READ_REG (&AdapterInfo->Hw, E1000_TXDCTL (0));
-//     } while ((++i < MAX_QUEUE_DISABLE_TIME)
-//       && (BIT_TEST (TxdCtl, E1000_TXDCTL_QUEUE_ENABLE)));
-//     DEBUGPRINT (E1000, ("Tx disabled\n"));
-//     break;
-//   default:
-//     break;
-//   }
+    E1000ClearRegBits (AdapterInfo, E1000_TXDCTL (0), E1000_TXDCTL_QUEUE_ENABLE);
+    i = 0;
+    do {
+      gBS->Stall (1);
+      TxdCtl = E1000_READ_REG (&AdapterInfo->Hw, E1000_TXDCTL (0));
+    } while ((++i < MAX_QUEUE_DISABLE_TIME)
+      && (BIT_TEST (TxdCtl, E1000_TXDCTL_QUEUE_ENABLE)));
+    DEBUGPRINT (E1000, ("Tx disabled\n"));
+    break;
+  default:
+    break;
+  }
 
   E1000ClearRegBits (AdapterInfo, E1000_TCTL, E1000_TCTL_EN);
   E1000PciFlush (&AdapterInfo->Hw);

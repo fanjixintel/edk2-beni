@@ -278,7 +278,7 @@ enum e1000_nvm_type {
 	e1000_nvm_eeprom_microwire,
 #endif
 	e1000_nvm_flash_hw,
-#if !defined(NO_I210_SUPPORT)
+#if !defined(NO_I210_SUPPORT) 
 	e1000_nvm_invm,
 #endif /* NO_I210_SUPPORT || NO_I225_SUPPORT */
 	e1000_nvm_flash_sw
@@ -622,7 +622,7 @@ struct e1000_hw_stats {
 	u64 lenerrs;
 	u64 scvpc;
 	u64 hrmpc;
-#if !defined(NO_82575_SUPPORT)
+#if !defined(NO_82575_SUPPORT) 
 	u64 doosync;
 	u64 o2bgptc;
 	u64 o2bspc;
@@ -677,10 +677,10 @@ struct e1000_host_mng_command_info {
 	u8 command_data[E1000_HI_MAX_MNG_DATA_LENGTH];
 };
 
-// #include "e1000_mac.h"
-// #include "e1000_phy.h"
-// #include "e1000_nvm.h"
-// #include "e1000_manage.h"
+#include "e1000_mac.h"
+#include "e1000_phy.h"
+#include "e1000_nvm.h"
+#include "e1000_manage.h"
 
 /* Function pointers for the MAC. */
 struct e1000_mac_operations {
@@ -712,7 +712,7 @@ struct e1000_mac_operations {
 	int  (*rar_set)(struct e1000_hw *, u8*, u32);
 	s32  (*read_mac_addr)(struct e1000_hw *);
 	s32  (*validate_mdi_setting)(struct e1000_hw *);
-#if !defined(NO_82575_SUPPORT)
+#if !defined(NO_82575_SUPPORT) 
 	s32  (*acquire_swfw_sync)(struct e1000_hw *, u16);
 	void (*release_swfw_sync)(struct e1000_hw *, u16);
 #endif /* NO_82575_SUPPORT or NO_I225_SUPPORT */
@@ -794,7 +794,7 @@ struct e1000_mac_info {
 	u16 ifs_ratio;
 	u16 ifs_step_size;
 	u16 mta_reg_count;
-#if !defined(NO_82575_SUPPORT)
+#if !defined(NO_82575_SUPPORT) 
 	u16 uta_reg_count;
 #endif /* NO_82575_SUPPORT || NO-I225_SUPPORT */
 
@@ -891,6 +891,64 @@ struct e1000_fc_info {
 	enum e1000_fc_mode requested_mode;  /* FC mode requested by caller */
 };
 
+#ifndef NO_82571_SUPPORT
+struct e1000_dev_spec_82571 {
+	bool laa_is_present;
+	u32 smb_counter;
+	E1000_MUTEX swflag_mutex;
+};
+
+#endif /* NO_82571_SUPPORT */
+#ifndef NO_80003ES2LAN_SUPPORT
+struct e1000_dev_spec_80003es2lan {
+	bool  mdic_wa_enable;
+};
+
+#endif /* NO_80003ES2LAN_SUPPORT */
+#ifndef NO_ICH8LAN_SUPPORT
+struct e1000_shadow_ram {
+	u16  value;
+	bool modified;
+};
+
+#define E1000_SHADOW_RAM_WORDS		2048
+
+struct e1000_dev_spec_ich8lan {
+	bool kmrn_lock_loss_workaround_enabled;
+	struct e1000_shadow_ram shadow_ram[E1000_SHADOW_RAM_WORDS];
+	E1000_MUTEX nvm_mutex;
+	E1000_MUTEX swflag_mutex;
+	bool nvm_k1_enabled;
+	bool disable_k1_off;
+	bool eee_disable;
+	u16 eee_lp_ability;
+#ifdef S0_IDLE_SUPPORT
+	bool smbus_disable;
+#endif
+};
+
+#endif /* NO_ICH8LAN_SUPPORT */
+#ifndef NO_82575_SUPPORT
+struct e1000_dev_spec_82575 {
+	bool sgmii_active;
+	bool global_device_reset;
+	bool eee_disable;
+	bool module_plugged;
+#ifndef NO_I210_SUPPORT
+	bool clear_semaphore_once;
+#endif /* NO_I210_SUPPORT */
+	u32 mtu;
+	struct sfp_e1000_flags eth_flags;
+	u8 media_port;
+	bool media_changed;
+};
+
+struct e1000_dev_spec_vf {
+	u32 vf_number;
+	u32 v2p_mailbox;
+};
+
+#endif /* NO_82575_SUPPORT */
 struct e1000_hw {
 	void *back;
 
@@ -905,6 +963,22 @@ struct e1000_hw {
 	struct e1000_bus_info  bus;
 	struct e1000_host_mng_dhcp_cookie mng_cookie;
 
+	union {
+#ifndef NO_82571_SUPPORT
+		struct e1000_dev_spec_82571 _82571;
+#endif
+#ifndef NO_80003ES2LAN_SUPPORT
+		struct e1000_dev_spec_80003es2lan _80003es2lan;
+#endif
+#ifndef NO_ICH8LAN_SUPPORT
+		struct e1000_dev_spec_ich8lan ich8lan;
+#endif
+#ifndef NO_82575_SUPPORT
+		struct e1000_dev_spec_82575 _82575;
+		struct e1000_dev_spec_vf vf;
+#endif /* NO_82575_SUPPORT */
+	} dev_spec;
+
 	u16 device_id;
 	u16 subsystem_vendor_id;
 	u16 subsystem_device_id;
@@ -912,6 +986,25 @@ struct e1000_hw {
 
 	u8  revision_id;
 };
+
+#ifndef NO_82571_SUPPORT
+#include "e1000_82571.h"
+#endif
+#ifndef NO_80003ES2LAN_SUPPORT
+#include "e1000_80003es2lan.h"
+#endif
+#ifndef NO_ICH8LAN_SUPPORT
+#include "e1000_ich8lan.h"
+#endif
+#ifndef NO_82575_SUPPORT
+#include "e1000_82575.h"
+#endif
+#ifndef NO_I210_SUPPORT
+#include "e1000_i210.h"
+#endif
+#if !defined(NO_82575_SUPPORT) 
+#include "e1000_base.h"
+#endif
 
 /* These functions must be implemented by drivers */
 s32  e1000_read_pcie_cap_reg(struct e1000_hw *hw, u32 reg, u16 *value);

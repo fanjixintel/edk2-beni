@@ -1891,6 +1891,37 @@ IsSurpriseRemoval (
   MemoryFence ();
 
   if (Results == INVALID_STATUS_REGISTER_VALUE) {
+
+    if ((AdapterInfo->Hw.mac.type >= e1000_i210)
+      && !( e1000_get_flash_presence_i210 (&AdapterInfo->Hw)))
+    {
+      // during e1000_pll_workaround_i210 flow, flashless springville adapter
+      // may be put in D3 power state for a milisecond. In order to avoid
+      // SurpriseRemoval state need to check if the device is in D3 power state
+      UINT16 PciWord;
+      MemoryFence ();
+      AdapterInfo->PciIo->Pci.Read (
+                                AdapterInfo->PciIo,
+                                EfiPciIoWidthUint16,
+                                E1000_PCI_PMCSR,
+                                1,
+                                (VOID *) &PciWord
+                              );
+      MemoryFence ();
+
+      if (PciWord == 0xFFFF) {
+        // if we've read an 0xFFFF from PCI config space value
+        // it still means that we're it's a surprise removal state
+        AdapterInfo->SurpriseRemoval = TRUE;
+        return TRUE;
+      }
+
+      PciWord &= E1000_PCI_PMCSR_D3;
+      if (PciWord == E1000_PCI_PMCSR_D3) {
+        return FALSE;
+      }
+
+    }
     AdapterInfo->SurpriseRemoval = TRUE;
     return TRUE;
   }

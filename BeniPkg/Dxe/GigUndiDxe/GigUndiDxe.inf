@@ -1,10 +1,10 @@
 # /**************************************************************************
-#
+# 
 # Copyright (c) 2012 - 2021, Intel Corporation
-#
+# 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-#
+# 
 #     * Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
 #     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
 #     * Neither the name of Intel Corporation nor the names of its contributors
 #       may be used to endorse or promote products derived from this software
 #       without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -24,7 +24,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# 
 # ***************************************************************************/
 
 [Defines]
@@ -91,6 +91,8 @@
   Dma.h
   DriverConfiguration.c
   DriverConfiguration.h
+  DriverDiagnostics.c
+  DriverDiagnostics.h
   DriverHealth.c
   E1000.c
   E1000.h
@@ -120,9 +122,31 @@
 
   Hii/HiiSetup.c
 
+  e1000_80003es2lan.c
+  e1000_80003es2lan.h
+  e1000_82571.c
+  e1000_82571.h
+  e1000_82575.c
+  e1000_82575.h
   e1000_api.c
   e1000_api.h
+  e1000_defines.h
   e1000_hw.h
+  e1000_base.c
+  e1000_base.h
+  e1000_i210.c
+  e1000_i210.h
+  e1000_ich8lan.c
+  e1000_ich8lan.h
+  e1000_mac.c
+  e1000_mac.h
+  e1000_manage.c
+  e1000_manage.h
+  e1000_nvm.c
+  e1000_nvm.h
+  e1000_phy.c
+  e1000_phy.h
+  e1000_regs.h
 
   wol/wol.c
   wol/wol.h
@@ -144,6 +168,9 @@
   MdeModulePkg/MdeModulePkg.dec
 
 [LibraryClasses.common]
+# // jiangwei8-20220319-Modify4Compile-start>>
+#  StdLibC
+# // jiangwei8-20220319-Modify4Compile-end<<
   BaseLib
   MemoryAllocationLib
   UefiBootServicesTableLib

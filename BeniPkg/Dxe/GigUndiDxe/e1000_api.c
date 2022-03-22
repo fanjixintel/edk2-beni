@@ -117,7 +117,221 @@ out:
  **/
 s32 e1000_set_mac_type(struct e1000_hw *hw)
 {
+	struct e1000_mac_info *mac = &hw->mac;
 	s32 ret_val = E1000_SUCCESS;
+
+	DEBUGFUNC("e1000_set_mac_type");
+
+	switch (hw->device_id) {
+#ifndef NO_82571_SUPPORT
+	case E1000_DEV_ID_82571EB_COPPER:
+	case E1000_DEV_ID_82571EB_FIBER:
+	case E1000_DEV_ID_82571EB_SERDES:
+	case E1000_DEV_ID_82571EB_SERDES_DUAL:
+	case E1000_DEV_ID_82571EB_SERDES_QUAD:
+	case E1000_DEV_ID_82571EB_QUAD_COPPER:
+	case E1000_DEV_ID_82571PT_QUAD_COPPER:
+	case E1000_DEV_ID_82571EB_QUAD_FIBER:
+	case E1000_DEV_ID_82571EB_QUAD_COPPER_LP:
+		mac->type = e1000_82571;
+		break;
+	case E1000_DEV_ID_82572EI:
+	case E1000_DEV_ID_82572EI_COPPER:
+	case E1000_DEV_ID_82572EI_FIBER:
+	case E1000_DEV_ID_82572EI_SERDES:
+		mac->type = e1000_82572;
+		break;
+	case E1000_DEV_ID_82573E:
+	case E1000_DEV_ID_82573E_IAMT:
+	case E1000_DEV_ID_82573L:
+		mac->type = e1000_82573;
+		break;
+#endif /* NO_82571_SUPPORT */
+#ifndef NO_82574_SUPPORT
+	case E1000_DEV_ID_82574L:
+	case E1000_DEV_ID_82574LA:
+		mac->type = e1000_82574;
+		break;
+	case E1000_DEV_ID_82583V:
+		mac->type = e1000_82583;
+		break;
+#endif /* NO_82574_SUPPORT */
+#ifndef NO_80003ES2LAN_SUPPORT
+	case E1000_DEV_ID_80003ES2LAN_COPPER_DPT:
+	case E1000_DEV_ID_80003ES2LAN_SERDES_DPT:
+	case E1000_DEV_ID_80003ES2LAN_COPPER_SPT:
+	case E1000_DEV_ID_80003ES2LAN_SERDES_SPT:
+		mac->type = e1000_80003es2lan;
+		break;
+#endif
+#ifndef NO_ICH8LAN_SUPPORT
+	case E1000_DEV_ID_ICH8_IFE:
+	case E1000_DEV_ID_ICH8_IFE_GT:
+	case E1000_DEV_ID_ICH8_IFE_G:
+	case E1000_DEV_ID_ICH8_IGP_M:
+	case E1000_DEV_ID_ICH8_IGP_M_AMT:
+	case E1000_DEV_ID_ICH8_IGP_AMT:
+	case E1000_DEV_ID_ICH8_IGP_C:
+	case E1000_DEV_ID_ICH8_82567V_3:
+		mac->type = e1000_ich8lan;
+		break;
+	case E1000_DEV_ID_ICH9_IFE:
+	case E1000_DEV_ID_ICH9_IFE_GT:
+	case E1000_DEV_ID_ICH9_IFE_G:
+	case E1000_DEV_ID_ICH9_IGP_M:
+	case E1000_DEV_ID_ICH9_IGP_M_AMT:
+	case E1000_DEV_ID_ICH9_IGP_M_V:
+	case E1000_DEV_ID_ICH9_IGP_AMT:
+	case E1000_DEV_ID_ICH9_BM:
+	case E1000_DEV_ID_ICH9_IGP_C:
+	case E1000_DEV_ID_ICH10_R_BM_LM:
+	case E1000_DEV_ID_ICH10_R_BM_LF:
+	case E1000_DEV_ID_ICH10_R_BM_V:
+		mac->type = e1000_ich9lan;
+		break;
+	case E1000_DEV_ID_ICH10_D_BM_LM:
+	case E1000_DEV_ID_ICH10_D_BM_LF:
+	case E1000_DEV_ID_ICH10_D_BM_V:
+		mac->type = e1000_ich10lan;
+		break;
+	case E1000_DEV_ID_PCH_D_HV_DM:
+	case E1000_DEV_ID_PCH_D_HV_DC:
+	case E1000_DEV_ID_PCH_M_HV_LM:
+	case E1000_DEV_ID_PCH_M_HV_LC:
+		mac->type = e1000_pchlan;
+		break;
+	case E1000_DEV_ID_PCH2_LV_LM:
+	case E1000_DEV_ID_PCH2_LV_V:
+		mac->type = e1000_pch2lan;
+		break;
+	case E1000_DEV_ID_PCH_LPT_I217_LM:
+	case E1000_DEV_ID_PCH_LPT_I217_V:
+	case E1000_DEV_ID_PCH_LPTLP_I218_LM:
+	case E1000_DEV_ID_PCH_LPTLP_I218_V:
+	case E1000_DEV_ID_PCH_I218_LM2:
+	case E1000_DEV_ID_PCH_I218_V2:
+	case E1000_DEV_ID_PCH_I218_LM3:
+	case E1000_DEV_ID_PCH_I218_V3:
+		mac->type = e1000_pch_lpt;
+		break;
+	case E1000_DEV_ID_PCH_SPT_I219_LM:
+	case E1000_DEV_ID_PCH_SPT_I219_V:
+	case E1000_DEV_ID_PCH_SPT_I219_LM2:
+	case E1000_DEV_ID_PCH_SPT_I219_V2:
+	case E1000_DEV_ID_PCH_LBG_I219_LM3:
+	case E1000_DEV_ID_PCH_SPT_I219_LM4:
+	case E1000_DEV_ID_PCH_SPT_I219_V4:
+	case E1000_DEV_ID_PCH_SPT_I219_LM5:
+	case E1000_DEV_ID_PCH_SPT_I219_V5:
+#ifdef COMET_LAKE_HW
+	case E1000_DEV_ID_PCH_CMP_I219_LM12:
+	case E1000_DEV_ID_PCH_CMP_I219_V12:
+#endif /* COMET_LAKE_HW */
+		mac->type = e1000_pch_spt;
+		break;
+	case E1000_DEV_ID_PCH_CNP_I219_LM6:
+	case E1000_DEV_ID_PCH_CNP_I219_V6:
+	case E1000_DEV_ID_PCH_CNP_I219_LM7:
+	case E1000_DEV_ID_PCH_CNP_I219_V7:
+	case E1000_DEV_ID_PCH_ICP_I219_LM8:
+	case E1000_DEV_ID_PCH_ICP_I219_V8:
+	case E1000_DEV_ID_PCH_ICP_I219_LM9:
+	case E1000_DEV_ID_PCH_ICP_I219_V9:
+#ifdef COMET_LAKE_HW
+	case E1000_DEV_ID_PCH_CMP_I219_LM10:
+	case E1000_DEV_ID_PCH_CMP_I219_V10:
+	case E1000_DEV_ID_PCH_CMP_I219_LM11:
+	case E1000_DEV_ID_PCH_CMP_I219_V11:
+#endif /* COMET_LAKE_HW */
+		mac->type = e1000_pch_cnp;
+		break;
+#ifdef NAHUM9_HW
+	case E1000_DEV_ID_PCH_TGP_I219_LM13:
+	case E1000_DEV_ID_PCH_TGP_I219_V13:
+	case E1000_DEV_ID_PCH_TGP_I219_LM14:
+	case E1000_DEV_ID_PCH_TGP_I219_V14:
+	case E1000_DEV_ID_PCH_TGP_I219_LM15:
+	case E1000_DEV_ID_PCH_TGP_I219_V15:
+		mac->type = e1000_pch_tgp;
+		break;
+#endif /* NAHUM9_HW */
+#ifdef NAHUM10_HW
+	case E1000_DEV_ID_PCH_ADL_I219_LM16:
+	case E1000_DEV_ID_PCH_ADL_I219_V16:
+	case E1000_DEV_ID_PCH_ADL_I219_LM17:
+	case E1000_DEV_ID_PCH_ADL_I219_V17:
+		mac->type = e1000_pch_adp;
+		break;
+#endif /* NAHUM10_HW */
+#endif /*NO_ICH8LAN_SUPPORT */
+#ifndef NO_82575_SUPPORT
+	case E1000_DEV_ID_82575EB_COPPER:
+	case E1000_DEV_ID_82575EB_FIBER_SERDES:
+	case E1000_DEV_ID_82575GB_QUAD_COPPER:
+		mac->type = e1000_82575;
+		break;
+	case E1000_DEV_ID_82576:
+	case E1000_DEV_ID_82576_FIBER:
+	case E1000_DEV_ID_82576_SERDES:
+	case E1000_DEV_ID_82576_QUAD_COPPER:
+	case E1000_DEV_ID_82576_QUAD_COPPER_ET2:
+	case E1000_DEV_ID_82576_NS:
+	case E1000_DEV_ID_82576_NS_SERDES:
+	case E1000_DEV_ID_82576_SERDES_QUAD:
+		mac->type = e1000_82576;
+		break;
+#ifndef NO_82580_SUPPORT
+	case E1000_DEV_ID_82580_COPPER:
+	case E1000_DEV_ID_82580_FIBER:
+	case E1000_DEV_ID_82580_SERDES:
+	case E1000_DEV_ID_82580_SGMII:
+	case E1000_DEV_ID_82580_COPPER_DUAL:
+	case E1000_DEV_ID_82580_QUAD_FIBER:
+#ifndef NO_DH89XXCC_SUPPORT
+	case E1000_DEV_ID_DH89XXCC_SGMII:
+	case E1000_DEV_ID_DH89XXCC_SERDES:
+	case E1000_DEV_ID_DH89XXCC_BACKPLANE:
+	case E1000_DEV_ID_DH89XXCC_SFP:
+#endif /* NO_DH89XXCC_SUPPORT */
+		mac->type = e1000_82580;
+		break;
+#endif /* NO_82580_SUPPORT */
+	case E1000_DEV_ID_I350_COPPER:
+	case E1000_DEV_ID_I350_FIBER:
+	case E1000_DEV_ID_I350_SERDES:
+	case E1000_DEV_ID_I350_SGMII:
+	case E1000_DEV_ID_I350_DA4:
+		mac->type = e1000_i350;
+		break;
+#ifndef NO_I210_SUPPORT
+	case E1000_DEV_ID_I210_COPPER_FLASHLESS:
+	case E1000_DEV_ID_I210_SERDES_FLASHLESS:
+	case E1000_DEV_ID_I210_SGMII_FLASHLESS:
+	case E1000_DEV_ID_I210_COPPER:
+	case E1000_DEV_ID_I210_COPPER_OEM1:
+	case E1000_DEV_ID_I210_COPPER_IT:
+	case E1000_DEV_ID_I210_FIBER:
+	case E1000_DEV_ID_I210_SERDES:
+	case E1000_DEV_ID_I210_SGMII:
+		mac->type = e1000_i210;
+		break;
+	case E1000_DEV_ID_I211_COPPER:
+		mac->type = e1000_i211;
+		break;
+#endif /* NO_I210_SUPPORT */
+#endif /* NO_82575_SUPPORT */
+#ifndef NO_82575_SUPPORT
+	case E1000_DEV_ID_I354_BACKPLANE_1GBPS:
+	case E1000_DEV_ID_I354_SGMII:
+	case E1000_DEV_ID_I354_BACKPLANE_2_5GBPS:
+		mac->type = e1000_i354;
+		break;
+#endif /* NO_82575_SUPPORT */
+	default:
+		/* Should never have loaded on this device */
+		ret_val = -E1000_ERR_MAC_INIT;
+		break;
+	}
 
 	return ret_val;
 }
@@ -155,11 +369,11 @@ s32 e1000_setup_init_funcs(struct e1000_hw *hw, bool init_device)
 	 * Init function pointers to generic implementations. We do this first
 	 * allowing a driver module to override it afterward.
 	 */
-	// e1000_init_mac_ops_generic(hw);
+	e1000_init_mac_ops_generic(hw);
 #ifndef NO_NULL_OPS_SUPPORT
-	// e1000_init_phy_ops_generic(hw);
+	e1000_init_phy_ops_generic(hw);
 #endif /* NO_NULL_OPS_SUPPORT */
-	// e1000_init_nvm_ops_generic(hw);
+	e1000_init_nvm_ops_generic(hw);
 
 	/*
 	 * Set up the init function pointers. These are functions within the
@@ -167,6 +381,59 @@ s32 e1000_setup_init_funcs(struct e1000_hw *hw, bool init_device)
 	 * the functions in that family.
 	 */
 	switch (hw->mac.type) {
+#ifndef NO_82571_SUPPORT
+	case e1000_82571:
+	case e1000_82572:
+	case e1000_82573:
+#ifndef NO_82574_SUPPORT
+	case e1000_82574:
+	case e1000_82583:
+#endif /* NO_82574_SUPPORT */
+		e1000_init_function_pointers_82571(hw);
+		break;
+#endif
+#ifndef NO_80003ES2LAN_SUPPORT
+	case e1000_80003es2lan:
+		e1000_init_function_pointers_80003es2lan(hw);
+		break;
+#endif
+#ifndef NO_ICH8LAN_SUPPORT
+	case e1000_ich8lan:
+	case e1000_ich9lan:
+	case e1000_ich10lan:
+	case e1000_pchlan:
+	case e1000_pch2lan:
+	case e1000_pch_lpt:
+	case e1000_pch_spt:
+	case e1000_pch_cnp:
+#ifdef NAHUM9_HW
+	case e1000_pch_tgp:
+#endif
+#ifdef NAHUM10_HW
+	case e1000_pch_adp:
+#endif
+		e1000_init_function_pointers_ich8lan(hw);
+		break;
+#endif /* NO_ICH8LAN_SUPPORT */
+#ifndef NO_82575_SUPPORT
+	case e1000_82575:
+	case e1000_82576:
+#ifndef NO_82580_SUPPORT
+	case e1000_82580:
+	case e1000_i350:
+	case e1000_i354:
+#endif /* NO_82580_SUPPORT */
+		e1000_init_function_pointers_82575(hw);
+		break;
+#ifndef NO_I210_SUPPORT
+	case e1000_i210:
+	case e1000_i211:
+		e1000_init_function_pointers_i210(hw);
+		break;
+#endif /* NO_I210_SUPPORT */
+#endif /* NO_82575_SUPPORT */
+#ifndef NO_82575_SUPPORT
+#endif /* NO_82575_SUPPORT */
 	default:
 		DEBUGOUT("Hardware not supported\n");
 		ret_val = -E1000_ERR_CONFIG;
@@ -266,7 +533,7 @@ void e1000_update_mc_addr_list(struct e1000_hw *hw, u8 *mc_addr_list,
  **/
 s32 e1000_force_mac_fc(struct e1000_hw *hw)
 {
-	return -E1000_ERR_CONFIG;
+	return e1000_force_mac_fc_generic(hw);
 }
 
 /**
@@ -311,7 +578,7 @@ bool e1000_check_mng_mode(struct e1000_hw *hw)
  **/
 s32 e1000_mng_write_dhcp_info(struct e1000_hw *hw, u8 *buffer, u16 length)
 {
-	return -E1000_ERR_CONFIG;
+	return e1000_mng_write_dhcp_info_generic(hw, buffer, length);
 }
 
 #endif /* NO_82571_SUPPORT */
@@ -480,7 +747,7 @@ s32 e1000_led_off(struct e1000_hw *hw)
  **/
 void e1000_reset_adaptive(struct e1000_hw *hw)
 {
-
+	e1000_reset_adaptive_generic(hw);
 }
 
 /**
@@ -492,7 +759,7 @@ void e1000_reset_adaptive(struct e1000_hw *hw)
  **/
 void e1000_update_adaptive(struct e1000_hw *hw)
 {
-
+	e1000_update_adaptive_generic(hw);
 }
 
 /**
@@ -505,7 +772,7 @@ void e1000_update_adaptive(struct e1000_hw *hw)
  **/
 s32 e1000_disable_pcie_master(struct e1000_hw *hw)
 {
-	return E1000_SUCCESS;
+	return e1000_disable_pcie_master_generic(hw);
 }
 
 /**
@@ -562,7 +829,7 @@ s32 e1000_validate_mdi_setting(struct e1000_hw *hw)
  **/
 u32 e1000_hash_mc_addr(struct e1000_hw *hw, u8 *mc_addr)
 {
-	return E1000_SUCCESS;
+	return e1000_hash_mc_addr_generic(hw, mc_addr);
 }
 
 #ifndef NO_82571_SUPPORT
@@ -577,7 +844,7 @@ u32 e1000_hash_mc_addr(struct e1000_hw *hw, u8 *mc_addr)
  **/
 bool e1000_enable_tx_pkt_filtering(struct e1000_hw *hw)
 {
-	return E1000_SUCCESS;
+	return e1000_enable_tx_pkt_filtering_generic(hw);
 }
 
 /**
@@ -595,7 +862,7 @@ bool e1000_enable_tx_pkt_filtering(struct e1000_hw *hw)
 s32 e1000_mng_host_if_write(struct e1000_hw *hw, u8 *buffer, u16 length,
 			    u16 offset, u8 *sum)
 {
-	return E1000_SUCCESS;
+	return e1000_mng_host_if_write_generic(hw, buffer, length, offset, sum);
 }
 
 /**
@@ -608,7 +875,7 @@ s32 e1000_mng_host_if_write(struct e1000_hw *hw, u8 *buffer, u16 length,
 s32 e1000_mng_write_cmd_header(struct e1000_hw *hw,
 			       struct e1000_host_mng_command_header *hdr)
 {
-	return E1000_SUCCESS;
+	return e1000_mng_write_cmd_header_generic(hw, hdr);
 }
 
 /**
@@ -623,7 +890,7 @@ s32 e1000_mng_write_cmd_header(struct e1000_hw *hw,
  **/
 s32 e1000_mng_enable_host_if(struct e1000_hw *hw)
 {
-	return E1000_SUCCESS;
+	return e1000_mng_enable_host_if_generic(hw);
 }
 
 #endif /* NO_82571_SUPPORT */
@@ -730,7 +997,7 @@ s32 e1000_cfg_on_link_up(struct e1000_hw *hw)
  **/
 s32 e1000_read_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return E1000_SUCCESS;
+	return e1000_read_kmrn_reg_generic(hw, offset, data);
 }
 
 /**
@@ -745,7 +1012,7 @@ s32 e1000_read_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 *data)
  **/
 s32 e1000_write_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return E1000_SUCCESS;
+	return e1000_write_kmrn_reg_generic(hw, offset, data);
 }
 
 /**
@@ -867,7 +1134,7 @@ s32 e1000_read_mac_addr(struct e1000_hw *hw)
 	if (hw->mac.ops.read_mac_addr)
 		return hw->mac.ops.read_mac_addr(hw);
 
-	return -E1000_ERR_CONFIG;
+	return e1000_read_mac_addr_generic(hw);
 }
 
 /**
@@ -883,7 +1150,7 @@ s32 e1000_read_mac_addr(struct e1000_hw *hw)
  **/
 s32 e1000_read_pba_string(struct e1000_hw *hw, u8 *pba_num, u32 pba_num_size)
 {
-	return -E1000_ERR_CONFIG;
+	return e1000_read_pba_string_generic(hw, pba_num, pba_num_size);
 }
 
 #ifndef NO_READ_PBA_LENGTH
@@ -899,7 +1166,7 @@ s32 e1000_read_pba_string(struct e1000_hw *hw, u8 *pba_num, u32 pba_num_size)
  **/
 s32 e1000_read_pba_length(struct e1000_hw *hw, u32 *pba_num_size)
 {
-	return -E1000_ERR_CONFIG;
+	return e1000_read_pba_length_generic(hw, pba_num_size);
 }
 
 #endif /* NO_READ_PBA_LENGTH */
@@ -916,7 +1183,7 @@ s32 e1000_read_pba_length(struct e1000_hw *hw, u32 *pba_num_size)
  **/
 s32 e1000_read_pba_num(struct e1000_hw *hw, u32 *pba_num)
 {
-	return -E1000_ERR_CONFIG;
+	return e1000_read_pba_num_generic(hw, pba_num);
 }
 
 #endif /* NO_PBA_NUM_ONLY_SUPPORT */
@@ -1013,7 +1280,7 @@ s32 e1000_write_nvm(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
 s32 e1000_write_8bit_ctrl_reg(struct e1000_hw *hw, u32 reg, u32 offset,
 			      u8 data)
 {
-	return E1000_SUCCESS;
+	return e1000_write_8bit_ctrl_reg_generic(hw, reg, offset, data);
 }
 
 #endif /* NO_82575_SUPPORT */

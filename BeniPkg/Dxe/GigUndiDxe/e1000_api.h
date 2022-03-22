@@ -31,6 +31,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "e1000_hw.h"
 
+#ifndef NO_82571_SUPPORT
+extern void e1000_init_function_pointers_82571(struct e1000_hw *hw);
+#endif
+#ifndef NO_80003ES2LAN_SUPPORT
+extern void e1000_init_function_pointers_80003es2lan(struct e1000_hw *hw);
+#endif
+#ifndef NO_ICH8LAN_SUPPORT
+extern void e1000_init_function_pointers_ich8lan(struct e1000_hw *hw);
+#endif
+#ifndef NO_82575_SUPPORT
+extern void e1000_init_function_pointers_82575(struct e1000_hw *hw);
+extern void e1000_init_function_pointers_vf(struct e1000_hw *hw);
+extern void e1000_power_up_fiber_serdes_link(struct e1000_hw *hw);
+extern void e1000_shutdown_fiber_serdes_link(struct e1000_hw *hw);
+#endif
+#ifndef NO_I210_SUPPORT
+extern void e1000_init_function_pointers_i210(struct e1000_hw *hw);
+#endif /* NO_I210_SUPPORT */
+
 s32 e1000_set_obff_timer(struct e1000_hw *hw, u32 itr);
 s32 e1000_set_mac_type(struct e1000_hw *hw);
 s32 e1000_setup_init_funcs(struct e1000_hw *hw, bool init_device);

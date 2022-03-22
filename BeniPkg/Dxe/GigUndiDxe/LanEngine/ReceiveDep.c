@@ -157,26 +157,26 @@ ReceiveConfigureQueue (
   TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_RDH (0));
   E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDT (0), TempReg);
 
-// #ifndef NO_82575_SUPPORT
-//   switch (AdapterInfo->Hw.mac.type) {
-//   case e1000_82575:
-//   case e1000_82576:
-// #ifndef NO_82580_SUPPORT
-//   case e1000_82580:
-// #endif /* !NO_82580_SUPPORT */
-//   case e1000_i350:
-//   case e1000_i354:
-//   case e1000_i210:
-//   case e1000_i211:
-//     E1000_WRITE_REG (
-//       &AdapterInfo->Hw,
-//       E1000_SRRCTL (0),
-//       E1000_SRRCTL_DESCTYPE_LEGACY
-//       );
-//   default:
-//     break;
-//   }
-// #endif /* !NO_82575_SUPPORT */
+#ifndef NO_82575_SUPPORT
+  switch (AdapterInfo->Hw.mac.type) {
+  case e1000_82575:
+  case e1000_82576:
+#ifndef NO_82580_SUPPORT
+  case e1000_82580:
+#endif /* !NO_82580_SUPPORT */
+  case e1000_i350:
+  case e1000_i354:
+  case e1000_i210:
+  case e1000_i211:
+    E1000_WRITE_REG (
+      &AdapterInfo->Hw,
+      E1000_SRRCTL (0),
+      E1000_SRRCTL_DESCTYPE_LEGACY
+      );
+  default:
+    break;
+  }
+#endif /* !NO_82575_SUPPORT */
 
   E1000_WRITE_REG (&AdapterInfo->Hw, E1000_MRQC, 0);
 
@@ -199,48 +199,48 @@ ReceiveEnableQueue (
   )
 {
   RECEIVE_RING      *RxRing;
-  // UINT32            TempReg;
-  // UINTN             i;
+  UINT32            TempReg;
+  UINTN             i;
 
   ASSERT (AdapterInfo != NULL);
 
   RxRing = RX_RING_FROM_ADAPTER (AdapterInfo);
 
-//   switch (AdapterInfo->Hw.mac.type) {
-// #ifndef NO_82575_SUPPORT
-//   case e1000_82575:
-//     e1000_rx_fifo_flush_base (&AdapterInfo->Hw);
+  switch (AdapterInfo->Hw.mac.type) {
+#ifndef NO_82575_SUPPORT
+  case e1000_82575:
+    e1000_rx_fifo_flush_base (&AdapterInfo->Hw);
 
-// #ifndef NO_82576_SUPPORT
-//   case e1000_82576:
-// #endif /* !NO_82576_SUPPORT */
-// #ifndef NO_82580_SUPPORT
-//   case e1000_82580:
-// #endif /* !NO_82580_SUPPORT */
-//   case e1000_i350:
-//   case e1000_i354:
-//   case e1000_i210:
-//   case e1000_i211:
-//     E1000SetRegBits (AdapterInfo, E1000_RXDCTL (0), E1000_RXDCTL_QUEUE_ENABLE);
+#ifndef NO_82576_SUPPORT
+  case e1000_82576:
+#endif /* !NO_82576_SUPPORT */
+#ifndef NO_82580_SUPPORT
+  case e1000_82580:
+#endif /* !NO_82580_SUPPORT */
+  case e1000_i350:
+  case e1000_i354:
+  case e1000_i210:
+  case e1000_i211:
+    E1000SetRegBits (AdapterInfo, E1000_RXDCTL (0), E1000_RXDCTL_QUEUE_ENABLE);
 
-//     i = 0;
-//     do {
-//       gBS->Stall (1);
-//       TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_RXDCTL (0));
+    i = 0;
+    do {
+      gBS->Stall (1);
+      TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_RXDCTL (0));
 
-//       i++;
-//       if (i >= MAX_QUEUE_ENABLE_TIME) {
-//         break;
-//       }
-//     } while (!BIT_TEST (TempReg, E1000_RXDCTL_QUEUE_ENABLE));
+      i++;
+      if (i >= MAX_QUEUE_ENABLE_TIME) {
+        break;
+      }
+    } while (!BIT_TEST (TempReg, E1000_RXDCTL_QUEUE_ENABLE));
 
-//     E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDH (0), 0);
-//     // Note: RxRing->NextToUse is by default reset to 0.
-//     break;
-// #endif /* !NO_82575_SUPPORT */
-//   default:
-//     RxRing->NextToUse = (UINT16) E1000_READ_REG (&AdapterInfo->Hw, E1000_RDH (0));
-//   }
+    E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDH (0), 0);
+    // Note: RxRing->NextToUse is by default reset to 0.
+    break;
+#endif /* !NO_82575_SUPPORT */
+  default:
+    RxRing->NextToUse = (UINT16) E1000_READ_REG (&AdapterInfo->Hw, E1000_RDH (0));
+  }
 
   E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDT (0), RxRing->BufferCount - 1);
   E1000SetRegBits (AdapterInfo, E1000_RCTL, E1000_RCTL_EN | E1000_RCTL_BAM);
@@ -261,49 +261,49 @@ ReceiveDisableQueue (
   IN DRIVER_DATA *AdapterInfo
   )
 {
-//   RECEIVE_RING    *RxRing;
-//   UINT32          TempReg;
-//   UINTN           i;
+  RECEIVE_RING    *RxRing;
+  UINT32          TempReg;
+  UINTN           i;
 
-//   ASSERT (AdapterInfo != NULL);
+  ASSERT (AdapterInfo != NULL);
 
-//   RxRing = RX_RING_FROM_ADAPTER (AdapterInfo);
+  RxRing = RX_RING_FROM_ADAPTER (AdapterInfo);
 
-//   switch (AdapterInfo->Hw.mac.type) {
-// #ifndef NO_82575_SUPPORT
-//   case e1000_82575:
-// #ifndef NO_82576_SUPPORT
-//   case e1000_82576:
-// #endif /* !NO_82576_SUPPORT */
-// #ifndef NO_82580_SUPPORT
-//   case e1000_82580:
-// #endif /* !NO_82580_SUPPORT */
-//   case e1000_i350:
-//   case e1000_i354:
-//   case e1000_i210:
-//   case e1000_i211:
-//     E1000ClearRegBits (AdapterInfo, E1000_RXDCTL (0), E1000_RXDCTL_QUEUE_ENABLE);
+  switch (AdapterInfo->Hw.mac.type) {
+#ifndef NO_82575_SUPPORT
+  case e1000_82575:
+#ifndef NO_82576_SUPPORT
+  case e1000_82576:
+#endif /* !NO_82576_SUPPORT */
+#ifndef NO_82580_SUPPORT
+  case e1000_82580:
+#endif /* !NO_82580_SUPPORT */
+  case e1000_i350:
+  case e1000_i354:
+  case e1000_i210:
+  case e1000_i211:
+    E1000ClearRegBits (AdapterInfo, E1000_RXDCTL (0), E1000_RXDCTL_QUEUE_ENABLE);
 
-//     i = 0;
-//     do {
-//       gBS->Stall (1);
-//       TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_RXDCTL (0));
+    i = 0;
+    do {
+      gBS->Stall (1);
+      TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_RXDCTL (0));
 
-//       i++;
-//       if (i >= MAX_QUEUE_ENABLE_TIME) {
-//         break;
-//       }
-//     } while (BIT_TEST (TempReg, E1000_RXDCTL_QUEUE_ENABLE));
+      i++;
+      if (i >= MAX_QUEUE_ENABLE_TIME) {
+        break;
+      }
+    } while (BIT_TEST (TempReg, E1000_RXDCTL_QUEUE_ENABLE));
 
-//     E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDT (0), 0);
-//     E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDH (0), 0);
-//     break;
-// #endif /* !NO_82575_SUPPORT */
-//   default:
-//     TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_RDH (0));
-//     E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDT (0), TempReg);
-//     break;
-//   }
+    E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDT (0), 0);
+    E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDH (0), 0);
+    break;
+#endif /* !NO_82575_SUPPORT */
+  default:
+    TempReg = E1000_READ_REG (&AdapterInfo->Hw, E1000_RDH (0));
+    E1000_WRITE_REG (&AdapterInfo->Hw, E1000_RDT (0), TempReg);
+    break;
+  }
 
   E1000ClearRegBits (AdapterInfo, E1000_RCTL, E1000_RCTL_EN);
 
