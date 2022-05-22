@@ -39,9 +39,19 @@ set PYTHON_COMMAND=py -3
 
 call edksetup.bat
 if not "%1"=="" (
-  if "%1"=="emulator" goto EMULATOR
-  if "%1"=="Payload"  goto PAYLOAD
-  if "%1"=="Ovmf"     goto OVMF
+  if /I "%1"=="emulator" (
+    if not "%2"=="" (
+      if /I "%2"=="Run" (
+        goto EMULATOR
+      ) else (
+        goto HELP
+      )
+    )
+    goto EMULATOR
+  )
+  if /I "%1"=="Payload"  goto PAYLOAD
+  if /I "%1"=="Ovmf"     goto OVMF
+  goto HELP
 ) else (
   :: Default build OVMF.
   goto OVMF
@@ -52,7 +62,7 @@ echo Building Emulator ...
 call build -p EmulatorPkg\EmulatorPkg.dsc -a X64 -t %TOOLS%
 if %errorlevel%==0 (
   echo Build result: SUCCESS!
-  if "%2"=="Run" (
+  if /I "%2"=="Run" (
     echo Runing emulator...
     cd Build\EmulatorX64\DEBUG_%TOOLS%\X64\ && start WinHost.exe
   )
