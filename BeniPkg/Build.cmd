@@ -23,29 +23,87 @@
 
 @echo off
 
-set TOOLS=VS2015x86
-set PYTHON_COMMAND=py -3
-
 set PKG_DIR=%CD%
 cd ..
 
-call edksetup.bat
-call build -p BeniPkg/BeniPkg.dsc -a X64 -a IA32 -t %TOOLS%
-
-echo ====================================================
-echo.
-if %errorlevel%==0 (
-  echo              Build result: SUCCESS!
-) else (
-  echo              Build result: FAILED!!
+:: Clean workspace.
+if "%1"=="Clean" (
+  goto CLEAN
 )
-echo.
-echo ====================================================
-echo.
 
-if not %errorlevel%==0 goto ERROR
-echo BIOS was built successfully!
-copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF.fd BeniPkg\
+set TOOLS=VS2015x86
+set PYTHON_COMMAND=py -3
+
+call edksetup.bat
+if not "%1"=="" (
+  if "%1"=="Emulator" (
+    goto EMULATOR
+  )
+  if "%1"=="Payload" (
+    goto PAYLOAD
+  )
+  if "%1"=="Ovmf" (
+    goto OVMF
+  )
+) else (
+  :: Default build OVMF.
+  goto OVMF
+)
+
+:EMULATOR
+echo Building Emulator ...
+call build -p EmulatorPkg\EmulatorPkg.dsc -a X64 -t %TOOLS%
+if %errorlevel%==0 (
+  echo Build result: SUCCESS!
+  if "%2"=="Run" (
+    echo Runing emulator...
+    cd Build\EmulatorX64\DEBUG_%TOOLS%\X64\ && start WinHost.exe
+  )
+  goto DONE
+) else (
+  goto ERROR
+)
+
+:OVMF
+echo Building OVMF ...
+call build -p BeniPkg/BeniPkg.dsc -a X64 -a IA32 -t %TOOLS%
+if %errorlevel%==0 (
+  echo Build result: SUCCESS!
+  copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF.fd BeniPkg\
+  goto DONE
+) else (
+  goto ERROR
+)
+
+:PAYLOAD
+echo Building Payload ...
+call build -p UefiPayloadPkg\UefiPayloadPkg.dsc -a IA32 -a X64 -b DEBUG -t %TOOLS% -D BOOTLOADER=SBL
+if %errorlevel%==0 (
+  echo Build result: SUCCESS!
+  goto DONE
+) else (
+  goto ERROR
+)
+
+:CLEAN
+echo Cleaning ...
+:: Delete directory Build.
+if exist Build rd /S /Q Build
+if exist BuildFsp rd /S /Q BuildFsp
+if exist *.log del /Q *.log
+:: Delete files and directories in Conf.
+pushd Conf
+if exist .cache rd /S /Q .cache
+if exist .AutoGenIdFile.txt  del /Q .AutoGenIdFile.txt
+if exist build_rule.txt  del /Q build_rule.txt
+if exist target.txt      del /Q target.txt
+if exist tools_def.txt   del /Q tools_def.txt
+popd
+:: Delete BIOS binary.
+cd %PKG_DIR%
+if exist log.txt  del /Q log.txt
+if exist OVMF*.fd  del /Q OVMF*.fd
+echo Done!
 goto DONE
 
 :ERROR
