@@ -94,25 +94,6 @@
   DEFINE MPT_SCSI_ENABLE         = TRUE
   DEFINE LSI_SCSI_ENABLE         = FALSE
 
-  #
-  # Flash size selection. Setting FD_SIZE_IN_KB on the command line directly to
-  # one of the supported values, in place of any of the convenience macros, is
-  # permitted.
-  #
-!ifdef $(FD_SIZE_1MB)
-  DEFINE FD_SIZE_IN_KB           = 1024
-!else
-!ifdef $(FD_SIZE_2MB)
-  DEFINE FD_SIZE_IN_KB           = 2048
-!else
-!ifdef $(FD_SIZE_4MB)
-  DEFINE FD_SIZE_IN_KB           = 4096
-!else
-  DEFINE FD_SIZE_IN_KB           = 4096
-!endif
-!endif
-!endif
-
 [BuildOptions]
   GCC:RELEASE_*_*_CC_FLAGS             = -DMDEPKG_NDEBUG
   INTEL:RELEASE_*_*_CC_FLAGS           = /D MDEPKG_NDEBUG
