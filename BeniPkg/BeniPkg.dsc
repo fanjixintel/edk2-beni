@@ -77,18 +77,19 @@
   #
   # Add BENI-defined macros.
   #
-  DEFINE DEBUG_ON_SERIAL_PORT    = TRUE
-  DEFINE NETWORK_ENABLE          = TRUE
-  DEFINE COMPILE_DIR             = DEBUG_VS2015x86
-  DEFINE BENI_EXT2_SUPPORT       = FALSE
-  DEFINE BENI_PXE_BOOT           = FALSE
-  DEFINE BENI_MACROS             = /DBENI_DEFINED
+  DEFINE REDFISH_ENABLE       = TRUE
+  DEFINE DEBUG_ON_SERIAL_PORT = TRUE
+  DEFINE NETWORK_ENABLE       = TRUE
+  DEFINE COMPILE_DIR          = DEBUG_VS2015x86
+  DEFINE BENI_EXT2_SUPPORT    = FALSE
+  DEFINE BENI_PXE_BOOT        = FALSE
+  DEFINE BENI_MACROS          = /DBENI_DEFINED
 !if $(BENI_PXE_BOOT) == TRUE
-  DEFINE BENI_MACROS             = $(BENI_MACROS) /DBENI_PXE_BOOT
+  DEFINE BENI_MACROS          = $(BENI_MACROS) /DBENI_PXE_BOOT
 !endif
 
   #
-  # Device drivers
+  # Device drivers.
   #
   DEFINE PVSCSI_ENABLE           = TRUE
   DEFINE MPT_SCSI_ENABLE         = TRUE
@@ -136,6 +137,7 @@
 # SKU Identification section - list of all SKU IDs supported by this Platform.
 #
 ################################################################################
+
 [SkuIds]
   0|DEFAULT
 
@@ -244,9 +246,9 @@
   RedfishPlatformCredentialLib|EmulatorPkg/Library/RedfishPlatformCredentialLib/RedfishPlatformCredentialLib.inf
 !endif
 
-  #
-  # Network libraries
-  #
+#
+# Network libraries.
+#
 !include NetworkPkg/NetworkLibs.dsc.inc
 
 !if $(NETWORK_TLS_ENABLE) == TRUE
@@ -276,6 +278,14 @@
   AsmLib|BeniPkg/Library/AsmLib/AsmLib.inf
   BeniTimeLib|BeniPkg/Library/BeniTimeLib/BeniTimeLib.inf
   BeniGlobalDataTestLib|BeniPkg/Library/BeniGlobalDataTestLib/BeniGlobalDataTestLib.inf
+!if $(REDFISH_ENABLE) == TRUE
+  RestExLib|RedfishPkg/Library/DxeRestExLib/DxeRestExLib.inf
+  Ucs2Utf8Lib|RedfishPkg/Library/BaseUcs2Utf8Lib/BaseUcs2Utf8Lib.inf
+  BaseSortLib|MdeModulePkg/Library/BaseSortLib/BaseSortLib.inf
+  RedfishCrtLib|RedfishPkg/PrivateLibrary/RedfishCrtLib/RedfishCrtLib.inf
+  JsonLib|RedfishPkg/Library/JsonLib/JsonLib.inf
+  RedfishLib|RedfishPkg/PrivateLibrary/RedfishLib/RedfishLib.inf
+!endif
 
 [LibraryClasses.common]
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
@@ -501,6 +511,7 @@
 # Pcd Section - list of all EDK II PCD Entries defined by this Platform.
 #
 ################################################################################
+
 [PcdsFeatureFlag]
   gEfiMdeModulePkgTokenSpaceGuid.PcdHiiOsRuntimeSupport|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSupportUefiDecompress|FALSE
@@ -617,9 +628,9 @@
   gEmbeddedTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesData|0x100
 
 [PcdsFixedAtBuild.X64]
-  #
-  # Network Pcds
-  #
+#
+# Network Pcds
+#
 !include NetworkPkg/NetworkPcds.dsc.inc
 
   gEfiShellPkgTokenSpaceGuid.PcdShellFileOperationSize|0x20000
@@ -719,6 +730,7 @@
 # Components Section - list of all EDK II Modules needed by this Platform.
 #
 ################################################################################
+
 [Components.IA32]
   OvmfPkg/ResetVector/ResetVector.inf
 
@@ -779,7 +791,7 @@
 
 [Components.X64]
   #
-  # DXE Phase modules
+  # DXE Phase modules.
   #
   MdeModulePkg/Core/Dxe/DxeMain.inf {
     <LibraryClasses>
@@ -906,14 +918,14 @@
   OvmfPkg/VirtioGpuDxe/VirtioGpu.inf
 
   #
-  # ISA Support
+  # ISA Support.
   #
   OvmfPkg/SioBusDxe/SioBusDxe.inf
   MdeModulePkg/Bus/Pci/PciSioSerialDxe/PciSioSerialDxe.inf
   MdeModulePkg/Bus/Isa/Ps2KeyboardDxe/Ps2KeyboardDxe.inf
 
   #
-  # SMBIOS Support
+  # SMBIOS Support.
   #
   MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf {
     <LibraryClasses>
@@ -922,7 +934,7 @@
   OvmfPkg/SmbiosPlatformDxe/SmbiosPlatformDxe.inf
 
   #
-  # ACPI Support
+  # ACPI Support.
   #
   MdeModulePkg/Universal/Acpi/AcpiTableDxe/AcpiTableDxe.inf
   OvmfPkg/AcpiPlatformDxe/QemuFwCfgAcpiPlatformDxe.inf
@@ -930,9 +942,9 @@
   MdeModulePkg/Universal/Acpi/BootScriptExecutorDxe/BootScriptExecutorDxe.inf
   MdeModulePkg/Universal/Acpi/BootGraphicsResourceTableDxe/BootGraphicsResourceTableDxe.inf
 
-  #
-  # Network Support
-  #
+#
+# Network Support.
+#
 !include NetworkPkg/NetworkComponents.dsc.inc
 
   NetworkPkg/UefiPxeBcDxe/UefiPxeBcDxe.inf {
@@ -949,7 +961,7 @@
   OvmfPkg/VirtioNetDxe/VirtioNet.inf
 
   #
-  # Usb Support
+  # Usb Support.
   #
   MdeModulePkg/Bus/Pci/UhciDxe/UhciDxe.inf
   MdeModulePkg/Bus/Pci/EhciDxe/EhciDxe.inf
@@ -1042,17 +1054,17 @@
   OvmfPkg/CpuS3DataDxe/CpuS3DataDxe.inf
 
   #
-  # SMM Initial Program Load (a DXE_RUNTIME_DRIVER)
+  # SMM Initial Program Load (a DXE_RUNTIME_DRIVER).
   #
   MdeModulePkg/Core/PiSmmCore/PiSmmIpl.inf
 
   #
-  # SMM_CORE
+  # SMM_CORE.
   #
   MdeModulePkg/Core/PiSmmCore/PiSmmCore.inf
 
   #
-  # Privileged drivers (DXE_SMM_DRIVER modules)
+  # Privileged drivers (DXE_SMM_DRIVER modules).
   #
   OvmfPkg/CpuHotplugSmm/CpuHotplugSmm.inf
   UefiCpuPkg/CpuIo2Smm/CpuIo2Smm.inf
@@ -1067,7 +1079,7 @@
   }
 
   #
-  # Variable driver stack (SMM)
+  # Variable driver stack (SMM).
   #
   OvmfPkg/QemuFlashFvbServicesRuntimeDxe/FvbServicesSmm.inf
   MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteSmm.inf
@@ -1081,7 +1093,7 @@
 !else
 
   #
-  # Variable driver stack (non-SMM)
+  # Variable driver stack (non-SMM).
   #
   OvmfPkg/QemuFlashFvbServicesRuntimeDxe/FvbServicesRuntimeDxe.inf
   OvmfPkg/EmuVariableFvbRuntimeDxe/Fvb.inf {
@@ -1096,7 +1108,7 @@
 !endif
 
   #
-  # TPM support
+  # TPM support.
   #
 !if $(TPM_ENABLE) == TRUE
   SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf {
@@ -1159,5 +1171,10 @@
 
 !if $(REDFISH_ENABLE) == TRUE
   EmulatorPkg/Application/RedfishPlatformConfig/RedfishPlatformConfig.inf
+  RedfishPkg/RestJsonStructureDxe/RestJsonStructureDxe.inf
+  RedfishPkg/RedfishHostInterfaceDxe/RedfishHostInterfaceDxe.inf
+  RedfishPkg/RedfishRestExDxe/RedfishRestExDxe.inf
+  RedfishPkg/RedfishCredentialDxe/RedfishCredentialDxe.inf
+  RedfishPkg/RedfishDiscoverDxe/RedfishDiscoverDxe.inf
+  RedfishPkg/RedfishConfigHandler/RedfishConfigHandlerDriver.inf
 !endif
-!include BeniPkg/BeniRedfish.dsc.inc
