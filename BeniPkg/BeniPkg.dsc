@@ -74,10 +74,14 @@
 
 !include NetworkPkg/NetworkDefines.dsc.inc
 
-#
-# Add BENI-defined macros, this file is created when building.
-#
-!include BeniPkg/BeniPkgDefines.dsc.inc
+  #
+  # Add BENI-defined macros.
+  #
+  DEFINE DEBUG_ON_SERIAL_PORT    = TRUE         
+  DEFINE NETWORK_ENABLE          = TRUE         
+  DEFINE COMPILE_DIR             = DEBUG_VS2015 
+  DEFINE BENI_EXT2_SUPPORT       = FALSE        
+  DEFINE BENI_PXE_BOOT           = FALSE        
 
   DEFINE BENI_MACROS = /DBENI_DEFINED
 !if $(BENI_PXE_BOOT) == TRUE

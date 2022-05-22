@@ -10,6 +10,7 @@
 ::
 :: @History:
 ::   20211002: Initialize.
+::   20220522: Using VS2015x86 instead of VS2015.
 ::
 :: This program and the accompanying materials
 :: are licensed and made available under the terms and conditions of the BSD License
@@ -22,18 +23,8 @@
 
 @echo off
 
-set TOOLS=VS2015
+set TOOLS=VS2015x86
 set PYTHON_COMMAND=py -3
-
-::
-:: Add BENI marcos here.
-::
-@echo. > BeniPkgDefines.dsc.inc
-@echo DEFINE DEBUG_ON_SERIAL_PORT    = TRUE         >> BeniPkgDefines.dsc.inc
-@echo DEFINE NETWORK_ENABLE          = TRUE         >> BeniPkgDefines.dsc.inc
-@echo DEFINE COMPILE_DIR             = DEBUG_VS2015 >> BeniPkgDefines.dsc.inc
-@echo DEFINE BENI_EXT2_SUPPORT       = FALSE        >> BeniPkgDefines.dsc.inc
-@echo DEFINE BENI_PXE_BOOT           = FALSE        >> BeniPkgDefines.dsc.inc
 
 set PKG_DIR=%CD%
 cd ..
@@ -54,8 +45,6 @@ echo.
 
 if not %errorlevel%==0 goto ERROR
 echo BIOS was built successfully!
-@REM copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_CODE.fd BeniPkg\
-@REM copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF_VARS.fd BeniPkg\
 copy Build\BeniPkg\DEBUG_%TOOLS%\FV\OVMF.fd BeniPkg\
 goto DONE
 
