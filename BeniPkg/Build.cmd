@@ -26,25 +26,22 @@
 set PKG_DIR=%CD%
 cd ..
 
+:: Help statement.
+if /I "%1"=="-h"      goto HELP
+if /I "%1"=="--help"  goto HELP
+if /I "%1"=="/?"      goto HELP
+
 :: Clean workspace.
-if "%1"=="Clean" (
-  goto CLEAN
-)
+if /I "%1"=="clean"   goto CLEAN
 
 set TOOLS=VS2015x86
 set PYTHON_COMMAND=py -3
 
 call edksetup.bat
 if not "%1"=="" (
-  if "%1"=="Emulator" (
-    goto EMULATOR
-  )
-  if "%1"=="Payload" (
-    goto PAYLOAD
-  )
-  if "%1"=="Ovmf" (
-    goto OVMF
-  )
+  if "%1"=="emulator" goto EMULATOR
+  if "%1"=="Payload"  goto PAYLOAD
+  if "%1"=="Ovmf"     goto OVMF
 ) else (
   :: Default build OVMF.
   goto OVMF
@@ -88,26 +85,32 @@ if %errorlevel%==0 (
 :CLEAN
 echo Cleaning ...
 :: Delete directory Build.
-if exist Build rd /S /Q Build
+if exist Build    rd /S /Q Build
 if exist BuildFsp rd /S /Q BuildFsp
-if exist *.log del /Q *.log
+if exist *.log    del /Q *.log
 :: Delete files and directories in Conf.
 pushd Conf
-if exist .cache rd /S /Q .cache
-if exist .AutoGenIdFile.txt  del /Q .AutoGenIdFile.txt
-if exist build_rule.txt  del /Q build_rule.txt
-if exist target.txt      del /Q target.txt
-if exist tools_def.txt   del /Q tools_def.txt
+if exist .cache               rd /S /Q .cache
+if exist .AutoGenIdFile.txt   del /Q .AutoGenIdFile.txt
+if exist build_rule.txt       del /Q build_rule.txt
+if exist target.txt           del /Q target.txt
+if exist tools_def.txt        del /Q tools_def.txt
 popd
 :: Delete BIOS binary.
 cd %PKG_DIR%
-if exist log.txt  del /Q log.txt
-if exist OVMF*.fd  del /Q OVMF*.fd
+if exist log.txt    del /Q log.txt
+if exist OVMF*.fd   del /Q OVMF*.fd
 echo Done!
 goto DONE
 
 :ERROR
 echo Oops!! You got some problems!
+goto DONE
+
+:HELP
+echo.
+echo Usage:
+echo   Build.cmd [Clean] [Emulator [Run]] [Payload] [Ovmf]
 goto DONE
 
 :DONE
