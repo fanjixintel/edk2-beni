@@ -27,4 +27,6 @@
     "${workspaceFolder}/**"
   ],
   "C_Cpp.errorSquiggles": "Disabled",
+  "files.trimTrailingWhitespace": true,
+  "editor.renderWhitespace": "all",
 }
