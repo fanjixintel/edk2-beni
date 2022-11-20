@@ -7,3 +7,4 @@ __pycache__/
 tags/
 .vscode/
 *.log
+vc140.pdb
