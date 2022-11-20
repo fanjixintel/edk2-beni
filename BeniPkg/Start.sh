@@ -1,11 +1,11 @@
 ##
 #  @Package     : BeniPkg
-#  @FileName    : Qemu.sh
+#  @FileName    : Start.sh
 #  @Date        : 20211005
 #  @Author      : Jiangwei
 #  @Version     : 1.0
 #  @Description :
-#    This is used to start QEMU using OVMF.fd as BIOS.
+#    This is used to start QEMU using OVMF.fd/coreboot.rom as BIOS.
 #
 #  @History:
 #    20211005: Initialize.

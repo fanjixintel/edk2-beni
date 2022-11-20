@@ -1,11 +1,11 @@
 ::::
 :: @Package     : BeniPkg
-:: @FileName    : Qemu.cmd
+:: @FileName    : Start.cmd
 :: @Date        : 20211002
 :: @Author      : Jiangwei
 :: @Version     : 1.0
 :: @Description :
-::   This is used to start QEMU using OVMF.fd as BIOS.
+::   This is used to start QEMU using OVMF.fd/coreboot.rom as BIOS.
 ::
 :: @History:
 ::   20211002: Initialize.
@@ -28,7 +28,7 @@ if exist OVMF*.fd (
         qemu-system-x86_64 -machine q35,smm=on -drive format=raw,file=disk.img -drive if=pflash,format=raw,unit=0,file=OVMF.fd -net nic -net tap,ifname=tap0 -serial stdio >> log.txt
         goto DONE
     )
-    if "%1"=="Net" (
+    if /I "%1"=="NET" (
         qemu-system-x86_64 -machine q35,smm=on -drive if=pflash,format=raw,unit=0,file=OVMF.fd -net nic -net tap,ifname=tap0 -serial stdio >> log.txt
     ) else (
         qemu-system-x86_64 -machine q35,smm=on -drive if=pflash,format=raw,unit=0,file=OVMF.fd -serial stdio >> log.txt
@@ -42,5 +42,6 @@ if exist coreboot.rom (
 )
 
 :DONE
+
 echo on
 @exit /b 0
